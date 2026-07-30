@@ -1,3 +1,13 @@
 spring:
   application:
     name: school-management-app
+
+  config:
+    import: "optional:file:./.env[.properties]"
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/school_db
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  
+

@@ -16,7 +16,6 @@ out
 
 # Systemowe pliki macOS
 .DS_Store
-
 .env
 application-local.properties
 *.class
