@@ -7,9 +7,6 @@ build:
     - name: postgres:18.4
       alias: postgres
 
-    - name: docker:dind
-      alias: docker
-
   variables:
     POSTGRES_DB: school_db
     POSTGRES_USER: school_user
@@ -19,9 +16,6 @@ build:
     DB_PASSWORD: school_password
     SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/school_db
 
-    DOCKER_HOST: "tcp://docker:2375"
-    DOCKER_TLS_CERTDIR: ""
-    DOCKER_DRIVER: overlay2
 
 
 
