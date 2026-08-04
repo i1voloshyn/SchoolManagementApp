@@ -1,9 +1,15 @@
 package com.foxminded.schoolmanagementapp.model;
 
-import jakarta.annotation.Nullable;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.jspecify.annotations.Nullable;
 
-public record Group(
-        @Nullable Integer groupId,
-        String name
-) {
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Group {
+    @Nullable
+    Integer groupId;
+    String name;
 }

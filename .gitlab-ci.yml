@@ -15,9 +15,3 @@ build:
     DB_USERNAME: school_user
     DB_PASSWORD: school_password
     SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/school_db
-
-
-
-
-
-

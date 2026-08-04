@@ -1,6 +1,6 @@
 CREATE TABLE groups
 (
-    group_id   SERIAL PRIMARY KEY,
+    group_id   BIGSERIAL PRIMARY KEY,
     group_name TEXT NOT NULL
 );
 CREATE TABLE students
@@ -12,7 +12,7 @@ CREATE TABLE students
 );
 CREATE TABLE courses
 (
-    course_id          SERIAL PRIMARY KEY,
+    course_id          BIGSERIAL PRIMARY KEY,
     course_name        TEXT NOT NULL,
     course_description TEXT NOT NULL
 );
@@ -20,6 +20,6 @@ CREATE TABLE courses
 CREATE table students_courses
 (
     student_id BIGINT references students (student_id) ON DELETE CASCADE,
-    course_id  INTEGER references courses (course_id) ON DELETE CASCADE,
+    course_id  BIGINT references courses (course_id) ON DELETE CASCADE,
     PRIMARY KEY (student_id, course_id)
 );
