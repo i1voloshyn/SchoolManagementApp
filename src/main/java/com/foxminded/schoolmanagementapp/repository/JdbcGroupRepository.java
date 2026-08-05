@@ -2,6 +2,7 @@ package com.foxminded.schoolmanagementapp.repository;
 
 import com.foxminded.schoolmanagementapp.model.Group;
 import org.springframework.jdbc.JdbcUpdateAffectedIncorrectNumberOfRowsException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -14,12 +15,15 @@ import java.util.List;
 @Repository
 public class JdbcGroupRepository implements GroupRepository {
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
     private static final RowMapper<Group> GROUP_MAPPER = (rs, rowNums) -> new Group(
             rs.getLong("group_id"),
             rs.getString("group_name"));
 
-    public JdbcGroupRepository(NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
+    public JdbcGroupRepository(NamedParameterJdbcTemplate namedParameterJdbcTemplate,
+                               JdbcTemplate jdbcTemplate) {
         this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
@@ -48,6 +52,11 @@ public class JdbcGroupRepository implements GroupRepository {
     }
 
     @Override
+    public List<Group> findAll() {
+        return jdbcTemplate.query(getFindAllGroupsQuery(), GROUP_MAPPER);
+    }
+
+    @Override
     public List<Group> findByMaximumStudentCount(int maximumStudentCount) {
         return namedParameterJdbcTemplate.query(getFindByMaxStudentCountQuery(),
                 new MapSqlParameterSource("maximumStudentCount", maximumStudentCount)
@@ -73,6 +82,12 @@ public class JdbcGroupRepository implements GroupRepository {
                 LEFT JOIN students s ON s.group_id = g.group_id
                 GROUP BY g.group_id, g.group_name
                 HAVING COUNT(s.student_id) <= :maximumStudentCount;
+                """;
+    }
+
+    private String getFindAllGroupsQuery() {
+        return """
+                SELECT group_id, group_name FROM groups
                 """;
     }
 

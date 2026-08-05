@@ -10,6 +10,8 @@ public interface GroupRepository {
 
     void delete(Long id);
 
+    List<Group> findAll();
+
     List<Group> findByMaximumStudentCount(int maximumStudentCount);
 
 }
