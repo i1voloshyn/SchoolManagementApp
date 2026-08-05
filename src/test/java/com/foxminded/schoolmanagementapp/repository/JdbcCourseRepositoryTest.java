@@ -1,0 +1,160 @@
+package com.foxminded.schoolmanagementapp.repository;
+
+import com.foxminded.schoolmanagementapp.model.Course;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
+import org.springframework.boot.jdbc.test.autoconfigure.JdbcTest;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.context.annotation.Import;
+import org.springframework.jdbc.JdbcUpdateAffectedIncorrectNumberOfRowsException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.jdbc.Sql;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.postgresql.PostgreSQLContainer;
+
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatException;
+
+@JdbcTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import(JdbcCourseRepository.class)
+@Testcontainers
+class JdbcCourseRepositoryTest {
+
+    @Container
+    @ServiceConnection
+    private static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:18.4");
+
+    @Autowired
+    CourseRepository repository;
+    @Autowired
+    JdbcTemplate jdbcTemplate;
+
+    @Sql("/fixtures/clean_up.sql")
+    @Test
+    void save_shouldSaveAndReturnCourse_withGeneratedId() {
+        Course courseToSave = new Course(null, "Test Course", "Test course description");
+
+        Course saved = repository.save(courseToSave);
+
+        Course actual = jdbcTemplate.queryForObject(
+                "SELECT course_id, course_name, course_description FROM courses WHERE course_id = ?",
+                (resultSet, rowNumber) -> new Course(
+                        resultSet.getLong("course_id"),
+                        resultSet.getString("course_name"),
+                        resultSet.getString("course_description")
+                ),
+                saved.getId()
+        );
+
+        assertThat(saved.getId()).isNotNull();
+        assertThat(actual).isEqualTo(saved);
+    }
+
+    @Sql(value = {"/fixtures/clean_up.sql",
+            "/fixtures/courses/insert_five_courses.sql"})
+    @Test
+    void delete_shouldDeleteExpectedCourse() {
+        Long courseIdToDelete = jdbcTemplate.queryForObject(
+                "SELECT course_id FROM courses LIMIT 1",
+                Long.class
+        );
+
+        repository.delete(courseIdToDelete);
+
+        Long remainingCourses = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM courses WHERE course_id = ?",
+                Long.class,
+                courseIdToDelete
+        );
+
+        assertThat(remainingCourses).isZero();
+    }
+
+    @Sql("/fixtures/clean_up.sql")
+    @Test
+    void delete_shouldThrowException_whenCourseDoesNotExist() {
+        assertThatException()
+                .isThrownBy(() -> repository.delete(-1L))
+                .isInstanceOf(JdbcUpdateAffectedIncorrectNumberOfRowsException.class);
+    }
+
+    @Sql(value = {"/fixtures/clean_up.sql",
+            "/fixtures/courses/insert_five_courses.sql"})
+    @Test
+    void findAll_shouldReturnAllCourses_fromDatabase() {
+        List<String> expectedDescriptions = List.of(
+                "Java fundamentals",
+                "Advanced Java Course",
+                "Relational databases and SQL",
+                "Spring Framework fundamentals",
+                "Version control with Git"
+        );
+
+        List<Course> actual = repository.findAll();
+
+        assertThat(actual)
+                .extracting(Course::getDescription)
+                .containsExactlyInAnyOrderElementsOf(expectedDescriptions);
+    }
+
+    @Sql("/fixtures/clean_up.sql")
+    @Test
+    void findAll_shouldReturnEmptyList_whenDatabaseIsEmpty() {
+        List<Course> actual = repository.findAll();
+
+        assertThat(actual).isEmpty();
+    }
+
+    @Sql(value = {"/fixtures/clean_up.sql",
+            "/fixtures/courses/insert_five_courses.sql"})
+    @Test
+    void findById_shouldReturnExpectedCourse_whenCourseExists() {
+        Long courseId = jdbcTemplate.queryForObject(
+                "SELECT course_id FROM courses WHERE course_name = ?",
+                Long.class,
+                "Spring"
+        );
+
+        Optional<Course> actual = repository.findById(courseId);
+
+        assertThat(actual)
+                .isPresent()
+                .get()
+                .extracting(Course::getName, Course::getDescription)
+                .containsExactly("Spring", "Spring Framework fundamentals");
+    }
+
+    @Sql("/fixtures/clean_up.sql")
+    @Test
+    void findById_shouldReturnEmptyOptional_whenCourseDoesNotExist() {
+        Optional<Course> actual = repository.findById(-1L);
+
+        assertThat(actual).isEmpty();
+    }
+
+    @Sql(value = {"/fixtures/clean_up.sql",
+            "/fixtures/courses/insert_five_courses.sql"})
+    @Test
+    void findByName_shouldReturnAllCourses_withExpectedName() {
+        List<Course> actual = repository.findByName("Java");
+
+        assertThat(actual)
+                .extracting(Course::getName)
+                .containsOnly("Java");
+    }
+
+    @Sql(value = {"/fixtures/clean_up.sql",
+            "/fixtures/courses/insert_five_courses.sql"})
+    @Test
+    void findByName_shouldReturnEmptyList_whenNameDoesNotExist() {
+        List<Course> actual = repository.findByName("Unknown");
+
+        assertThat(actual).isEmpty();
+    }
+}

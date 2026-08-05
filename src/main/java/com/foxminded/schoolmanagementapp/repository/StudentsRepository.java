@@ -15,4 +15,5 @@ public interface StudentsRepository {
     Optional<Student> findById(Long id);
 
     List<Student> findByLastName(String lastName);
+
 }
