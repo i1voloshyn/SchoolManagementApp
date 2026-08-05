@@ -82,6 +82,46 @@ class JdbcStudentRepositoryTest {
         assertThat(remainingStudents).isZero();
     }
 
+    @Sql(value = {"/fixtures/clean_up.sql",
+            "/fixtures/enrollments/students_with_courses.sql"})
+    @Test
+    void delete_shouldDeleteStudentEnrollments_butPreserveCourses() {
+        Long coursesBeforeDelete = 3L;
+        Long studentIdToDelete = jdbcTemplate.queryForObject(
+                "SELECT student_id FROM students WHERE first_name = ?",
+                Long.class,
+                "John"
+        );
+        Long enrollmentsBeforeDelete = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM students_courses WHERE student_id = ?",
+                Long.class,
+                studentIdToDelete
+        );
+
+
+        repository.delete(studentIdToDelete);
+
+        Long remainingStudents = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM students WHERE student_id = ?",
+                Long.class,
+                studentIdToDelete
+        );
+        Long remainingEnrollments = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM students_courses WHERE student_id = ?",
+                Long.class,
+                studentIdToDelete
+        );
+        Long remainingCourses = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM courses",
+                Long.class
+        );
+
+        assertThat(enrollmentsBeforeDelete).isEqualTo(2L);
+        assertThat(remainingStudents).isZero();
+        assertThat(remainingEnrollments).isZero();
+        assertThat(remainingCourses).isEqualTo(coursesBeforeDelete);
+    }
+
     @Sql("/fixtures/clean_up.sql")
     @Test
     void delete_shouldThrowException_whenStudentDoesNotExist() {
@@ -157,6 +197,32 @@ class JdbcStudentRepositoryTest {
     @Test
     void findByLastName_shouldReturnEmptyList_whenLastNameDoesNotExist() {
         List<Student> actual = repository.findByLastName("Unknown");
+
+        assertThat(actual).isEmpty();
+    }
+
+    @Sql(value = {"/fixtures/clean_up.sql",
+            "/fixtures/enrollments/students_with_courses.sql"})
+    @Test
+    void findByCourseId_shouldReturnAllStudents_enrolledInExpectedCourse() {
+        Long courseId = jdbcTemplate.queryForObject(
+                "SELECT course_id FROM courses WHERE course_name = ?",
+                Long.class,
+                "Java"
+        );
+
+        List<Student> actual = repository.findByCourseId(courseId);
+
+        assertThat(actual)
+                .extracting(Student::getFirstName)
+                .containsExactlyInAnyOrder("John", "Anna");
+    }
+
+    @Sql(value = {"/fixtures/clean_up.sql",
+            "/fixtures/enrollments/students_with_courses.sql"})
+    @Test
+    void findByCourseId_shouldReturnEmptyList_whenCourseHasNoEnrollments() {
+        List<Student> actual = repository.findByCourseId(-1L);
 
         assertThat(actual).isEmpty();
     }

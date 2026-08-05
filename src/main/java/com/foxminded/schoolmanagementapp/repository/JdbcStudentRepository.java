@@ -15,12 +15,15 @@ import java.util.Optional;
 
 @Repository
 public class JdbcStudentRepository implements StudentsRepository {
-    private static final RowMapper<Student> STUDENT_MAPPER = (rs, rowNumber) -> new Student(
-            rs.getLong("student_id"),
-            rs.getLong("group_id"),
-            rs.getString("first_name"),
-            rs.getString("last_name")
-    );
+    private static final RowMapper<Student> STUDENT_MAPPER = (rs, rowNumber) -> {
+        Long groupId = rs.getLong("group_id");
+        return new Student(
+                rs.getLong("student_id"),
+                groupId,
+                rs.getString("first_name"),
+                rs.getString("last_name")
+        );
+    };
 
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
     private final JdbcTemplate jdbcTemplate;
@@ -85,6 +88,15 @@ public class JdbcStudentRepository implements StudentsRepository {
         );
     }
 
+    @Override
+    public List<Student> findByCourseId(Long courseId) {
+        return namedParameterJdbcTemplate.query(
+                getFindStudentsByCourseIdQuery(),
+                new MapSqlParameterSource("course_id", courseId),
+                STUDENT_MAPPER
+        );
+    }
+
     private String getInsertStudentQuery() {
         return """
                 INSERT INTO students (group_id, first_name, last_name)
@@ -118,6 +130,15 @@ public class JdbcStudentRepository implements StudentsRepository {
                 SELECT student_id, group_id, first_name, last_name
                 FROM students
                 WHERE last_name = :last_name
+                """;
+    }
+
+    private String getFindStudentsByCourseIdQuery() {
+        return """
+                SELECT s.student_id, s.group_id, s.first_name, s.last_name
+                FROM students s
+                JOIN students_courses sc ON sc.student_id = s.student_id
+                WHERE sc.course_id = :course_id
                 """;
     }
 

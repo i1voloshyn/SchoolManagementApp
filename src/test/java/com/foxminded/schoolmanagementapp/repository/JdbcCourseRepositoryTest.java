@@ -157,4 +157,36 @@ class JdbcCourseRepositoryTest {
 
         assertThat(actual).isEmpty();
     }
+
+    @Sql(value = {"/fixtures/clean_up.sql",
+            "/fixtures/enrollments/students_with_courses.sql"})
+    @Test
+    void findByStudentId_shouldReturnAllCourses_forExpectedStudent() {
+        Long studentId = jdbcTemplate.queryForObject(
+                "SELECT student_id FROM students WHERE first_name = ?",
+                Long.class,
+                "John"
+        );
+
+        List<Course> actual = repository.findByStudentId(studentId);
+
+        assertThat(actual)
+                .extracting(Course::getName)
+                .containsExactlyInAnyOrder("Java", "SQL");
+    }
+
+    @Sql(value = {"/fixtures/clean_up.sql",
+            "/fixtures/enrollments/students_with_courses.sql"})
+    @Test
+    void findByStudentId_shouldReturnEmptyList_whenStudentHasNoEnrollments() {
+        Long studentId = jdbcTemplate.queryForObject(
+                "SELECT student_id FROM students WHERE first_name = ?",
+                Long.class,
+                "Emily"
+        );
+
+        List<Course> actual = repository.findByStudentId(studentId);
+
+        assertThat(actual).isEmpty();
+    }
 }

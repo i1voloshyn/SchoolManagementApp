@@ -15,4 +15,6 @@ public interface CourseRepository {
     Optional<Course> findById(Long id);
 
     List<Course> findByName(String name);
+
+    List<Course> findByStudentId(Long studentId);
 }

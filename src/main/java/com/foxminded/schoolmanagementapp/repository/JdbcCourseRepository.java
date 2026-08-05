@@ -84,6 +84,15 @@ public class JdbcCourseRepository implements CourseRepository {
         );
     }
 
+    @Override
+    public List<Course> findByStudentId(Long studentId) {
+        return namedParameterJdbcTemplate.query(
+                getFindCoursesByStudentIdQuery(),
+                new MapSqlParameterSource("student_id", studentId),
+                COURSE_MAPPER
+        );
+    }
+
     private String getInsertCourseQuery() {
         return """
                 INSERT INTO courses (course_name, course_description)
@@ -117,6 +126,15 @@ public class JdbcCourseRepository implements CourseRepository {
                 SELECT course_id, course_name, course_description
                 FROM courses
                 WHERE course_name = :course_name
+                """;
+    }
+
+    private String getFindCoursesByStudentIdQuery() {
+        return """
+                SELECT c.course_id, c.course_name, c.course_description
+                FROM courses c
+                JOIN students_courses sc ON sc.course_id = c.course_id
+                WHERE sc.student_id = :student_id
                 """;
     }
 
