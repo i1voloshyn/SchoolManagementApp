@@ -1,6 +1,8 @@
 package com.foxminded.schoolmanagementapp.repository;
 
+import com.foxminded.schoolmanagementapp.model.Course;
 import com.foxminded.schoolmanagementapp.model.Student;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
@@ -9,11 +11,18 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.JdbcUpdateAffectedIncorrectNumberOfRowsException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
+import javax.sql.DataSource;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,9 +47,9 @@ class JdbcStudentRepositoryTest {
     @Sql("/fixtures/clean_up.sql")
     @Test
     void save_shouldSaveAndReturnStudent_withGeneratedId() {
-        jdbcTemplate.update("INSERT INTO groups (group_name) VALUES (?)", "Test Group");
+        jdbcTemplate.update("INSERT INTO groups (name) VALUES (?)", "Test Group");
         Long groupId = jdbcTemplate.queryForObject(
-                "SELECT group_id FROM groups WHERE group_name = ?",
+                "SELECT id FROM groups WHERE name = ?",
                 Long.class,
                 "Test Group"
         );
@@ -49,9 +58,9 @@ class JdbcStudentRepositoryTest {
         Student saved = repository.save(studentToSave);
 
         Student actual = jdbcTemplate.queryForObject(
-                "SELECT student_id, group_id, first_name, last_name FROM students WHERE student_id = ?",
+                "SELECT id, group_id, first_name, last_name FROM students WHERE id = ?",
                 (resultSet, rowNumber) -> new Student(
-                        resultSet.getLong("student_id"),
+                        resultSet.getLong("id"),
                         resultSet.getLong("group_id"),
                         resultSet.getString("first_name"),
                         resultSet.getString("last_name")
@@ -68,14 +77,14 @@ class JdbcStudentRepositoryTest {
     @Test
     void delete_shouldDeleteExpectedStudent() {
         Long studentIdToDelete = jdbcTemplate.queryForObject(
-                "SELECT student_id FROM students LIMIT 1",
+                "SELECT id FROM students LIMIT 1",
                 Long.class
         );
 
         repository.delete(studentIdToDelete);
 
         Long remainingStudents = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM students WHERE student_id = ?",
+                "SELECT COUNT(*) FROM students WHERE id = ?",
                 Long.class,
                 studentIdToDelete
         );
@@ -88,7 +97,7 @@ class JdbcStudentRepositoryTest {
     void delete_shouldDeleteStudentEnrollments_butPreserveCourses() {
         Long coursesBeforeDelete = 3L;
         Long studentIdToDelete = jdbcTemplate.queryForObject(
-                "SELECT student_id FROM students WHERE first_name = ?",
+                "SELECT id FROM students WHERE first_name = ?",
                 Long.class,
                 "John"
         );
@@ -102,7 +111,7 @@ class JdbcStudentRepositoryTest {
         repository.delete(studentIdToDelete);
 
         Long remainingStudents = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM students WHERE student_id = ?",
+                "SELECT COUNT(*) FROM students WHERE id = ?",
                 Long.class,
                 studentIdToDelete
         );
@@ -156,7 +165,7 @@ class JdbcStudentRepositoryTest {
     @Test
     void findById_shouldReturnExpectedStudent_whenStudentExists() {
         Long studentId = jdbcTemplate.queryForObject(
-                "SELECT student_id FROM students WHERE first_name = ?",
+                "SELECT id FROM students WHERE first_name = ?",
                 Long.class,
                 "Mark"
         );
@@ -206,7 +215,7 @@ class JdbcStudentRepositoryTest {
     @Test
     void findByCourseId_shouldReturnAllStudents_enrolledInExpectedCourse() {
         Long courseId = jdbcTemplate.queryForObject(
-                "SELECT course_id FROM courses WHERE course_name = ?",
+                "SELECT id FROM courses WHERE name = ?",
                 Long.class,
                 "Java"
         );

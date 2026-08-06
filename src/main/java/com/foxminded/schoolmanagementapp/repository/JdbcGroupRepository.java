@@ -9,86 +9,83 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 
 @Repository
 public class JdbcGroupRepository implements GroupRepository {
+    private static final String INSERT_GROUP_QUERY = """
+            INSERT INTO groups (name) VALUES (:name)
+            """;
+    private static final String DELETE_GROUP_QUERY = """
+            DELETE from groups WHERE id = :id
+            """;
+    private static final String FIND_BY_MAX_STUDENT_COUNT_QUERY = """
+            SELECT g.id, g.name
+            FROM groups g
+            LEFT JOIN students s ON s.group_id = g.id
+            GROUP BY g.id, g.name
+            HAVING COUNT(s.id) <= :maximumStudentCount;
+            """;
+    private static final String FIND_ALL_GROUPS_QUERY = """
+            SELECT id, name FROM groups
+            """;
+    private static final RowMapper<Group> GROUP_MAPPER = (rs, rowNums) -> new Group(
+            rs.getLong("id"),
+            rs.getString("name"));
+
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
     private final JdbcTemplate jdbcTemplate;
-    private static final RowMapper<Group> GROUP_MAPPER = (rs, rowNums) -> new Group(
-            rs.getLong("group_id"),
-            rs.getString("group_name"));
+    private final TransactionTemplate transactionTemplate;
 
     public JdbcGroupRepository(NamedParameterJdbcTemplate namedParameterJdbcTemplate,
-                               JdbcTemplate jdbcTemplate) {
+                               JdbcTemplate jdbcTemplate,
+                               TransactionTemplate transactionTemplate) {
         this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
         this.jdbcTemplate = jdbcTemplate;
+        this.transactionTemplate = transactionTemplate;
     }
 
     @Override
     public Group save(Group group) {
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        int affectedRows = namedParameterJdbcTemplate.update(
-                getInsertGroupQuery(),
-                new MapSqlParameterSource("group_name", group.getName()),
-                keyHolder,
-                new String[]{"group_id"}
-        );
-        validateQuery(getInsertGroupQuery(), 1, affectedRows);
+        return transactionTemplate.execute(status -> {
+            KeyHolder keyHolder = new GeneratedKeyHolder();
+            int affectedRows = namedParameterJdbcTemplate.update(
+                    INSERT_GROUP_QUERY,
+                    new MapSqlParameterSource("name", group.getName()),
+                    keyHolder,
+                    new String[]{"id"}
+            );
+            validateQuery(INSERT_GROUP_QUERY, 1, affectedRows);
 
-        Long generatedId = keyHolder.getKeyAs(Long.class);
-        group.setId(generatedId);
+            Long generatedId = keyHolder.getKeyAs(Long.class);
+            group.setId(generatedId);
 
-        return group;
+            return group;
+        });
     }
 
     @Override
     public void delete(Long id) {
-        int affectedRows = namedParameterJdbcTemplate.update(getDeleteGroupSql(),
-                new MapSqlParameterSource("group_id", id)
-        );
-        validateQuery(getDeleteGroupSql(), 1, affectedRows);
+        transactionTemplate.executeWithoutResult(status -> {
+            int affectedRows = namedParameterJdbcTemplate.update(DELETE_GROUP_QUERY,
+                    new MapSqlParameterSource("id", id)
+            );
+            validateQuery(DELETE_GROUP_QUERY, 1, affectedRows);
+        });
     }
 
     @Override
     public List<Group> findAll() {
-        return jdbcTemplate.query(getFindAllGroupsQuery(), GROUP_MAPPER);
+        return jdbcTemplate.query(FIND_ALL_GROUPS_QUERY, GROUP_MAPPER);
     }
 
     @Override
     public List<Group> findByMaximumStudentCount(int maximumStudentCount) {
-        return namedParameterJdbcTemplate.query(getFindByMaxStudentCountQuery(),
+        return namedParameterJdbcTemplate.query(FIND_BY_MAX_STUDENT_COUNT_QUERY,
                 new MapSqlParameterSource("maximumStudentCount", maximumStudentCount)
                 , GROUP_MAPPER);
-    }
-
-    private String getInsertGroupQuery() {
-        return """
-                INSERT INTO groups (group_name) VALUES (:group_name)
-                """;
-    }
-
-    private String getDeleteGroupSql() {
-        return """
-                DELETE from groups WHERE group_id = :group_id
-                """;
-    }
-
-    private String getFindByMaxStudentCountQuery() {
-        return """
-                SELECT g.group_id, g.group_name
-                FROM groups g
-                LEFT JOIN students s ON s.group_id = g.group_id
-                GROUP BY g.group_id, g.group_name
-                HAVING COUNT(s.student_id) <= :maximumStudentCount;
-                """;
-    }
-
-    private String getFindAllGroupsQuery() {
-        return """
-                SELECT group_id, group_name FROM groups
-                """;
     }
 
     private void validateQuery(String query, int expected, int actual) {

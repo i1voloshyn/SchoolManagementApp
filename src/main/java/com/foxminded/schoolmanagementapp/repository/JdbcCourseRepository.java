@@ -9,66 +9,101 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public class JdbcCourseRepository implements CourseRepository {
+    private static final String INSERT_COURSE_QUERY = """
+            INSERT INTO courses (name, description)
+            VALUES (:name, :description)
+            """;
+    private static final String DELETE_COURSE_QUERY = """
+            DELETE FROM courses WHERE id = :id
+            """;
+    private static final String FIND_ALL_COURSES_QUERY = """
+            SELECT id, name, description
+            FROM courses
+            """;
+    private static final String FIND_COURSE_BY_ID_QUERY = """
+            SELECT id, name, description
+            FROM courses
+            WHERE id = :id
+            """;
+    private static final String FIND_COURSES_BY_NAME_QUERY = """
+            SELECT id, name, description
+            FROM courses
+            WHERE name = :name
+            """;
+    private static final String FIND_COURSES_BY_STUDENT_ID_QUERY = """
+            SELECT c.id, c.name, c.description
+            FROM courses c
+            JOIN students_courses sc ON sc.course_id = c.id
+            WHERE sc.student_id = :student_id
+            """;
     private static final RowMapper<Course> COURSE_MAPPER = (resultSet, rowNumber) -> new Course(
-            resultSet.getLong("course_id"),
-            resultSet.getString("course_name"),
-            resultSet.getString("course_description")
+            resultSet.getLong("id"),
+            resultSet.getString("name"),
+            resultSet.getString("description")
     );
 
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
     private final JdbcTemplate jdbcTemplate;
+    private final TransactionTemplate transactionTemplate;
 
     public JdbcCourseRepository(NamedParameterJdbcTemplate namedParameterJdbcTemplate,
-                                JdbcTemplate jdbcTemplate) {
+                                JdbcTemplate jdbcTemplate,
+                                TransactionTemplate transactionTemplate) {
         this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
         this.jdbcTemplate = jdbcTemplate;
+        this.transactionTemplate = transactionTemplate;
     }
 
     @Override
     public Course save(Course course) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         MapSqlParameterSource parameters = new MapSqlParameterSource()
-                .addValue("course_name", course.getName())
-                .addValue("course_description", course.getDescription());
+                .addValue("name", course.getName())
+                .addValue("description", course.getDescription());
 
-        int affectedRows = namedParameterJdbcTemplate.update(
-                getInsertCourseQuery(),
-                parameters,
-                keyHolder,
-                new String[]{"course_id"}
-        );
-        validateQuery(getInsertCourseQuery(), 1, affectedRows);
+        return transactionTemplate.execute(status -> {
+            int affectedRows = namedParameterJdbcTemplate.update(
+                    INSERT_COURSE_QUERY,
+                    parameters,
+                    keyHolder,
+                    new String[]{"id"}
+            );
+            validateQuery(INSERT_COURSE_QUERY, 1, affectedRows);
 
-
-        course.setId(keyHolder.getKeyAs(Long.class));
-        return course;
+            course.setId(keyHolder.getKeyAs(Long.class));
+            return course;
+        });
     }
 
     @Override
     public void delete(Long id) {
-        int affectedRows = namedParameterJdbcTemplate.update(
-                getDeleteCourseQuery(),
-                new MapSqlParameterSource("course_id", id)
-        );
-        validateQuery(getDeleteCourseQuery(), 1, affectedRows);
+        transactionTemplate.executeWithoutResult(status -> {
+            int affectedRows = namedParameterJdbcTemplate.update(
+                    DELETE_COURSE_QUERY,
+                    new MapSqlParameterSource("id", id)
+            );
+
+            validateQuery(DELETE_COURSE_QUERY, 1, affectedRows);
+        });
     }
 
     @Override
     public List<Course> findAll() {
-        return jdbcTemplate.query(getFindAllCoursesQuery(), COURSE_MAPPER);
+        return jdbcTemplate.query(FIND_ALL_COURSES_QUERY, COURSE_MAPPER);
     }
 
     @Override
     public Optional<Course> findById(Long id) {
         return namedParameterJdbcTemplate.query(
-                        getFindCourseByIdQuery(),
-                        new MapSqlParameterSource("course_id", id),
+                        FIND_COURSE_BY_ID_QUERY,
+                        new MapSqlParameterSource("id", id),
                         COURSE_MAPPER
                 )
                 .stream()
@@ -78,8 +113,8 @@ public class JdbcCourseRepository implements CourseRepository {
     @Override
     public List<Course> findByName(String name) {
         return namedParameterJdbcTemplate.query(
-                getFindCoursesByNameQuery(),
-                new MapSqlParameterSource("course_name", name),
+                FIND_COURSES_BY_NAME_QUERY,
+                new MapSqlParameterSource("name", name),
                 COURSE_MAPPER
         );
     }
@@ -87,55 +122,10 @@ public class JdbcCourseRepository implements CourseRepository {
     @Override
     public List<Course> findByStudentId(Long studentId) {
         return namedParameterJdbcTemplate.query(
-                getFindCoursesByStudentIdQuery(),
+                FIND_COURSES_BY_STUDENT_ID_QUERY,
                 new MapSqlParameterSource("student_id", studentId),
                 COURSE_MAPPER
         );
-    }
-
-    private String getInsertCourseQuery() {
-        return """
-                INSERT INTO courses (course_name, course_description)
-                VALUES (:course_name, :course_description)
-                """;
-    }
-
-    private String getDeleteCourseQuery() {
-        return """
-                DELETE FROM courses WHERE course_id = :course_id
-                """;
-    }
-
-    private String getFindAllCoursesQuery() {
-        return """
-                SELECT course_id, course_name, course_description
-                FROM courses
-                """;
-    }
-
-    private String getFindCourseByIdQuery() {
-        return """
-                SELECT course_id, course_name, course_description
-                FROM courses
-                WHERE course_id = :course_id
-                """;
-    }
-
-    private String getFindCoursesByNameQuery() {
-        return """
-                SELECT course_id, course_name, course_description
-                FROM courses
-                WHERE course_name = :course_name
-                """;
-    }
-
-    private String getFindCoursesByStudentIdQuery() {
-        return """
-                SELECT c.course_id, c.course_name, c.course_description
-                FROM courses c
-                JOIN students_courses sc ON sc.course_id = c.course_id
-                WHERE sc.student_id = :student_id
-                """;
     }
 
     private void validateQuery(String query, int expected, int actual) {

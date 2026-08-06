@@ -130,7 +130,7 @@ class JdbcEnrollmentRepositoryTest {
 
     private Long findStudentId(String firstName) {
         return jdbcTemplate.queryForObject(
-                "SELECT student_id FROM students WHERE first_name = ?",
+                "SELECT id FROM students WHERE first_name = ?",
                 Long.class,
                 firstName
         );
@@ -138,7 +138,7 @@ class JdbcEnrollmentRepositoryTest {
 
     private Long findCourseId(String courseName) {
         return jdbcTemplate.queryForObject(
-                "SELECT course_id FROM courses WHERE course_name = ?",
+                "SELECT id FROM courses WHERE name = ?",
                 Long.class,
                 courseName
         );

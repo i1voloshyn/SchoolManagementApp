@@ -9,16 +9,44 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public class JdbcStudentRepository implements StudentsRepository {
+    private static final String INSERT_STUDENT_QUERY = """
+            INSERT INTO students (group_id, first_name, last_name)
+            VALUES (:group_id, :first_name, :last_name)
+            """;
+    private static final String DELETE_STUDENT_QUERY = """
+            DELETE FROM students WHERE id = :id
+            """;
+    private static final String FIND_ALL_STUDENTS_QUERY = """
+            SELECT id, group_id, first_name, last_name
+            FROM students
+            """;
+    private static final String FIND_STUDENT_BY_ID_QUERY = """
+            SELECT id, group_id, first_name, last_name
+            FROM students
+            WHERE id = :id
+            """;
+    private static final String FIND_STUDENTS_BY_LAST_NAME_QUERY = """
+            SELECT id, group_id, first_name, last_name
+            FROM students
+            WHERE last_name = :last_name
+            """;
+    private static final String FIND_STUDENTS_BY_COURSE_ID_QUERY = """
+            SELECT s.id, s.group_id, s.first_name, s.last_name
+            FROM students s
+            JOIN students_courses sc ON sc.student_id = s.id
+            WHERE sc.course_id = :id
+            """;
     private static final RowMapper<Student> STUDENT_MAPPER = (rs, rowNumber) -> {
         Long groupId = rs.getLong("group_id");
         return new Student(
-                rs.getLong("student_id"),
+                rs.getLong("id"),
                 groupId,
                 rs.getString("first_name"),
                 rs.getString("last_name")
@@ -27,11 +55,14 @@ public class JdbcStudentRepository implements StudentsRepository {
 
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
     private final JdbcTemplate jdbcTemplate;
+    private final TransactionTemplate transactionTemplate;
 
     public JdbcStudentRepository(NamedParameterJdbcTemplate namedParameterJdbcTemplate,
-                                 JdbcTemplate jdbcTemplate) {
+                                 JdbcTemplate jdbcTemplate,
+                                 TransactionTemplate transactionTemplate) {
         this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
         this.jdbcTemplate = jdbcTemplate;
+        this.transactionTemplate = transactionTemplate;
     }
 
     @Override
@@ -42,37 +73,41 @@ public class JdbcStudentRepository implements StudentsRepository {
                 .addValue("first_name", student.getFirstName())
                 .addValue("last_name", student.getLastName());
 
-        int affectedRows = namedParameterJdbcTemplate.update(
-                getInsertStudentQuery(),
-                parameters,
-                keyHolder,
-                new String[]{"student_id"}
-        );
-        validateQuery(getInsertStudentQuery(), 1, affectedRows);
+        return transactionTemplate.execute(status -> {
+            int affectedRows = namedParameterJdbcTemplate.update(
+                    INSERT_STUDENT_QUERY,
+                    parameters,
+                    keyHolder,
+                    new String[]{"id"}
+            );
+            validateQuery(INSERT_STUDENT_QUERY, 1, affectedRows);
 
-        student.setId(keyHolder.getKeyAs(Long.class));
-        return student;
+            student.setId(keyHolder.getKeyAs(Long.class));
+            return student;
+        });
     }
 
     @Override
     public void delete(Long id) {
-        int affectedRows = namedParameterJdbcTemplate.update(
-                getDeleteStudentQuery(),
-                new MapSqlParameterSource("student_id", id)
-        );
-        validateQuery(getDeleteStudentQuery(), 1, affectedRows);
+        transactionTemplate.executeWithoutResult(status -> {
+            int affectedRows = namedParameterJdbcTemplate.update(
+                    DELETE_STUDENT_QUERY,
+                    new MapSqlParameterSource("id", id)
+            );
+            validateQuery(DELETE_STUDENT_QUERY, 1, affectedRows);
+        });
     }
 
     @Override
     public List<Student> findAll() {
-        return jdbcTemplate.query(getFindAllStudentsQuery(), STUDENT_MAPPER);
+        return jdbcTemplate.query(FIND_ALL_STUDENTS_QUERY, STUDENT_MAPPER);
     }
 
     @Override
     public Optional<Student> findById(Long id) {
         return namedParameterJdbcTemplate.query(
-                        getFindStudentByIdQuery(),
-                        new MapSqlParameterSource("student_id", id),
+                        FIND_STUDENT_BY_ID_QUERY,
+                        new MapSqlParameterSource("id", id),
                         STUDENT_MAPPER
                 )
                 .stream()
@@ -82,64 +117,19 @@ public class JdbcStudentRepository implements StudentsRepository {
     @Override
     public List<Student> findByLastName(String lastName) {
         return namedParameterJdbcTemplate.query(
-                getFindStudentsByLastNameQuery(),
+                FIND_STUDENTS_BY_LAST_NAME_QUERY,
                 new MapSqlParameterSource("last_name", lastName),
                 STUDENT_MAPPER
         );
     }
 
     @Override
-    public List<Student> findByCourseId(Long courseId) {
+    public List<Student> findByCourseId(Long id) {
         return namedParameterJdbcTemplate.query(
-                getFindStudentsByCourseIdQuery(),
-                new MapSqlParameterSource("course_id", courseId),
+                FIND_STUDENTS_BY_COURSE_ID_QUERY,
+                new MapSqlParameterSource("id", id),
                 STUDENT_MAPPER
         );
-    }
-
-    private String getInsertStudentQuery() {
-        return """
-                INSERT INTO students (group_id, first_name, last_name)
-                VALUES (:group_id, :first_name, :last_name)
-                """;
-    }
-
-    private String getDeleteStudentQuery() {
-        return """
-                DELETE FROM students WHERE student_id = :student_id
-                """;
-    }
-
-    private String getFindAllStudentsQuery() {
-        return """
-                SELECT student_id, group_id, first_name, last_name
-                FROM students
-                """;
-    }
-
-    private String getFindStudentByIdQuery() {
-        return """
-                SELECT student_id, group_id, first_name, last_name
-                FROM students
-                WHERE student_id = :student_id
-                """;
-    }
-
-    private String getFindStudentsByLastNameQuery() {
-        return """
-                SELECT student_id, group_id, first_name, last_name
-                FROM students
-                WHERE last_name = :last_name
-                """;
-    }
-
-    private String getFindStudentsByCourseIdQuery() {
-        return """
-                SELECT s.student_id, s.group_id, s.first_name, s.last_name
-                FROM students s
-                JOIN students_courses sc ON sc.student_id = s.student_id
-                WHERE sc.course_id = :course_id
-                """;
     }
 
     private void validateQuery(String query, int expected, int actual) {

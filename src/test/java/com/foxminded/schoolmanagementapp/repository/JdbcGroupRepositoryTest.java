@@ -41,7 +41,7 @@ class JdbcGroupRepositoryTest {
 
         Group saved = repository.save(groupToSave);
 
-        Group actual = jdbcTemplate.queryForObject("SELECT group_id,group_name FROM groups WHERE group_id = ?",
+        Group actual = jdbcTemplate.queryForObject("SELECT id,name FROM groups WHERE id = ?",
                 (rs, rn) -> {
                     Long id = rs.getLong(1);
                     String name = rs.getString(2);
@@ -55,12 +55,12 @@ class JdbcGroupRepositoryTest {
             "/fixtures/groups/insert_five_groups.sql"})
     @Test
     void delete_shouldDeleteExpectedGroup() {
-        Long groupIdToDelete = jdbcTemplate.queryForObject("SELECT group_id FROM groups LIMIT 1",
+        Long groupIdToDelete = jdbcTemplate.queryForObject("SELECT id FROM groups LIMIT 1",
                 Long.class
         );
 
         repository.delete(groupIdToDelete);
-        Long remainingGroups = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM groups WHERE group_id = ?",
+        Long remainingGroups = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM groups WHERE id = ?",
                 Long.class, groupIdToDelete);
 
         assertThat(remainingGroups).isZero();

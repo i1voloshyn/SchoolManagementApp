@@ -1,6 +1,7 @@
 package com.foxminded.schoolmanagementapp.repository;
 
 import com.foxminded.schoolmanagementapp.model.Course;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
@@ -9,11 +10,19 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.JdbcUpdateAffectedIncorrectNumberOfRowsException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
+import javax.sql.DataSource;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,6 +43,10 @@ class JdbcCourseRepositoryTest {
     CourseRepository repository;
     @Autowired
     JdbcTemplate jdbcTemplate;
+    @Autowired
+    TransactionTemplate transactionTemplate;
+    @Autowired
+    DataSource dataSource;
 
     @Sql("/fixtures/clean_up.sql")
     @Test
@@ -43,11 +56,11 @@ class JdbcCourseRepositoryTest {
         Course saved = repository.save(courseToSave);
 
         Course actual = jdbcTemplate.queryForObject(
-                "SELECT course_id, course_name, course_description FROM courses WHERE course_id = ?",
+                "SELECT id, name, description FROM courses WHERE id = ?",
                 (resultSet, rowNumber) -> new Course(
-                        resultSet.getLong("course_id"),
-                        resultSet.getString("course_name"),
-                        resultSet.getString("course_description")
+                        resultSet.getLong("id"),
+                        resultSet.getString("name"),
+                        resultSet.getString("description")
                 ),
                 saved.getId()
         );
@@ -56,19 +69,20 @@ class JdbcCourseRepositoryTest {
         assertThat(actual).isEqualTo(saved);
     }
 
+
     @Sql(value = {"/fixtures/clean_up.sql",
             "/fixtures/courses/insert_five_courses.sql"})
     @Test
     void delete_shouldDeleteExpectedCourse() {
         Long courseIdToDelete = jdbcTemplate.queryForObject(
-                "SELECT course_id FROM courses LIMIT 1",
+                "SELECT id FROM courses LIMIT 1",
                 Long.class
         );
 
         repository.delete(courseIdToDelete);
 
         Long remainingCourses = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM courses WHERE course_id = ?",
+                "SELECT COUNT(*) FROM courses WHERE id = ?",
                 Long.class,
                 courseIdToDelete
         );
@@ -116,7 +130,7 @@ class JdbcCourseRepositoryTest {
     @Test
     void findById_shouldReturnExpectedCourse_whenCourseExists() {
         Long courseId = jdbcTemplate.queryForObject(
-                "SELECT course_id FROM courses WHERE course_name = ?",
+                "SELECT id FROM courses WHERE name = ?",
                 Long.class,
                 "Spring"
         );
@@ -163,7 +177,7 @@ class JdbcCourseRepositoryTest {
     @Test
     void findByStudentId_shouldReturnAllCourses_forExpectedStudent() {
         Long studentId = jdbcTemplate.queryForObject(
-                "SELECT student_id FROM students WHERE first_name = ?",
+                "SELECT id FROM students WHERE first_name = ?",
                 Long.class,
                 "John"
         );
@@ -180,7 +194,7 @@ class JdbcCourseRepositoryTest {
     @Test
     void findByStudentId_shouldReturnEmptyList_whenStudentHasNoEnrollments() {
         Long studentId = jdbcTemplate.queryForObject(
-                "SELECT student_id FROM students WHERE first_name = ?",
+                "SELECT id FROM students WHERE first_name = ?",
                 Long.class,
                 "Emily"
         );
