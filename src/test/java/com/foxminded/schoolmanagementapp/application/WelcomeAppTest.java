@@ -21,12 +21,9 @@ class WelcomeAppTest {
     @Mock
     private ApplicationArguments applicationArguments;
 
-    @Mock
-    GroupRepository dao;
-
     @Test
     void run_shouldPrintExpectedMessage() {
-        WelcomeApp welcomeApp = new WelcomeApp(output, provider, dao);
+        WelcomeApp welcomeApp = new WelcomeApp(output, provider);
         when(provider.getGreeting()).thenReturn("Hello");
 
         welcomeApp.run(applicationArguments);
