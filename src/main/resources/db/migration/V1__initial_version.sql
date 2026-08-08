@@ -13,8 +13,8 @@ CREATE TABLE students
 CREATE TABLE courses
 (
     id          BIGSERIAL PRIMARY KEY,
-    name        TEXT NOT NULL,
-    description TEXT NOT NULL
+    name        TEXT UNIQUE NOT NULL,
+    description TEXT        NOT NULL
 );
 
 CREATE table students_courses
