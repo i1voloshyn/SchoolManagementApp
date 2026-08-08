@@ -155,19 +155,18 @@ class JdbcCourseRepositoryTest {
     @Sql(value = {"/fixtures/clean_up.sql",
             "/fixtures/courses/insert_five_courses.sql"})
     @Test
-    void findByName_shouldReturnAllCourses_withExpectedName() {
-        List<Course> actual = repository.findByName("Java");
+    void findByName_shouldReturnOneCourse_withExpectedName() {
+        Optional<Course> actual = repository.findByName("Java");
 
-        assertThat(actual)
-                .extracting(Course::getName)
-                .containsOnly("Java");
+        assertThat(actual.isPresent()).isTrue();
+        assertThat(actual.get()).extracting(Course::getName).isEqualTo("Java");
     }
 
     @Sql(value = {"/fixtures/clean_up.sql",
             "/fixtures/courses/insert_five_courses.sql"})
     @Test
-    void findByName_shouldReturnEmptyList_whenNameDoesNotExist() {
-        List<Course> actual = repository.findByName("Unknown");
+    void findByName_shouldReturnEmptyOptional_whenNameDoesNotExist() {
+        Optional<Course> actual = repository.findByName("Unknown");
 
         assertThat(actual).isEmpty();
     }

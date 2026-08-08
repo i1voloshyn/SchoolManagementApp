@@ -111,12 +111,13 @@ public class JdbcCourseRepository implements CourseRepository {
     }
 
     @Override
-    public List<Course> findByName(String name) {
+    public Optional<Course> findByName(String name) {
         return namedParameterJdbcTemplate.query(
-                FIND_COURSES_BY_NAME_QUERY,
-                new MapSqlParameterSource("name", name),
-                COURSE_MAPPER
-        );
+                        FIND_COURSES_BY_NAME_QUERY,
+                        new MapSqlParameterSource("name", name),
+                        COURSE_MAPPER
+                ).stream()
+                .findFirst();
     }
 
     @Override
