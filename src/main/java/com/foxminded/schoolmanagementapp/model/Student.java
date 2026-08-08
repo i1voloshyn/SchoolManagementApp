@@ -9,8 +9,8 @@ import org.jspecify.annotations.Nullable;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Student {
-    @Nullable Long studentId;
-    @Nullable Integer groupId;
-    String firstName;
-    String lastName;
+    private @Nullable Long id;
+    private @Nullable Long groupId;
+    private String firstName;
+    private String lastName;
 }

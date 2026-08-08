@@ -6,10 +6,10 @@ import lombok.NoArgsConstructor;
 import org.jspecify.annotations.Nullable;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 public class Group {
     @Nullable
-    Integer groupId;
-    String name;
+    private Long id;
+    private String name;
 }

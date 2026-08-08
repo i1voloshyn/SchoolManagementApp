@@ -5,7 +5,10 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -18,26 +21,22 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Testcontainers
 class DatabaseMigrationTest {
 
-    private final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:18.4");
+    @Container
+    @ServiceConnection
+    private static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:18.4");
 
     @BeforeAll
     void beforeAll() {
-        POSTGRES.start();
         Flyway flyway = Flyway.configure()
                 .dataSource(POSTGRES.getJdbcUrl(),
                         POSTGRES.getUsername(),
                         POSTGRES.getPassword())
                 .locations("classpath:db/migration")
                 .load();
-
         flyway.migrate();
-    }
-
-    @AfterAll
-    void afterAll() {
-        POSTGRES.stop();
     }
 
     @Test
@@ -74,9 +73,9 @@ class DatabaseMigrationTest {
             ResultSetMetaData actual = resultSet.getMetaData();
 
             assertThat(actual.getColumnCount()).isEqualTo(3);
-            assertThat(actual.getColumnName(1)).isEqualTo("course_id");
-            assertThat(actual.getColumnName(2)).isEqualTo("course_name");
-            assertThat(actual.getColumnName(3)).isEqualTo("course_description");
+            assertThat(actual.getColumnName(1)).isEqualTo("id");
+            assertThat(actual.getColumnName(2)).isEqualTo("name");
+            assertThat(actual.getColumnName(3)).isEqualTo("description");
         }
     }
 
@@ -92,7 +91,7 @@ class DatabaseMigrationTest {
             ResultSetMetaData actual = resultSet.getMetaData();
 
             assertThat(actual.getColumnCount()).isEqualTo(4);
-            assertThat(actual.getColumnName(1)).isEqualTo("student_id");
+            assertThat(actual.getColumnName(1)).isEqualTo("id");
             assertThat(actual.getColumnName(2)).isEqualTo("group_id");
             assertThat(actual.getColumnName(3)).isEqualTo("first_name");
             assertThat(actual.getColumnName(4)).isEqualTo("last_name");
@@ -109,8 +108,8 @@ class DatabaseMigrationTest {
             ResultSetMetaData actual = resultSet.getMetaData();
 
             assertThat(actual.getColumnCount()).isEqualTo(2);
-            assertThat(actual.getColumnName(1)).isEqualTo("group_id");
-            assertThat(actual.getColumnName(2)).isEqualTo("group_name");
+            assertThat(actual.getColumnName(1)).isEqualTo("id");
+            assertThat(actual.getColumnName(2)).isEqualTo("name");
         }
     }
 
@@ -128,6 +127,7 @@ class DatabaseMigrationTest {
             assertThat(actual.getColumnName(2)).isEqualTo("course_id");
         }
     }
+
     @Test
     void deleteStudent_shouldDeleteEnrollmentButPreserveCourse() throws SQLException {
         try (Connection connection = POSTGRES.createConnection("")) {
@@ -150,9 +150,9 @@ class DatabaseMigrationTest {
 
     private long insertCourse(Connection connection) throws SQLException {
         String sql = """
-                INSERT INTO courses (course_name, course_description)
+                INSERT INTO courses (name, description)
                 VALUES (?, ?)
-                RETURNING course_id
+                RETURNING id
                 """;
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -164,7 +164,7 @@ class DatabaseMigrationTest {
                     throw new SQLException("Course was not inserted");
                 }
 
-                return resultSet.getLong("course_id");
+                return resultSet.getLong("id");
             }
         }
     }
@@ -173,7 +173,7 @@ class DatabaseMigrationTest {
         String sql = """
                 INSERT INTO students (group_id, first_name, last_name)
                 VALUES (?, ?, ?)
-                RETURNING student_id
+                RETURNING id
                 """;
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -186,7 +186,7 @@ class DatabaseMigrationTest {
                     throw new SQLException("Student was not inserted");
                 }
 
-                return resultSet.getLong("student_id");
+                return resultSet.getLong("id");
             }
         }
     }
@@ -219,7 +219,7 @@ class DatabaseMigrationTest {
     ) throws SQLException {
         String sql = """
                 DELETE FROM students
-                WHERE student_id = ?
+                WHERE id = ?
                 """;
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -241,7 +241,7 @@ class DatabaseMigrationTest {
     ) throws SQLException {
         String sql = """
                 DELETE FROM courses
-                WHERE course_id = ?
+                WHERE id = ?
                 """;
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -265,7 +265,7 @@ class DatabaseMigrationTest {
                 SELECT EXISTS (
                     SELECT 1
                     FROM students
-                    WHERE student_id = ?
+                    WHERE id = ?
                 )
                 """;
 
@@ -287,7 +287,7 @@ class DatabaseMigrationTest {
                 SELECT EXISTS (
                     SELECT 1
                     FROM courses
-                    WHERE course_id = ?
+                    WHERE id = ?
                 )
                 """;
 

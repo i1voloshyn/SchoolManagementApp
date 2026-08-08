@@ -2,6 +2,7 @@ package com.foxminded.schoolmanagementapp.application;
 
 import com.foxminded.schoolmanagementapp.repository.GreetingOutput;
 import com.foxminded.schoolmanagementapp.repository.GreetingProvider;
+import com.foxminded.schoolmanagementapp.repository.GroupRepository;
 import org.jspecify.annotations.NonNull;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -12,7 +13,7 @@ public class WelcomeApp implements ApplicationRunner {
     private final GreetingOutput greetingOutput;
     private final GreetingProvider greetingProvider;
 
-    public WelcomeApp(GreetingOutput greetingOutput, GreetingProvider greetingProvider) {
+    public WelcomeApp(GreetingOutput greetingOutput, GreetingProvider greetingProvider, GroupRepository groupRepository) {
         this.greetingOutput = greetingOutput;
         this.greetingProvider = greetingProvider;
     }

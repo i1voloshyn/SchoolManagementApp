@@ -9,7 +9,7 @@ import org.jspecify.annotations.Nullable;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Course {
-    @Nullable Integer courseId;
+    @Nullable Long id;
     String name;
     String description;
 }
