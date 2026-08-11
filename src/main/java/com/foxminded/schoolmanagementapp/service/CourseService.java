@@ -1,13 +1,11 @@
 package com.foxminded.schoolmanagementapp.service;
 
 import com.foxminded.schoolmanagementapp.GlobalMapper;
-import com.foxminded.schoolmanagementapp.exception.CourseNotFoundException;
 import com.foxminded.schoolmanagementapp.model.Course;
 import com.foxminded.schoolmanagementapp.model.CourseDto;
 import com.foxminded.schoolmanagementapp.repository.CourseRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -18,12 +16,8 @@ public class CourseService {
     private final GlobalMapper mapper;
 
     public CourseDto createCourse(CourseDto courseRequest) {
-        if (courseRequest.name().isBlank()) {
-            throw new IllegalArgumentException("Name cannot be blank");
-        }
-        if (courseRequest.description().length() <= 10) {
-            throw new IllegalArgumentException("Description must be at least 10 characters");
-        }
+        validateRequest(courseRequest);
+
         Course savedCourse = courseRepository.save(mapper.toCourse(courseRequest));
 
         return mapper.toCourseDto(savedCourse);
@@ -33,9 +27,6 @@ public class CourseService {
         if (courseId == null || courseId <= 0) {
             throw new IllegalArgumentException("Course ID must be positive");
         }
-        if (courseRepository.findById(courseId).isEmpty()) {
-            throw new CourseNotFoundException(courseId);
-        }
 
         courseRepository.delete(courseId);
     }
@@ -44,5 +35,14 @@ public class CourseService {
         return courseRepository.findAll().stream()
                 .map(mapper::toCourseDto)
                 .toList();
+    }
+
+    private void validateRequest(CourseDto request) {
+        if (request.name().isBlank()) {
+            throw new IllegalArgumentException("Name cannot be blank");
+        }
+        if (request.description().length() <= 10) {
+            throw new IllegalArgumentException("Description must be at least 10 characters");
+        }
     }
 }

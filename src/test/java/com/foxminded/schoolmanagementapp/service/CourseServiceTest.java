@@ -1,7 +1,6 @@
 package com.foxminded.schoolmanagementapp.service;
 
 import com.foxminded.schoolmanagementapp.GlobalMapper;
-import com.foxminded.schoolmanagementapp.exception.CourseNotFoundException;
 import com.foxminded.schoolmanagementapp.model.Course;
 import com.foxminded.schoolmanagementapp.model.CourseDto;
 import com.foxminded.schoolmanagementapp.repository.CourseRepository;
@@ -13,12 +12,9 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -71,22 +67,10 @@ class CourseServiceTest {
     @Test
     void deleteCourse_shouldDeleteExistingCourse() {
         Long courseId = 1L;
-        Course course = new Course(courseId, "Java", "Java programming course");
-        when(courseRepository.findById(courseId)).thenReturn(Optional.of(course));
 
         service.deleteCourse(courseId);
 
         verify(courseRepository).delete(courseId);
-    }
-
-    @Test
-    void deleteCourse_shouldThrowException_whenCourseDoesNotExist() {
-        Long courseId = 99L;
-        when(courseRepository.findById(courseId)).thenReturn(Optional.empty());
-
-        assertThatExceptionOfType(CourseNotFoundException.class)
-                .isThrownBy(() -> service.deleteCourse(courseId));
-        verify(courseRepository, never()).delete(courseId);
     }
 
     @Test
