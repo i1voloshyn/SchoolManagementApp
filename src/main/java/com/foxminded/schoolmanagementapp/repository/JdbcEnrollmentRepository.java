@@ -1,5 +1,8 @@
 package com.foxminded.schoolmanagementapp.repository;
 
+import com.foxminded.schoolmanagementapp.exception.EnrollmentException;
+import com.foxminded.schoolmanagementapp.exception.EnrollmentNotFoundException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.JdbcUpdateAffectedIncorrectNumberOfRowsException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -11,6 +14,18 @@ public class JdbcEnrollmentRepository implements EnrollmentRepository {
     private static final String ENROLL_STUDENT_QUERY = """
             INSERT INTO students_courses (student_id, course_id)
             VALUES (:student_id, :course_id)
+            """;
+
+    private static final String ENROLL_STUDENT_QUERY_WITH_VERIFICATION = """
+            INSERT INTO students_courses (student_id, course_id)
+            SELECT :student_id,:course_id
+            WHERE EXISTS(SELECT 1
+                         FROM students
+                         WHERE id = :student_id)
+            AND EXISTS(
+                SELECT 1 FROM courses
+                         WHERE id = :course_id
+            );
             """;
     private static final String REMOVE_STUDENT_QUERY = """
             DELETE FROM students_courses
@@ -36,13 +51,18 @@ public class JdbcEnrollmentRepository implements EnrollmentRepository {
 
     @Override
     public void enroll(Long studentId, Long courseId) {
-        transactionTemplate.executeWithoutResult(status -> {
-            int affectedRows = namedParameterJdbcTemplate.update(
-                    ENROLL_STUDENT_QUERY,
-                    enrollmentParameters(studentId, courseId)
-            );
-            validateQuery(ENROLL_STUDENT_QUERY, 1, affectedRows);
-        });
+        try {
+            transactionTemplate.executeWithoutResult(status -> {
+                int affectedRows = namedParameterJdbcTemplate.update(
+                        ENROLL_STUDENT_QUERY,
+                        enrollmentParameters(studentId, courseId)
+                );
+                validateQuery(ENROLL_STUDENT_QUERY, 1, affectedRows);
+            });
+        } catch (DataIntegrityViolationException e) {
+            throw new EnrollmentException("Cannot enroll student %d in course %d"
+                    .formatted(studentId, courseId), e);
+        }
     }
 
     @Override
@@ -52,6 +72,9 @@ public class JdbcEnrollmentRepository implements EnrollmentRepository {
                     REMOVE_STUDENT_QUERY,
                     enrollmentParameters(studentId, courseId)
             );
+            if (affectedRows == 0) {
+                throw new EnrollmentNotFoundException(studentId, courseId);
+            }
             validateQuery(REMOVE_STUDENT_QUERY, 1, affectedRows);
         });
     }

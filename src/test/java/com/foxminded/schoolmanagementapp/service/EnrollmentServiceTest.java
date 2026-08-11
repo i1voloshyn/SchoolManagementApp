@@ -1,9 +1,6 @@
 package com.foxminded.schoolmanagementapp.service;
 
 import com.foxminded.schoolmanagementapp.exception.CourseNotFoundException;
-import com.foxminded.schoolmanagementapp.exception.EnrollmentAlreadyExistsException;
-import com.foxminded.schoolmanagementapp.exception.EnrollmentNotFoundException;
-import com.foxminded.schoolmanagementapp.exception.StudentNotFoundException;
 import com.foxminded.schoolmanagementapp.model.Course;
 import com.foxminded.schoolmanagementapp.model.Student;
 import com.foxminded.schoolmanagementapp.repository.CourseRepository;
@@ -20,7 +17,6 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -70,108 +66,17 @@ class EnrollmentServiceTest {
     }
 
     @Test
-    void addStudentToCourse_shouldThrowEnrollmentAlreadyExistsException_whenEnrollmentExists() {
-        givenExistingStudentAndCourse();
-        when(enrollmentRepository.exists(STUDENT_ID, COURSE_ID))
-                .thenReturn(true);
-
-        assertThatExceptionOfType(EnrollmentAlreadyExistsException.class)
-                .isThrownBy(() ->
-                        service.addStudentToCourse(STUDENT_ID, COURSE_ID));
-
-        verify(enrollmentRepository, never())
-                .enroll(STUDENT_ID, COURSE_ID);
-    }
-
-    @Test
     void addStudentToCourse_shouldCreateNewEnrollment() {
-        givenExistingStudentAndCourse();
-        when(enrollmentRepository.exists(STUDENT_ID, COURSE_ID))
-                .thenReturn(false);
-
         service.addStudentToCourse(STUDENT_ID, COURSE_ID);
 
         verify(enrollmentRepository).enroll(STUDENT_ID, COURSE_ID);
     }
 
     @Test
-    void addStudentToCourse_shouldThrowWhenStudentDoesNotExist() {
-        when(studentsRepository.findById(STUDENT_ID))
-                .thenReturn(Optional.empty());
-
-        assertThatExceptionOfType(StudentNotFoundException.class)
-                .isThrownBy(() ->
-                        service.addStudentToCourse(STUDENT_ID, COURSE_ID));
-
-        verify(enrollmentRepository, never())
-                .enroll(STUDENT_ID, COURSE_ID);
-    }
-
-    @Test
-    void addStudentToCourse_shouldThrowWhenCourseDoesNotExist() {
-        when(studentsRepository.findById(STUDENT_ID))
-                .thenReturn(Optional.of(student()));
-        when(courseRepository.findById(COURSE_ID))
-                .thenReturn(Optional.empty());
-
-        assertThatExceptionOfType(CourseNotFoundException.class)
-                .isThrownBy(() ->
-                        service.addStudentToCourse(STUDENT_ID, COURSE_ID));
-
-        verify(enrollmentRepository, never())
-                .enroll(STUDENT_ID, COURSE_ID);
-    }
-
-    @Test
-    void removeStudentFromCourse_shouldThrowEnrollmentNotFoundException_whenEnrollmentDoesNotExist() {
-        givenExistingStudentAndCourse();
-        when(enrollmentRepository.exists(STUDENT_ID, COURSE_ID))
-                .thenReturn(false);
-
-        assertThatExceptionOfType(EnrollmentNotFoundException.class)
-                .isThrownBy(() ->
-                        service.removeStudentFromCourse(
-                                STUDENT_ID,
-                                COURSE_ID
-                        ));
-
-        verify(enrollmentRepository, never())
-                .remove(STUDENT_ID, COURSE_ID);
-    }
-
-    @Test
     void removeStudentFromCourse_shouldRemoveEnrollment() {
-        givenExistingStudentAndCourse();
-        when(enrollmentRepository.exists(STUDENT_ID, COURSE_ID))
-                .thenReturn(true);
-
         service.removeStudentFromCourse(STUDENT_ID, COURSE_ID);
 
         verify(enrollmentRepository).remove(STUDENT_ID, COURSE_ID);
-    }
-
-    private void givenExistingStudentAndCourse() {
-        when(studentsRepository.findById(STUDENT_ID))
-                .thenReturn(Optional.of(student()));
-        when(courseRepository.findById(COURSE_ID))
-                .thenReturn(Optional.of(course()));
-    }
-
-    private Student student() {
-        return new Student(
-                STUDENT_ID,
-                5L,
-                "John",
-                "Smith"
-        );
-    }
-
-    private Course course() {
-        return new Course(
-                COURSE_ID,
-                "Java",
-                "Java course"
-        );
     }
 
     private List<Student> students() {
