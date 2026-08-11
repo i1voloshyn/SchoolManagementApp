@@ -15,18 +15,6 @@ public class JdbcEnrollmentRepository implements EnrollmentRepository {
             INSERT INTO students_courses (student_id, course_id)
             VALUES (:student_id, :course_id)
             """;
-
-    private static final String ENROLL_STUDENT_QUERY_WITH_VERIFICATION = """
-            INSERT INTO students_courses (student_id, course_id)
-            SELECT :student_id,:course_id
-            WHERE EXISTS(SELECT 1
-                         FROM students
-                         WHERE id = :student_id)
-            AND EXISTS(
-                SELECT 1 FROM courses
-                         WHERE id = :course_id
-            );
-            """;
     private static final String REMOVE_STUDENT_QUERY = """
             DELETE FROM students_courses
             WHERE student_id = :student_id

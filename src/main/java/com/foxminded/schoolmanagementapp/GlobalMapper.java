@@ -1,9 +1,9 @@
 package com.foxminded.schoolmanagementapp;
 
 import com.foxminded.schoolmanagementapp.model.Course;
-import com.foxminded.schoolmanagementapp.model.CourseDto;
+import com.foxminded.schoolmanagementapp.dto.CourseDto;
 import com.foxminded.schoolmanagementapp.model.Student;
-import com.foxminded.schoolmanagementapp.model.StudentDto;
+import com.foxminded.schoolmanagementapp.dto.StudentDto;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 

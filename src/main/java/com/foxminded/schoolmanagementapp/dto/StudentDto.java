@@ -1,4 +1,4 @@
-package com.foxminded.schoolmanagementapp.model;
+package com.foxminded.schoolmanagementapp.dto;
 
 import org.jspecify.annotations.Nullable;
 
