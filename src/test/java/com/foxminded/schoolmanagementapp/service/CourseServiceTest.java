@@ -1,5 +1,6 @@
 package com.foxminded.schoolmanagementapp.service;
 
+import com.foxminded.schoolmanagementapp.GlobalMapper;
 import com.foxminded.schoolmanagementapp.exception.CourseNotFoundException;
 import com.foxminded.schoolmanagementapp.model.Course;
 import com.foxminded.schoolmanagementapp.model.CourseDto;
@@ -8,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
@@ -26,6 +28,8 @@ class CourseServiceTest {
 
     @Mock
     private CourseRepository courseRepository;
+    @Spy
+    private GlobalMapper mapper;
     @InjectMocks
     private CourseService service;
 
@@ -40,6 +44,8 @@ class CourseServiceTest {
 
         assertThat(actual).isEqualTo(new CourseDto(1L, "Java", "Java programming course"));
         verify(courseRepository).save(courseToSave);
+        verify(mapper).toCourseDto(savedCourse);
+        verify(mapper).toCourse(request);
     }
 
     @Test

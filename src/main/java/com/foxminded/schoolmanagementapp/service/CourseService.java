@@ -1,5 +1,6 @@
 package com.foxminded.schoolmanagementapp.service;
 
+import com.foxminded.schoolmanagementapp.GlobalMapper;
 import com.foxminded.schoolmanagementapp.exception.CourseNotFoundException;
 import com.foxminded.schoolmanagementapp.model.Course;
 import com.foxminded.schoolmanagementapp.model.CourseDto;
@@ -14,8 +15,8 @@ import java.util.List;
 @Service
 public class CourseService {
     private final CourseRepository courseRepository;
+    private final GlobalMapper mapper;
 
-    @Transactional
     public CourseDto createCourse(CourseDto courseRequest) {
         if (courseRequest.name().isBlank()) {
             throw new IllegalArgumentException("Name cannot be blank");
@@ -23,12 +24,11 @@ public class CourseService {
         if (courseRequest.description().length() <= 10) {
             throw new IllegalArgumentException("Description must be at least 10 characters");
         }
-        Course savedCourse = courseRepository.save(courseRequest.toEntity());
+        Course savedCourse = courseRepository.save(mapper.toCourse(courseRequest));
 
-        return CourseDto.toDto(savedCourse);
+        return mapper.toCourseDto(savedCourse);
     }
 
-    @Transactional
     public void deleteCourse(Long courseId) {
         if (courseId == null || courseId <= 0) {
             throw new IllegalArgumentException("Course ID must be positive");
@@ -40,10 +40,9 @@ public class CourseService {
         courseRepository.delete(courseId);
     }
 
-    @Transactional(readOnly = true)
     public List<CourseDto> findAll() {
         return courseRepository.findAll().stream()
-                .map(CourseDto::toDto)
+                .map(mapper::toCourseDto)
                 .toList();
     }
 }
