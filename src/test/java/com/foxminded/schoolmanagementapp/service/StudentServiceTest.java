@@ -1,15 +1,18 @@
 package com.foxminded.schoolmanagementapp.service;
 
+import com.foxminded.schoolmanagementapp.GlobalMapper;
 import com.foxminded.schoolmanagementapp.exception.CourseNotFoundException;
 import com.foxminded.schoolmanagementapp.exception.StudentNotFoundException;
 import com.foxminded.schoolmanagementapp.model.Course;
 import com.foxminded.schoolmanagementapp.model.Student;
+import com.foxminded.schoolmanagementapp.model.StudentDto;
 import com.foxminded.schoolmanagementapp.repository.CourseRepository;
 import com.foxminded.schoolmanagementapp.repository.StudentsRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
@@ -18,7 +21,9 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -31,6 +36,8 @@ class StudentServiceTest {
     private CourseRepository courseRepository;
     @InjectMocks
     private StudentService service;
+    @Spy
+    GlobalMapper mapper;
 
     @Test
     void findStudentsByCourseName_shouldReturnStudentsEnrolledInCourse() {
@@ -43,10 +50,16 @@ class StudentServiceTest {
         when(courseRepository.findByName("Java")).thenReturn(Optional.of(course));
         when(studentsRepository.findByCourseId(courseId)).thenReturn(expected);
 
-        List<Student> actual = service.findStudentsByCourseName("Java");
+        List<StudentDto> actual = service.findStudentsByCourseName("Java");
 
-        assertThat(actual).containsExactlyElementsOf(expected);
+        assertThat(actual).extracting(
+                "id", "groupId", "firstName", "lastName"
+        ).containsExactlyInAnyOrder(tuple(1L, 5L, "John", "Smith"),
+                tuple(2L, 5L, "Anna", "Brown"));
+
         verify(studentsRepository).findByCourseId(courseId);
+        verify(mapper).toStudentDto(new Student(1L, 5L, "John", "Smith"));
+        verify(mapper).toStudentDto(new Student(2L, 5L, "Anna", "Brown"));
     }
 
     @Test
@@ -56,52 +69,58 @@ class StudentServiceTest {
         assertThatExceptionOfType(CourseNotFoundException.class)
                 .isThrownBy(() -> service.findStudentsByCourseName("Unknown"));
         verifyNoInteractions(studentsRepository);
+        verifyNoInteractions(mapper);
     }
 
     @Test
     void findStudentsByCourseName_shouldRejectBlankCourseName() {
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> service.findStudentsByCourseName(" "));
-        verifyNoInteractions(courseRepository, studentsRepository);
+        verifyNoInteractions(courseRepository, studentsRepository, mapper);
     }
 
     @Test
     void addStudent_shouldReturnSavedStudent() {
-        Student newStudent = new Student(null, 5L, "John", "Smith");
+        StudentDto dto = new StudentDto(null, 5L, "John", "Smith");
+        Student studentToSave = new Student(null, 5L, "John", "Smith");
+
         Student savedStudent = new Student(1L, 5L, "John", "Smith");
-        when(studentsRepository.save(newStudent)).thenReturn(savedStudent);
+        when(studentsRepository.save(studentToSave)).thenReturn(savedStudent);
 
-        Student actual = service.addStudent(newStudent);
+        StudentDto actual = service.addStudent(dto);
 
-        assertThat(actual).isEqualTo(savedStudent);
-        verify(studentsRepository).save(newStudent);
+        assertThat(actual).isEqualTo(new StudentDto(1L, 5L, "John", "Smith"));
+        verify(studentsRepository).save(studentToSave);
+
+        verify(mapper).toStudent(new StudentDto(null, 5L, "John", "Smith"));
+        verify(mapper).toStudentDto(new Student(1L, 5L, "John", "Smith"));
     }
 
     @Test
     void addStudent_shouldRejectStudentWithId() {
-        Student existingStudent = new Student(1L, 5L, "John", "Smith");
+        StudentDto existingStudent = new StudentDto(1L, 5L, "John", "Smith");
 
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> service.addStudent(existingStudent));
-        verifyNoInteractions(studentsRepository);
+        verifyNoInteractions(studentsRepository, mapper);
     }
 
     @Test
     void addStudent_shouldRejectBlankFirstName() {
-        Student student = new Student(null, 5L, " ", "Smith");
+        StudentDto studentDto = new StudentDto(null, 5L, " ", "Smith");
 
         assertThatIllegalArgumentException()
-                .isThrownBy(() -> service.addStudent(student));
-        verifyNoInteractions(studentsRepository);
+                .isThrownBy(() -> service.addStudent(studentDto));
+        verifyNoInteractions(studentsRepository, mapper);
     }
 
     @Test
     void addStudent_shouldRejectBlankLastName() {
-        Student student = new Student(null, 5L, "John", null);
+        StudentDto student = new StudentDto(null, 5L, "John", null);
 
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> service.addStudent(student));
-        verifyNoInteractions(studentsRepository);
+        verifyNoInteractions(studentsRepository, mapper);
     }
 
     @Test

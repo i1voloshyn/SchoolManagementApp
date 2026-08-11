@@ -1,14 +1,14 @@
 package com.foxminded.schoolmanagementapp.service;
 
+import com.foxminded.schoolmanagementapp.GlobalMapper;
 import com.foxminded.schoolmanagementapp.exception.CourseNotFoundException;
 import com.foxminded.schoolmanagementapp.exception.StudentNotFoundException;
 import com.foxminded.schoolmanagementapp.model.Course;
-import com.foxminded.schoolmanagementapp.model.Student;
+import com.foxminded.schoolmanagementapp.model.StudentDto;
 import com.foxminded.schoolmanagementapp.repository.CourseRepository;
 import com.foxminded.schoolmanagementapp.repository.StudentsRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -17,9 +17,9 @@ import java.util.List;
 public class StudentService {
     private final StudentsRepository studentsRepository;
     private final CourseRepository courseRepository;
+    private final GlobalMapper mapper;
 
-    @Transactional(readOnly = true)
-    public List<Student> findStudentsByCourseName(String courseName) {
+    public List<StudentDto> findStudentsByCourseName(String courseName) {
         if (courseName == null || courseName.isBlank()) {
             throw new IllegalArgumentException("Course name must not be blank");
         }
@@ -27,16 +27,17 @@ public class StudentService {
         Course course = courseRepository.findByName(courseName)
                 .orElseThrow(() -> new CourseNotFoundException("Course not found with name: " + courseName));
 
-        return studentsRepository.findByCourseId(course.getId());
+        return studentsRepository.findByCourseId(course.getId())
+                .stream()
+                .map(mapper::toStudentDto)
+                .toList();
     }
 
-    @Transactional
-    public Student addStudent(Student student) {
-        validateNewStudent(student);
-        return studentsRepository.save(student);
+    public StudentDto addStudent(StudentDto dto) {
+        validateNewStudent(dto);
+        return mapper.toStudentDto(studentsRepository.save(mapper.toStudent(dto)));
     }
 
-    @Transactional
     public void deleteStudent(Long studentId) {
         validateStudentId(studentId);
         if (studentsRepository.findById(studentId).isEmpty()) {
@@ -45,20 +46,20 @@ public class StudentService {
         studentsRepository.delete(studentId);
     }
 
-    private void validateNewStudent(Student student) {
-        if (student == null) {
+    private void validateNewStudent(StudentDto dto) {
+        if (dto == null) {
             throw new IllegalArgumentException("Student must not be null");
         }
-        if (student.getId() != null) {
+        if (dto.id() != null) {
             throw new IllegalArgumentException("A new student must not have an ID");
         }
-        if (student.getFirstName() == null || student.getFirstName().isBlank()) {
+        if (dto.firstName() == null || dto.firstName().isBlank()) {
             throw new IllegalArgumentException("Student first name must not be blank");
         }
-        if (student.getLastName() == null || student.getLastName().isBlank()) {
+        if (dto.lastName() == null || dto.lastName().isBlank()) {
             throw new IllegalArgumentException("Student last name must not be blank");
         }
-        if (student.getGroupId() != null && student.getGroupId() <= 0) {
+        if (dto.groupId() != null && dto.groupId() <= 0) {
             throw new IllegalArgumentException("Group ID must be positive or absent");
         }
     }
