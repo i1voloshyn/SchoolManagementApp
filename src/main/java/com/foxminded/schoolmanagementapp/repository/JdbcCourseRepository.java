@@ -1,5 +1,6 @@
 package com.foxminded.schoolmanagementapp.repository;
 
+import com.foxminded.schoolmanagementapp.exception.CourseNotFoundException;
 import com.foxminded.schoolmanagementapp.model.Course;
 import org.springframework.jdbc.JdbcUpdateAffectedIncorrectNumberOfRowsException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -90,6 +91,10 @@ public class JdbcCourseRepository implements CourseRepository {
                     new MapSqlParameterSource("id", id)
             );
 
+            if (affectedRows == 0) {
+                throw new CourseNotFoundException(id);
+            }
+
             validateQuery(DELETE_COURSE_QUERY, 1, affectedRows);
         });
     }
@@ -111,12 +116,13 @@ public class JdbcCourseRepository implements CourseRepository {
     }
 
     @Override
-    public List<Course> findByName(String name) {
+    public Optional<Course> findByName(String name) {
         return namedParameterJdbcTemplate.query(
-                FIND_COURSES_BY_NAME_QUERY,
-                new MapSqlParameterSource("name", name),
-                COURSE_MAPPER
-        );
+                        FIND_COURSES_BY_NAME_QUERY,
+                        new MapSqlParameterSource("name", name),
+                        COURSE_MAPPER
+                ).stream()
+                .findFirst();
     }
 
     @Override

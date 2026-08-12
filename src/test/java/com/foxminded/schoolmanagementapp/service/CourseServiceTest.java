@@ -1,0 +1,118 @@
+package com.foxminded.schoolmanagementapp.service;
+
+import com.foxminded.schoolmanagementapp.GlobalMapper;
+import com.foxminded.schoolmanagementapp.model.Course;
+import com.foxminded.schoolmanagementapp.dto.CourseDto;
+import com.foxminded.schoolmanagementapp.repository.CourseRepository;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+class CourseServiceTest {
+
+    @Mock
+    private CourseRepository courseRepository;
+    @Spy
+    private GlobalMapper mapper;
+    @InjectMocks
+    private CourseService service;
+
+    @Test
+    void createCourse_shouldReturnSavedCourseDto() {
+        CourseDto request = new CourseDto(null, "Java", "Java programming course");
+        Course courseToSave = new Course(null, "Java", "Java programming course");
+        Course savedCourse = new Course(1L, "Java", "Java programming course");
+        when(courseRepository.save(courseToSave)).thenReturn(savedCourse);
+
+        CourseDto actual = service.createCourse(request);
+
+        assertThat(actual).isEqualTo(new CourseDto(1L, "Java", "Java programming course"));
+        verify(courseRepository).save(courseToSave);
+        verify(mapper).toCourseDto(savedCourse);
+        verify(mapper).toCourse(request);
+    }
+
+    @Test
+    void createCourse_shouldRejectBlankName() {
+        CourseDto request = new CourseDto(null, " ", "Java programming course");
+
+        assertThatIllegalArgumentException()
+                .isThrownBy(() -> service.createCourse(request))
+                .withMessage("Name cannot be blank");
+        verifyNoInteractions(courseRepository);
+    }
+
+    @Test
+    void createCourse_shouldRejectShortDescription() {
+        CourseDto request = new CourseDto(null, "Java", "Too short");
+
+        assertThatIllegalArgumentException()
+                .isThrownBy(() -> service.createCourse(request))
+                .withMessage("Description must be at least 10 characters");
+        verifyNoInteractions(courseRepository);
+    }
+
+    @Test
+    void deleteCourse_shouldDeleteExistingCourse() {
+        Long courseId = 1L;
+
+        service.deleteCourse(courseId);
+
+        verify(courseRepository).delete(courseId);
+    }
+
+    @Test
+    void deleteCourse_shouldRejectNonPositiveId() {
+        assertThatIllegalArgumentException()
+                .isThrownBy(() -> service.deleteCourse(-1L))
+                .withMessage("Course ID must be positive");
+        verifyNoInteractions(courseRepository);
+    }
+
+    @Test
+    void deleteCourse_shouldRejectNullId() {
+        assertThatIllegalArgumentException()
+                .isThrownBy(() -> service.deleteCourse(null))
+                .withMessage("Course ID must be positive");
+        verifyNoInteractions(courseRepository);
+    }
+
+    @Test
+    void findAll_shouldReturnCourseDtos() {
+        List<Course> courses = List.of(
+                new Course(1L, "Java", "Java programming course"),
+                new Course(2L, "SQL", "Relational databases course")
+        );
+        when(courseRepository.findAll()).thenReturn(courses);
+
+        List<CourseDto> actual = service.findAll();
+
+        assertThat(actual).containsExactly(
+                new CourseDto(1L, "Java", "Java programming course"),
+                new CourseDto(2L, "SQL", "Relational databases course")
+        );
+        verify(courseRepository).findAll();
+    }
+
+    @Test
+    void findAll_shouldReturnEmptyList_whenNoCoursesExist() {
+        when(courseRepository.findAll()).thenReturn(List.of());
+
+        List<CourseDto> actual = service.findAll();
+
+        assertThat(actual).isEmpty();
+        verify(courseRepository).findAll();
+    }
+}

@@ -1,28 +1,19 @@
 package com.foxminded.schoolmanagementapp.repository;
 
+import com.foxminded.schoolmanagementapp.exception.CourseNotFoundException;
 import com.foxminded.schoolmanagementapp.model.Course;
-import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.jdbc.test.autoconfigure.JdbcTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Import;
-import org.springframework.jdbc.JdbcUpdateAffectedIncorrectNumberOfRowsException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.core.namedparam.SqlParameterSource;
-import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
-import javax.sql.DataSource;
 import java.util.List;
 import java.util.Optional;
 
@@ -43,10 +34,6 @@ class JdbcCourseRepositoryTest {
     CourseRepository repository;
     @Autowired
     JdbcTemplate jdbcTemplate;
-    @Autowired
-    TransactionTemplate transactionTemplate;
-    @Autowired
-    DataSource dataSource;
 
     @Sql("/fixtures/clean_up.sql")
     @Test
@@ -95,7 +82,7 @@ class JdbcCourseRepositoryTest {
     void delete_shouldThrowException_whenCourseDoesNotExist() {
         assertThatException()
                 .isThrownBy(() -> repository.delete(-1L))
-                .isInstanceOf(JdbcUpdateAffectedIncorrectNumberOfRowsException.class);
+                .isInstanceOf(CourseNotFoundException.class);
     }
 
     @Sql(value = {"/fixtures/clean_up.sql",
@@ -155,19 +142,18 @@ class JdbcCourseRepositoryTest {
     @Sql(value = {"/fixtures/clean_up.sql",
             "/fixtures/courses/insert_five_courses.sql"})
     @Test
-    void findByName_shouldReturnAllCourses_withExpectedName() {
-        List<Course> actual = repository.findByName("Java");
+    void findByName_shouldReturnOneCourse_withExpectedName() {
+        Optional<Course> actual = repository.findByName("Java");
 
-        assertThat(actual)
-                .extracting(Course::getName)
-                .containsOnly("Java");
+        assertThat(actual.isPresent()).isTrue();
+        assertThat(actual.get()).extracting(Course::getName).isEqualTo("Java");
     }
 
     @Sql(value = {"/fixtures/clean_up.sql",
             "/fixtures/courses/insert_five_courses.sql"})
     @Test
-    void findByName_shouldReturnEmptyList_whenNameDoesNotExist() {
-        List<Course> actual = repository.findByName("Unknown");
+    void findByName_shouldReturnEmptyOptional_whenNameDoesNotExist() {
+        Optional<Course> actual = repository.findByName("Unknown");
 
         assertThat(actual).isEmpty();
     }

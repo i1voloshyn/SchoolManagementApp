@@ -13,7 +13,7 @@ public class WelcomeApp implements ApplicationRunner {
     private final GreetingOutput greetingOutput;
     private final GreetingProvider greetingProvider;
 
-    public WelcomeApp(GreetingOutput greetingOutput, GreetingProvider greetingProvider, GroupRepository groupRepository) {
+    public WelcomeApp(GreetingOutput greetingOutput, GreetingProvider greetingProvider) {
         this.greetingOutput = greetingOutput;
         this.greetingProvider = greetingProvider;
     }

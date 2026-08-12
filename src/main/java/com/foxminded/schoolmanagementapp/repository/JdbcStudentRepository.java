@@ -1,6 +1,7 @@
 package com.foxminded.schoolmanagementapp.repository;
 
 import com.foxminded.schoolmanagementapp.model.Student;
+import org.jspecify.annotations.Nullable;
 import org.springframework.jdbc.JdbcUpdateAffectedIncorrectNumberOfRowsException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -43,7 +44,7 @@ public class JdbcStudentRepository implements StudentsRepository {
             JOIN students_courses sc ON sc.student_id = s.id
             WHERE sc.course_id = :id
             """;
-    private static final RowMapper<Student> STUDENT_MAPPER = (rs, rowNumber) -> {
+    private static final RowMapper<@Nullable Student> STUDENT_MAPPER = (rs, rowNumber) -> {
         Long groupId = rs.getLong("group_id");
         return new Student(
                 rs.getLong("id"),
