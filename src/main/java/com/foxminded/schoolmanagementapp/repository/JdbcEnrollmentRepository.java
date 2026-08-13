@@ -2,12 +2,17 @@ package com.foxminded.schoolmanagementapp.repository;
 
 import com.foxminded.schoolmanagementapp.exception.EnrollmentException;
 import com.foxminded.schoolmanagementapp.exception.EnrollmentNotFoundException;
+import com.foxminded.schoolmanagementapp.model.Enrollment;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.JdbcUpdateAffectedIncorrectNumberOfRowsException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import java.sql.Statement;
+import java.util.List;
 
 @Repository
 public class JdbcEnrollmentRepository implements EnrollmentRepository {
@@ -54,6 +59,29 @@ public class JdbcEnrollmentRepository implements EnrollmentRepository {
     }
 
     @Override
+    public void enrollAll(List<Enrollment> enrollments) {
+        if (enrollments.isEmpty()) {
+            return;
+        }
+
+        SqlParameterSource[] parameters = enrollments.stream()
+                .map(this::enrollmentParameters)
+                .toArray(SqlParameterSource[]::new);
+
+        try {
+            transactionTemplate.executeWithoutResult(status -> {
+                int[] affectedRows = namedParameterJdbcTemplate.batchUpdate(
+                        ENROLL_STUDENT_QUERY,
+                        parameters
+                );
+                validateBatch(affectedRows, enrollments.size());
+            });
+        } catch (DataIntegrityViolationException e) {
+            throw new EnrollmentException("Cannot create enrollment batch", e);
+        }
+    }
+
+    @Override
     public void remove(Long studentId, Long courseId) {
         transactionTemplate.executeWithoutResult(status -> {
             int affectedRows = namedParameterJdbcTemplate.update(
@@ -81,6 +109,30 @@ public class JdbcEnrollmentRepository implements EnrollmentRepository {
         return new MapSqlParameterSource()
                 .addValue("student_id", studentId)
                 .addValue("course_id", courseId);
+    }
+
+    private MapSqlParameterSource enrollmentParameters(Enrollment enrollment) {
+        return enrollmentParameters(enrollment.studentId(), enrollment.courseId());
+    }
+
+    private void validateBatch(int[] affectedRows, int expectedRows) {
+        if (affectedRows.length != expectedRows) {
+            throw new JdbcUpdateAffectedIncorrectNumberOfRowsException(
+                    ENROLL_STUDENT_QUERY,
+                    expectedRows,
+                    affectedRows.length
+            );
+        }
+
+        for (int affectedRow : affectedRows) {
+            if (affectedRow != 1 && affectedRow != Statement.SUCCESS_NO_INFO) {
+                throw new JdbcUpdateAffectedIncorrectNumberOfRowsException(
+                        ENROLL_STUDENT_QUERY,
+                        1,
+                        affectedRow
+                );
+            }
+        }
     }
 
     private void validateQuery(String query, int expected, int actual) {
