@@ -6,9 +6,11 @@ import com.foxminded.schoolmanagementapp.repository.GroupRepository;
 import org.jspecify.annotations.NonNull;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 @Component
+@Order(2)
 public class WelcomeApp implements ApplicationRunner {
     private final GreetingOutput greetingOutput;
     private final GreetingProvider greetingProvider;

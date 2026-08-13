@@ -38,10 +38,7 @@ public class RandomEnrollments implements EnrollmentsRule {
     }
 
     private List<Enrollment> enrollStudent(Long studentId, List<Long> courseIds) {
-        int enrollmentCount = faker.random().nextInt(
-                properties.minCourses(),
-                properties.maxCourses() + 1
-        );
+        int enrollmentCount = faker.number().numberBetween(properties.minCourses(), properties.maxCourses()+1);
         List<Long> shuffledIds = new ArrayList<>(courseIds);
         Collections.shuffle(shuffledIds);
 

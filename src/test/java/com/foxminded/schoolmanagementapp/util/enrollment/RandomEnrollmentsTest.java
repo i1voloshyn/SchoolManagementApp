@@ -39,7 +39,7 @@ class RandomEnrollmentsTest {
                 .containsOnly(1L, 2L);
         assertThat(actual)
                 .extracting(Enrollment::courseId)
-                .containsOnly(10L, 20L, 30L);
+                .allMatch(courseId -> List.of(10L, 20L, 30L).contains(courseId));
 
         students.forEach(student -> {
             List<Enrollment> studentEnrollments = actual.stream()

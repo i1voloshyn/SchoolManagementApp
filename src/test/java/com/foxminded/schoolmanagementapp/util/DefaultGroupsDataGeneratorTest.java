@@ -19,7 +19,7 @@ class DefaultGroupsDataGeneratorTest {
                 hasSize(10)
                 .allSatisfy(group -> {
                             assertThat(group.getId()).isNull();
-                            assertThat(group.getName()).matches("[A-Z]{2}-\\d{2}");
+                            assertThat(group.getName()).matches("A{2}-\\d{2}");
                         }
                 );
         assertThat(actual)
