@@ -12,7 +12,9 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.sql.Statement;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Repository
@@ -89,6 +91,30 @@ public class JdbcStudentRepository implements StudentsRepository {
     }
 
     @Override
+    public List<Student> saveAll(List<Student> students) {
+        if (students.isEmpty()) {
+            return List.of();
+        }
+
+        MapSqlParameterSource[] parameters = students.stream()
+                .map(this::studentParameters)
+                .toArray(MapSqlParameterSource[]::new);
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+
+        return transactionTemplate.execute(status -> {
+            int[] affectedRows = namedParameterJdbcTemplate.batchUpdate(
+                    INSERT_STUDENT_QUERY,
+                    parameters,
+                    keyHolder,
+                    new String[]{"id"}
+            );
+            validateBatch(affectedRows, students.size());
+            assignGeneratedIds(students, keyHolder.getKeyList());
+            return List.copyOf(students);
+        });
+    }
+
+    @Override
     public void delete(Long id) {
         transactionTemplate.executeWithoutResult(status -> {
             int affectedRows = namedParameterJdbcTemplate.update(
@@ -131,6 +157,50 @@ public class JdbcStudentRepository implements StudentsRepository {
                 new MapSqlParameterSource("id", id),
                 STUDENT_MAPPER
         );
+    }
+
+    private MapSqlParameterSource studentParameters(Student student) {
+        return new MapSqlParameterSource()
+                .addValue("group_id", student.getGroupId())
+                .addValue("first_name", student.getFirstName())
+                .addValue("last_name", student.getLastName());
+    }
+
+    private void assignGeneratedIds(List<Student> students, List<Map<String, Object>> generatedKeys) {
+        if (generatedKeys.size() != students.size()) {
+            throw new IllegalStateException(
+                    "Expected %d generated student IDs but received %d"
+                            .formatted(students.size(), generatedKeys.size())
+            );
+        }
+
+        for (int index = 0; index < students.size(); index++) {
+            Object generatedId = generatedKeys.get(index).get("id");
+            if (!(generatedId instanceof Number number)) {
+                throw new IllegalStateException("Student ID was not generated for batch row " + index);
+            }
+            students.get(index).setId(number.longValue());
+        }
+    }
+
+    private void validateBatch(int[] affectedRows, int expectedRows) {
+        if (affectedRows.length != expectedRows) {
+            throw new JdbcUpdateAffectedIncorrectNumberOfRowsException(
+                    INSERT_STUDENT_QUERY,
+                    expectedRows,
+                    affectedRows.length
+            );
+        }
+
+        for (int affectedRow : affectedRows) {
+            if (affectedRow != 1 && affectedRow != Statement.SUCCESS_NO_INFO) {
+                throw new JdbcUpdateAffectedIncorrectNumberOfRowsException(
+                        INSERT_STUDENT_QUERY,
+                        1,
+                        affectedRow
+                );
+            }
+        }
     }
 
     private void validateQuery(String query, int expected, int actual) {

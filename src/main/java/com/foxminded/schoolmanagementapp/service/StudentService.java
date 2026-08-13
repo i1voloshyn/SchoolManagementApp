@@ -38,6 +38,22 @@ public class StudentService {
         return mapper.toStudentDto(studentsRepository.save(mapper.toStudent(dto)));
     }
 
+    public List<StudentDto> addStudents(List<StudentDto> students) {
+        if (students == null) {
+            throw new IllegalArgumentException("Students must not be null");
+        }
+
+        students.forEach(this::validateNewStudent);
+
+        return studentsRepository.saveAll(
+                        students.stream()
+                                .map(mapper::toStudent)
+                                .toList()
+                ).stream()
+                .map(mapper::toStudentDto)
+                .toList();
+    }
+
     public void deleteStudent(Long studentId) {
         validateStudentId(studentId);
         if (studentsRepository.findById(studentId).isEmpty()) {

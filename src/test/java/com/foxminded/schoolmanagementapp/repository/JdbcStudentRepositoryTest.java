@@ -72,6 +72,37 @@ class JdbcStudentRepositoryTest {
         assertThat(actual).isEqualTo(saved);
     }
 
+    @Sql("/fixtures/clean_up.sql")
+    @Test
+    void saveAll_shouldSaveBatchAndReturnStudents_withGeneratedIds() {
+        jdbcTemplate.update("INSERT INTO groups (name) VALUES (?)", "Test Group");
+        Long groupId = jdbcTemplate.queryForObject(
+                "SELECT id FROM groups WHERE name = ?",
+                Long.class,
+                "Test Group"
+        );
+        List<Student> students = List.of(
+                new Student(null, groupId, "John", "Smith"),
+                new Student(null, null, "Anna", "Brown"),
+                new Student(null, groupId, "Peter", "Jones")
+        );
+
+        List<Student> saved = repository.saveAll(students);
+
+        assertThat(saved)
+                .hasSize(3)
+                .allSatisfy(student -> assertThat(student.getId()).isPositive());
+        assertThat(saved)
+                .extracting(Student::getId)
+                .doesNotHaveDuplicates();
+
+        Long persistedStudents = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM students",
+                Long.class
+        );
+        assertThat(persistedStudents).isEqualTo(3L);
+    }
+
     @Sql(value = {"/fixtures/clean_up.sql",
             "/fixtures/students/insert_five_students.sql"})
     @Test

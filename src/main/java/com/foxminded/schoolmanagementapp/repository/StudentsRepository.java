@@ -8,6 +8,8 @@ import java.util.Optional;
 public interface StudentsRepository {
     Student save(Student student);
 
+    List<Student> saveAll(List<Student> students);
+
     void delete(Long id);
 
     List<Student> findAll();
