@@ -11,7 +11,7 @@ public record StudentCoursesAssignmentProperties(
         if (minCourses < 1) {
             throw new IllegalArgumentException("Minimum courses must be positive");
         }
-        if (maxCourses < minCourses) {
+        if (maxCourses <= minCourses) {
             throw new IllegalArgumentException("Maximum courses must not be less than minimum courses");
         }
     }
