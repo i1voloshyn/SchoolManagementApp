@@ -8,55 +8,52 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.IntStream;
 
 @AllArgsConstructor
 @Component
 public class RandomGroupAssignmentRule implements GroupAssignmentRule {
+    private static final int NULL_INJECTION_INTERVAL = 4;
     private final Faker faker;
     private final GroupAssignmentProperties properties;
 
     @Override
     public List<Long> apply(List<Long> groupsId, int studentsCount) {
-        int idsSum = 0;
         List<Long> assignmentIds = new ArrayList<>();
 
         for (long id : groupsId) {
-            int idRepetition = generateIdsRepetition(idsSum, studentsCount);
+            int idRepetition = generateIdsRepetition(assignmentIds.size(), studentsCount);
             assignIds(idRepetition, assignmentIds, id);
 
-            idsSum += idRepetition;
-
-            if (idsSum == studentsCount) {
+            if (assignmentIds.size() == studentsCount) {
                 return assignmentIds;
             }
         }
 
-        if (idsSum < studentsCount) {
-            for (int i = 0; i < studentsCount - idsSum; i++) {
-                assignmentIds.add(null);
-            }
+        while (assignmentIds.size() < studentsCount) {
+            assignmentIds.add(null);
         }
 
         Collections.shuffle(assignmentIds);
         return assignmentIds;
     }
 
-    private int generateIdsRepetition(int idsSum, int studentsCount) {
+    private int generateIdsRepetition(int assignmentsCount, int studentsCount) {
         int idRepetition = faker.number().numberBetween(properties.minStudents(),
                 properties.maxStudents() + 1);
-        if ((idsSum + idRepetition) > studentsCount) {
-            idRepetition = studentsCount - idsSum;
-        }
-        return idRepetition;
+
+        boolean assignmentsCountInRange = (assignmentsCount + idRepetition) < studentsCount;
+
+        return assignmentsCountInRange ? idRepetition : (studentsCount - assignmentsCount);
     }
 
     private void assignIds(int idRepetition, List<Long> assignmentIds, Long id) {
-        for (int i = 0; i < idRepetition; i++) {
-            if (i % 4 == 3) {
-                assignmentIds.add(null);
-                continue;
-            }
-            assignmentIds.add(id);
-        }
+        IntStream.range(0, idRepetition)
+                .mapToObj(index -> shouldInjectNull(index) ? null : id)
+                .forEach(assignmentIds::add);
+    }
+
+    private boolean shouldInjectNull(int index) {
+        return (index + 1) % NULL_INJECTION_INTERVAL == 0;
     }
 }
