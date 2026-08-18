@@ -2,6 +2,7 @@ package com.foxminded.schoolmanagementapp.service;
 
 import com.foxminded.schoolmanagementapp.exception.CourseNotFoundException;
 import com.foxminded.schoolmanagementapp.model.Course;
+import com.foxminded.schoolmanagementapp.model.Enrollment;
 import com.foxminded.schoolmanagementapp.model.Student;
 import com.foxminded.schoolmanagementapp.repository.CourseRepository;
 import com.foxminded.schoolmanagementapp.repository.EnrollmentRepository;
@@ -29,18 +30,32 @@ public class EnrollmentService {
         enrollmentRepository.enroll(studentId, courseId);
     }
 
+    public void addStudentsToCourses(List<Enrollment> enrollments) {
+        if (enrollments == null) {
+            throw new IllegalArgumentException("Enrollments must not be null");
+        }
+
+        enrollments.forEach(enrollment -> {
+            if (enrollment == null) {
+                throw new IllegalArgumentException("Enrollment must not be null");
+            }
+            validateIds(enrollment.studentId(), enrollment.courseId());
+        });
+
+        enrollmentRepository.enrollAll(enrollments);
+    }
+
     public void removeStudentFromCourse(Long studentId, Long courseId) {
         validateIds(studentId, courseId);
         enrollmentRepository.remove(studentId, courseId);
     }
 
     private void validateIds(Long studentId, Long courseId) {
-        if (studentId <= 0) {
+        if (studentId == null || studentId <= 0) {
             throw new IllegalArgumentException("Student ID must be positive");
         }
-        if (courseId <= 0) {
+        if (courseId == null || courseId <= 0) {
             throw new IllegalArgumentException("Course ID must be positive");
         }
     }
 }
-

@@ -2,6 +2,7 @@ package com.foxminded.schoolmanagementapp.repository;
 
 import com.foxminded.schoolmanagementapp.exception.EnrollmentException;
 import com.foxminded.schoolmanagementapp.exception.EnrollmentNotFoundException;
+import com.foxminded.schoolmanagementapp.model.Enrollment;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
@@ -13,6 +14,8 @@ import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatException;
@@ -49,6 +52,29 @@ class JdbcEnrollmentRepositoryTest {
                 courseId
         );
         assertThat(enrollmentCount).isOne();
+    }
+
+    @Sql(value = {"/fixtures/clean_up.sql",
+            "/fixtures/enrollments/insert_students_and_courses.sql"})
+    @Test
+    void enrollAll_shouldCreateAllEnrollmentsInBatch() {
+        Long johnId = findStudentId("John");
+        Long annaId = findStudentId("Anna");
+        Long javaId = findCourseId("Java");
+        Long sqlId = findCourseId("SQL");
+        List<Enrollment> enrollments = List.of(
+                new Enrollment(johnId, javaId),
+                new Enrollment(johnId, sqlId),
+                new Enrollment(annaId, javaId)
+        );
+
+        repository.enrollAll(enrollments);
+
+        Long enrollmentCount = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM students_courses",
+                Long.class
+        );
+        assertThat(enrollmentCount).isEqualTo(3L);
     }
 
     @Sql(value = {"/fixtures/clean_up.sql",

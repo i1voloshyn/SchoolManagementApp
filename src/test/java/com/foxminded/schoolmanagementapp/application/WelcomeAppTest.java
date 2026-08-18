@@ -3,6 +3,7 @@ package com.foxminded.schoolmanagementapp.application;
 import com.foxminded.schoolmanagementapp.repository.GreetingOutput;
 import com.foxminded.schoolmanagementapp.repository.GreetingProvider;
 import com.foxminded.schoolmanagementapp.repository.GroupRepository;
+import com.foxminded.schoolmanagementapp.util.datagenerator.DataGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -19,11 +20,13 @@ class WelcomeAppTest {
     @Mock
     GreetingProvider provider;
     @Mock
+    DataGenerator dataGenerator;
+    @Mock
     private ApplicationArguments applicationArguments;
 
     @Test
     void run_shouldPrintExpectedMessage() {
-        WelcomeApp welcomeApp = new WelcomeApp(output, provider);
+        WelcomeApp welcomeApp = new WelcomeApp(output, provider,dataGenerator);
         when(provider.getGreeting()).thenReturn("Hello");
 
         welcomeApp.run(applicationArguments);

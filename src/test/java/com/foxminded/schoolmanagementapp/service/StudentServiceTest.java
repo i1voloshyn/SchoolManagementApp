@@ -96,6 +96,43 @@ class StudentServiceTest {
     }
 
     @Test
+    void addStudents_shouldSaveAndReturnStudentBatch() {
+        List<StudentDto> students = List.of(
+                new StudentDto(null, 5L, "John", "Smith"),
+                new StudentDto(null, null, "Anna", "Brown")
+        );
+        List<Student> studentsToSave = List.of(
+                new Student(null, 5L, "John", "Smith"),
+                new Student(null, null, "Anna", "Brown")
+        );
+        List<Student> savedStudents = List.of(
+                new Student(1L, 5L, "John", "Smith"),
+                new Student(2L, null, "Anna", "Brown")
+        );
+        when(studentsRepository.saveAll(studentsToSave)).thenReturn(savedStudents);
+
+        List<StudentDto> actual = service.addStudents(students);
+
+        assertThat(actual).containsExactly(
+                new StudentDto(1L, 5L, "John", "Smith"),
+                new StudentDto(2L, null, "Anna", "Brown")
+        );
+        verify(studentsRepository).saveAll(studentsToSave);
+    }
+
+    @Test
+    void addStudents_shouldRejectBatchContainingInvalidStudent() {
+        List<StudentDto> students = List.of(
+                new StudentDto(null, 5L, "John", "Smith"),
+                new StudentDto(2L, null, "Anna", "Brown")
+        );
+
+        assertThatIllegalArgumentException()
+                .isThrownBy(() -> service.addStudents(students));
+        verifyNoInteractions(studentsRepository, mapper);
+    }
+
+    @Test
     void addStudent_shouldRejectStudentWithId() {
         StudentDto existingStudent = new StudentDto(1L, 5L, "John", "Smith");
 
