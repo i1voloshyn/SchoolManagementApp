@@ -23,7 +23,7 @@ public class ConsoleView {
         output.writeLine("");
         output.writeLine("Select an action:");
 
-        for (MenuOption option : MenuOption.values()) {
+        for (MenuAction option : MenuAction.values()) {
             output.writeLine(
                     "%d - %s".formatted(
                             option.number(),

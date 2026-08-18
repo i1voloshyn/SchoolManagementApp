@@ -2,7 +2,7 @@ package com.foxminded.schoolmanagementapp.console.command;
 
 import com.foxminded.schoolmanagementapp.console.ConsoleView;
 import com.foxminded.schoolmanagementapp.console.LoopStatus;
-import com.foxminded.schoolmanagementapp.console.MenuOption;
+import com.foxminded.schoolmanagementapp.console.MenuAction;
 import com.foxminded.schoolmanagementapp.console.systemConsole.ConsoleInputReader;
 import com.foxminded.schoolmanagementapp.model.Group;
 import com.foxminded.schoolmanagementapp.service.GroupService;
@@ -13,8 +13,8 @@ import java.util.List;
 
 @AllArgsConstructor
 @Component
-public class FindGroupsByMaximumStudentCountHandler
-        implements MenuOptionHandler {
+public class FindGroupsByMaximumStudentCountAction
+        implements MenuActionRunner {
 
     private static final String MAXIMUM_STUDENT_COUNT = "Maximum student count";
 
@@ -23,8 +23,8 @@ public class FindGroupsByMaximumStudentCountHandler
     private final GroupService groupService;
 
     @Override
-    public MenuOption menuOption() {
-        return MenuOption.FIND_GROUPS_BY_MAX_STUDENT_COUNT;
+    public MenuAction getAction() {
+        return MenuAction.FIND_GROUPS_BY_MAX_STUDENT_COUNT;
     }
 
     @Override

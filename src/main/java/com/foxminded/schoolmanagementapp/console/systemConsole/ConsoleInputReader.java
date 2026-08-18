@@ -1,6 +1,5 @@
 package com.foxminded.schoolmanagementapp.console.systemConsole;
 
-import com.foxminded.schoolmanagementapp.console.MenuOption;
 import com.foxminded.schoolmanagementapp.exception.consoleException.BlankConsoleInputException;
 import com.foxminded.schoolmanagementapp.exception.consoleException.NegativeNumberException;
 import com.foxminded.schoolmanagementapp.exception.consoleException.NonNumericInputException;
@@ -15,11 +14,9 @@ public class ConsoleInputReader {
 
     private final ConsoleInput input;
 
-    public MenuOption readMenuOption() {
+    public int readActionNumber() {
         String value = readRequiredText(MENU_ITEM);
-        int optionNumber = parseInteger(value, MENU_ITEM);
-
-        return MenuOption.fromNumber(optionNumber);
+        return parseInteger(value, MENU_ITEM);
     }
 
     public int readNonNegativeInteger(String fieldName) {

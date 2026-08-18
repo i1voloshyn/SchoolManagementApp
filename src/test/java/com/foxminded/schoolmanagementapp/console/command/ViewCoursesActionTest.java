@@ -2,7 +2,7 @@ package com.foxminded.schoolmanagementapp.console.command;
 
 import com.foxminded.schoolmanagementapp.console.ConsoleView;
 import com.foxminded.schoolmanagementapp.console.LoopStatus;
-import com.foxminded.schoolmanagementapp.console.MenuOption;
+import com.foxminded.schoolmanagementapp.console.MenuAction;
 import com.foxminded.schoolmanagementapp.dto.CourseDto;
 import com.foxminded.schoolmanagementapp.service.CourseService;
 import org.junit.jupiter.api.Test;
@@ -18,18 +18,18 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class ViewCoursesHandlerTest {
+class ViewCoursesActionTest {
 
     @Mock
     private CourseService courseService;
     @Mock
     private ConsoleView view;
     @InjectMocks
-    private ViewCoursesHandler command;
+    private ViewCoursesAction command;
 
     @Test
-    void menuOption_shouldReturnViewCoursesOption() {
-        assertThat(command.menuOption()).isEqualTo(MenuOption.VIEW_COURSES);
+    void getAction() {
+        assertThat(command.getAction()).isEqualTo(MenuAction.VIEW_COURSES);
     }
 
     @Test

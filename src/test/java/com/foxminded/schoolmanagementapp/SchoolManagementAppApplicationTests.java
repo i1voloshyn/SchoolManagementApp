@@ -1,9 +1,9 @@
 package com.foxminded.schoolmanagementapp;
 
 import com.foxminded.schoolmanagementapp.console.ConsoleMenu;
-import com.foxminded.schoolmanagementapp.console.MenuCommandDispatcher;
-import com.foxminded.schoolmanagementapp.console.MenuOption;
-import com.foxminded.schoolmanagementapp.console.command.MenuOptionHandler;
+import com.foxminded.schoolmanagementapp.console.MenuActionRunnerDispatcher;
+import com.foxminded.schoolmanagementapp.console.MenuAction;
+import com.foxminded.schoolmanagementapp.console.command.MenuActionRunner;
 import com.foxminded.schoolmanagementapp.service.CourseService;
 import com.foxminded.schoolmanagementapp.service.GroupService;
 import com.foxminded.schoolmanagementapp.service.StudentService;
@@ -31,18 +31,18 @@ import static org.mockito.Mockito.mock;
 class SchoolManagementAppApplicationTests {
 
     @Autowired
-    private List<MenuOptionHandler> commands;
+    private List<MenuActionRunner> commands;
     @Autowired
-    private MenuCommandDispatcher dispatcher;
+    private MenuActionRunnerDispatcher dispatcher;
     @Autowired
     private ConsoleMenu consoleMenu;
 
     @Test
     void context_shouldRegisterCommandForEveryMenuOption() {
         assertThat(commands)
-                .hasSize(MenuOption.values().length)
-                .extracting(MenuOptionHandler::menuOption)
-                .containsExactlyInAnyOrder(MenuOption.values());
+                .hasSize(MenuAction.values().length)
+                .extracting(MenuActionRunner::getAction)
+                .containsExactlyInAnyOrder(MenuAction.values());
 
         assertThat(dispatcher).isNotNull();
         assertThat(consoleMenu).isNotNull();

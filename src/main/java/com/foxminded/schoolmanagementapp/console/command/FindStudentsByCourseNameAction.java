@@ -2,7 +2,7 @@ package com.foxminded.schoolmanagementapp.console.command;
 
 import com.foxminded.schoolmanagementapp.console.ConsoleView;
 import com.foxminded.schoolmanagementapp.console.LoopStatus;
-import com.foxminded.schoolmanagementapp.console.MenuOption;
+import com.foxminded.schoolmanagementapp.console.MenuAction;
 import com.foxminded.schoolmanagementapp.console.systemConsole.ConsoleInputReader;
 import com.foxminded.schoolmanagementapp.dto.StudentDto;
 import com.foxminded.schoolmanagementapp.exception.CourseNotFoundException;
@@ -14,8 +14,8 @@ import java.util.List;
 
 @AllArgsConstructor
 @Component
-public class FindStudentsByCourseNameHandler
-        implements MenuOptionHandler {
+public class FindStudentsByCourseNameAction
+        implements MenuActionRunner {
 
     private final static String COURSE_NAME = "Course name";
 
@@ -24,8 +24,8 @@ public class FindStudentsByCourseNameHandler
     private final StudentService studentService;
 
     @Override
-    public MenuOption menuOption() {
-        return MenuOption.FIND_STUDENTS_BY_COURSE_NAME;
+    public MenuAction getAction() {
+        return MenuAction.FIND_STUDENTS_BY_COURSE_NAME;
     }
 
     @Override

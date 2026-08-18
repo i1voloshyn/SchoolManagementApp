@@ -2,19 +2,19 @@ package com.foxminded.schoolmanagementapp.console.command;
 
 import com.foxminded.schoolmanagementapp.console.ConsoleView;
 import com.foxminded.schoolmanagementapp.console.LoopStatus;
-import com.foxminded.schoolmanagementapp.console.MenuOption;
+import com.foxminded.schoolmanagementapp.console.MenuAction;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @AllArgsConstructor
 @Component
-public class ExitHandler implements MenuOptionHandler {
+public class ExitAction implements MenuActionRunner {
 
     private final ConsoleView view;
 
     @Override
-    public MenuOption menuOption() {
-        return MenuOption.EXIT;
+    public MenuAction getAction() {
+        return MenuAction.EXIT;
     }
 
     @Override

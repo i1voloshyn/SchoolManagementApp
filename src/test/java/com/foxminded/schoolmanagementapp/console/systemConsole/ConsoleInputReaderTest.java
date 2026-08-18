@@ -1,8 +1,6 @@
 package com.foxminded.schoolmanagementapp.console.systemConsole;
 
-import com.foxminded.schoolmanagementapp.console.MenuOption;
 import com.foxminded.schoolmanagementapp.exception.consoleException.BlankConsoleInputException;
-import com.foxminded.schoolmanagementapp.exception.consoleException.InvalidMenuOptionException;
 import com.foxminded.schoolmanagementapp.exception.consoleException.NegativeNumberException;
 import com.foxminded.schoolmanagementapp.exception.consoleException.NonNumericInputException;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -16,69 +14,40 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 class ConsoleInputReaderTest {
 
     @ParameterizedTest
-    @CsvSource({
-            "0, EXIT",
-            "1, FIND_GROUPS_BY_MAX_STUDENT_COUNT",
-            "2, FIND_STUDENTS_BY_COURSE_NAME",
-            "3, VIEW_COURSES",
-            "4, VIEW_GROUPS"
+    @ValueSource(ints = {
+            Integer.MIN_VALUE,
+            -10,
+            -1,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            100,
+            Integer.MAX_VALUE
     })
-    void readMenuOption_shouldReturnMatchingOption(
-            String inputValue,
-            MenuOption expected
-    ) {
-        ConsoleInputReader inputReader = inputReaderReturning(inputValue);
+    void readActionNumber_shouldReturnIntegerAndIgnoreWhitespace(int expected) {
+        ConsoleInputReader inputReader = inputReaderReturning(
+                "  " + expected + "  "
+        );
 
-        MenuOption actual = inputReader.readMenuOption();
-
-        assertThat(actual).isEqualTo(expected);
-    }
-
-    @ParameterizedTest
-    @CsvSource({
-            "' 0 ', EXIT",
-            "' 2 ', FIND_STUDENTS_BY_COURSE_NAME",
-            "' 4 ', VIEW_GROUPS"
-    })
-    void readMenuOption_shouldIgnoreSurroundingWhitespace(
-            String inputValue,
-            MenuOption expected
-    ) {
-        ConsoleInputReader inputReader = inputReaderReturning(inputValue);
-
-        MenuOption actual = inputReader.readMenuOption();
+        int actual = inputReader.readActionNumber();
 
         assertThat(actual).isEqualTo(expected);
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"abc", "1.5", "1a", "2147483648"})
-    void readMenuOption_shouldThrowException_whenInputIsNotInteger(
+    void readActionNumber_shouldThrowException_whenInputIsNotInteger(
             String inputValue
     ) {
         ConsoleInputReader inputReader = inputReaderReturning(inputValue);
 
         assertThatExceptionOfType(NonNumericInputException.class)
-                .isThrownBy(inputReader::readMenuOption)
+                .isThrownBy(inputReader::readActionNumber)
                 .withMessage(
                         "Menu item must be a whole number, but was '%s'."
-                                .formatted(inputValue)
-                );
-    }
-
-    @ParameterizedTest
-    @ValueSource(ints = {-10, -1, 5, 100})
-    void readMenuOption_shouldThrowException_whenMenuOptionDoesNotExist(
-            int inputValue
-    ) {
-        ConsoleInputReader inputReader = inputReaderReturning(
-                String.valueOf(inputValue)
-        );
-
-        assertThatExceptionOfType(InvalidMenuOptionException.class)
-                .isThrownBy(inputReader::readMenuOption)
-                .withMessage(
-                        "Invalid menu item '%d'. Choose a number from 0 to 4."
                                 .formatted(inputValue)
                 );
     }

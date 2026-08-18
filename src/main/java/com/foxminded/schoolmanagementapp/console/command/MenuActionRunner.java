@@ -1,11 +1,11 @@
 package com.foxminded.schoolmanagementapp.console.command;
 
 import com.foxminded.schoolmanagementapp.console.LoopStatus;
-import com.foxminded.schoolmanagementapp.console.MenuOption;
+import com.foxminded.schoolmanagementapp.console.MenuAction;
 
-public interface MenuOptionHandler {
+public interface MenuActionRunner {
 
-    MenuOption menuOption();
+    MenuAction getAction();
 
     LoopStatus execute();
 }

@@ -4,7 +4,7 @@ import com.foxminded.schoolmanagementapp.exception.consoleException.InvalidMenuO
 
 import java.util.Arrays;
 
-public enum MenuOption {
+public enum MenuAction {
 
     FIND_GROUPS_BY_MAX_STUDENT_COUNT(
             1,
@@ -30,7 +30,7 @@ public enum MenuOption {
     private final int number;
     private final String description;
 
-    MenuOption(int number, String description) {
+    MenuAction(int number, String description) {
         this.number = number;
         this.description = description;
     }
@@ -43,9 +43,9 @@ public enum MenuOption {
         return description;
     }
 
-    public static MenuOption fromNumber(int number) {
+    public static MenuAction fromNumber(int number) {
         return Arrays.stream(values())
-                .filter(option -> option.number == number)
+                .filter(action -> action.number == number)
                 .findFirst()
                 .orElseThrow(
                         () -> new InvalidMenuOptionException(number)

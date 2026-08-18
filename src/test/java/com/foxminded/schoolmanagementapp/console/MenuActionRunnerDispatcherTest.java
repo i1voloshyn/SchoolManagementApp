@@ -1,21 +1,21 @@
 package com.foxminded.schoolmanagementapp.console;
 
-import com.foxminded.schoolmanagementapp.console.command.MenuOptionHandler;
+import com.foxminded.schoolmanagementapp.console.command.MenuActionRunner;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
-class MenuOptionHandlerDispatcherTest {
+class MenuActionRunnerDispatcherTest {
 
     @Test
     void constructor_shouldThrowException_whenMultipleCommandsUseSameOption() {
-        MenuOptionHandler first = commandFor(MenuOption.VIEW_COURSES);
-        MenuOptionHandler second = commandFor(MenuOption.VIEW_COURSES);
+        MenuActionRunner first = commandFor(MenuAction.VIEW_COURSES);
+        MenuActionRunner second = commandFor(MenuAction.VIEW_COURSES);
 
         assertThatIllegalStateException()
-                .isThrownBy(() -> new MenuCommandDispatcher(
+                .isThrownBy(() -> new MenuActionRunnerDispatcher(
                         List.of(first, second)
                 ))
                 .withMessage(
@@ -26,26 +26,26 @@ class MenuOptionHandlerDispatcherTest {
 
     @Test
     void dispatch_shouldThrowException_whenCommandIsNotRegistered() {
-        MenuOptionHandler registeredCommand = commandFor(MenuOption.VIEW_GROUPS);
+        MenuActionRunner registeredCommand = commandFor(MenuAction.VIEW_GROUPS);
 
-        MenuCommandDispatcher dispatcher = new MenuCommandDispatcher(
+        MenuActionRunnerDispatcher dispatcher = new MenuActionRunnerDispatcher(
                 List.of(registeredCommand)
         );
 
         assertThatIllegalStateException()
-                .isThrownBy(() -> dispatcher.dispatch(MenuOption.EXIT))
+                .isThrownBy(() -> dispatcher.dispatch(MenuAction.EXIT))
                 .withMessage(
-                        "No command registered for menu option: EXIT"
+                        "No command registered for menu action: EXIT"
                 );
 
     }
 
-    private MenuOptionHandler commandFor(MenuOption option) {
-        LoopStatus execute = option == MenuOption.EXIT
+    private MenuActionRunner commandFor(MenuAction option) {
+        LoopStatus execute = option == MenuAction.EXIT
                 ? LoopStatus.EXIT : LoopStatus.CONTINUE;
-        return new MenuOptionHandler() {
+        return new MenuActionRunner() {
             @Override
-            public MenuOption menuOption() {
+            public MenuAction getAction() {
                 return option;
             }
 

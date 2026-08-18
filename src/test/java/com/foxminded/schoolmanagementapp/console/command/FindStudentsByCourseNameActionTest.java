@@ -2,7 +2,7 @@ package com.foxminded.schoolmanagementapp.console.command;
 
 import com.foxminded.schoolmanagementapp.console.ConsoleView;
 import com.foxminded.schoolmanagementapp.console.LoopStatus;
-import com.foxminded.schoolmanagementapp.console.MenuOption;
+import com.foxminded.schoolmanagementapp.console.MenuAction;
 import com.foxminded.schoolmanagementapp.console.systemConsole.ConsoleInputReader;
 import com.foxminded.schoolmanagementapp.dto.StudentDto;
 import com.foxminded.schoolmanagementapp.exception.CourseNotFoundException;
@@ -20,7 +20,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class FindStudentsByCourseNameHandlerTest {
+class FindStudentsByCourseNameActionTest {
 
     private static final String FIELD_NAME = "Course name";
 
@@ -31,12 +31,12 @@ class FindStudentsByCourseNameHandlerTest {
     @Mock
     private StudentService studentService;
     @InjectMocks
-    private FindStudentsByCourseNameHandler command;
+    private FindStudentsByCourseNameAction command;
 
     @Test
-    void menuOption_shouldReturnFindStudentsOption() {
-        assertThat(command.menuOption())
-                .isEqualTo(MenuOption.FIND_STUDENTS_BY_COURSE_NAME);
+    void getAction() {
+        assertThat(command.getAction())
+                .isEqualTo(MenuAction.FIND_STUDENTS_BY_COURSE_NAME);
     }
 
     @Test

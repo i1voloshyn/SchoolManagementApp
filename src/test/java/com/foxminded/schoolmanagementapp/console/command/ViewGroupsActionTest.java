@@ -2,7 +2,7 @@ package com.foxminded.schoolmanagementapp.console.command;
 
 import com.foxminded.schoolmanagementapp.console.ConsoleView;
 import com.foxminded.schoolmanagementapp.console.LoopStatus;
-import com.foxminded.schoolmanagementapp.console.MenuOption;
+import com.foxminded.schoolmanagementapp.console.MenuAction;
 import com.foxminded.schoolmanagementapp.model.Group;
 import com.foxminded.schoolmanagementapp.service.GroupService;
 import org.junit.jupiter.api.Test;
@@ -18,18 +18,18 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class ViewGroupsHandlerTest {
+class ViewGroupsActionTest {
 
     @Mock
     private GroupService groupService;
     @Mock
     private ConsoleView view;
     @InjectMocks
-    private ViewGroupsHandler command;
+    private ViewGroupsAction command;
 
     @Test
-    void menuOption_shouldReturnViewGroupsOption() {
-        assertThat(command.menuOption()).isEqualTo(MenuOption.VIEW_GROUPS);
+    void getAction() {
+        assertThat(command.getAction()).isEqualTo(MenuAction.VIEW_GROUPS);
     }
 
     @Test

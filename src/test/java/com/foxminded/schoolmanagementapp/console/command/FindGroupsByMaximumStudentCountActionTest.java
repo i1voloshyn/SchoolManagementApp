@@ -2,7 +2,7 @@ package com.foxminded.schoolmanagementapp.console.command;
 
 import com.foxminded.schoolmanagementapp.console.ConsoleView;
 import com.foxminded.schoolmanagementapp.console.LoopStatus;
-import com.foxminded.schoolmanagementapp.console.MenuOption;
+import com.foxminded.schoolmanagementapp.console.MenuAction;
 import com.foxminded.schoolmanagementapp.console.systemConsole.ConsoleInputReader;
 import com.foxminded.schoolmanagementapp.exception.consoleException.NegativeNumberException;
 import com.foxminded.schoolmanagementapp.model.Group;
@@ -24,7 +24,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class FindGroupsByMaximumStudentCountHandlerTest {
+class FindGroupsByMaximumStudentCountActionTest {
 
     private static final String FIELD_NAME = "Maximum student count";
 
@@ -35,12 +35,12 @@ class FindGroupsByMaximumStudentCountHandlerTest {
     @Mock
     private GroupService groupService;
     @InjectMocks
-    private FindGroupsByMaximumStudentCountHandler command;
+    private FindGroupsByMaximumStudentCountAction command;
 
     @Test
-    void menuOption_shouldReturnFindGroupsOption() {
-        assertThat(command.menuOption())
-                .isEqualTo(MenuOption.FIND_GROUPS_BY_MAX_STUDENT_COUNT);
+    void getAction() {
+        assertThat(command.getAction())
+                .isEqualTo(MenuAction.FIND_GROUPS_BY_MAX_STUDENT_COUNT);
     }
 
     @Test

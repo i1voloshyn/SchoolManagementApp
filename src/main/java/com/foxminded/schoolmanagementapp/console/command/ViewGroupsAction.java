@@ -2,9 +2,9 @@ package com.foxminded.schoolmanagementapp.console.command;
 
 import com.foxminded.schoolmanagementapp.console.ConsoleView;
 import com.foxminded.schoolmanagementapp.console.LoopStatus;
-import com.foxminded.schoolmanagementapp.console.MenuOption;
-import com.foxminded.schoolmanagementapp.dto.CourseDto;
-import com.foxminded.schoolmanagementapp.service.CourseService;
+import com.foxminded.schoolmanagementapp.console.MenuAction;
+import com.foxminded.schoolmanagementapp.model.Group;
+import com.foxminded.schoolmanagementapp.service.GroupService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -12,21 +12,21 @@ import java.util.List;
 
 @AllArgsConstructor
 @Component
-public class ViewCoursesHandler implements MenuOptionHandler {
+public class ViewGroupsAction implements MenuActionRunner {
 
-    private final CourseService courseService;
+    private final GroupService groupService;
     private final ConsoleView view;
 
     @Override
-    public MenuOption menuOption() {
-        return MenuOption.VIEW_COURSES;
+    public MenuAction getAction() {
+        return MenuAction.VIEW_GROUPS;
     }
 
     @Override
     public LoopStatus execute() {
-        List<CourseDto> courses = courseService.findAll();
+        List<Group> groups = groupService.findAll();
 
-        view.showCourses(courses);
+        view.showGroups(groups);
 
         return LoopStatus.CONTINUE;
     }

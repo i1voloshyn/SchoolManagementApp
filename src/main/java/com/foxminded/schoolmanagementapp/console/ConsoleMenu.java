@@ -11,7 +11,7 @@ public class ConsoleMenu {
 
     private final ConsoleInputReader inputReader;
     private final ConsoleView view;
-    private final MenuCommandDispatcher commandDispatcher;
+    private final MenuActionRunnerDispatcher actionRunnerDispatcher;
 
     public void start() {
         view.showGreeting();
@@ -27,8 +27,9 @@ public class ConsoleMenu {
         view.showMenu();
 
         try {
-            MenuOption option = inputReader.readMenuOption();
-            return commandDispatcher.dispatch(option);
+            int actionNumber = inputReader.readActionNumber();
+            MenuAction action = MenuAction.fromNumber(actionNumber);
+            return actionRunnerDispatcher.dispatch(action);
         } catch (ConsoleInputException exception) {
             view.showInputError(exception.getMessage());
             return LoopStatus.CONTINUE;
