@@ -21,6 +21,10 @@ public class GroupService {
         return groupRepository.save(group);
     }
 
+    public List<Group> findAll() {
+        return groupRepository.findAll();
+    }
+
     public List<Group> findByMaximumStudentCount(int studentCount) {
         if (studentCount < 0) {
             throw new IllegalArgumentException("Maximum student count must not be negative");
