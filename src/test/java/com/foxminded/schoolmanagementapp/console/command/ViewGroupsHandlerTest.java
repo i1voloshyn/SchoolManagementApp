@@ -1,6 +1,7 @@
 package com.foxminded.schoolmanagementapp.console.command;
 
 import com.foxminded.schoolmanagementapp.console.ConsoleView;
+import com.foxminded.schoolmanagementapp.console.LoopStatus;
 import com.foxminded.schoolmanagementapp.console.MenuOption;
 import com.foxminded.schoolmanagementapp.model.Group;
 import com.foxminded.schoolmanagementapp.service.GroupService;
@@ -17,14 +18,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class ViewGroupsCommandTest {
+class ViewGroupsHandlerTest {
 
     @Mock
     private GroupService groupService;
     @Mock
     private ConsoleView view;
     @InjectMocks
-    private ViewGroupsCommand command;
+    private ViewGroupsHandler command;
 
     @Test
     void menuOption_shouldReturnViewGroupsOption() {
@@ -39,9 +40,9 @@ class ViewGroupsCommandTest {
         );
         when(groupService.findAll()).thenReturn(groups);
 
-        ExecuteControl actual = command.execute();
+        LoopStatus actual = command.execute();
 
-        assertThat(actual).isEqualTo(ExecuteControl.CONTINUE);
+        assertThat(actual).isEqualTo(LoopStatus.CONTINUE);
         verify(groupService).findAll();
         verify(view).showGroups(groups);
     }

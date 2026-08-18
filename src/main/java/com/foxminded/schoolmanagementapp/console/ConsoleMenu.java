@@ -1,6 +1,5 @@
 package com.foxminded.schoolmanagementapp.console;
 
-import com.foxminded.schoolmanagementapp.console.command.ExecuteControl;
 import com.foxminded.schoolmanagementapp.console.systemConsole.ConsoleInputReader;
 import com.foxminded.schoolmanagementapp.exception.consoleException.ConsoleInputException;
 import lombok.AllArgsConstructor;
@@ -17,14 +16,14 @@ public class ConsoleMenu {
     public void start() {
         view.showGreeting();
 
-        ExecuteControl execute = ExecuteControl.CONTINUE;
+        LoopStatus status = LoopStatus.CONTINUE;
 
-        while (execute == ExecuteControl.CONTINUE) {
-            execute = processNextCommand();
+        while (status == LoopStatus.CONTINUE) {
+            status = processNextCommand();
         }
     }
 
-    private ExecuteControl processNextCommand() {
+    private LoopStatus processNextCommand() {
         view.showMenu();
 
         try {
@@ -32,7 +31,7 @@ public class ConsoleMenu {
             return commandDispatcher.dispatch(option);
         } catch (ConsoleInputException exception) {
             view.showInputError(exception.getMessage());
-            return ExecuteControl.CONTINUE;
+            return LoopStatus.CONTINUE;
         }
     }
 }

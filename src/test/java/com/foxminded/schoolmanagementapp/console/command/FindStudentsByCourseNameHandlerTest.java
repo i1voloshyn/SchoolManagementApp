@@ -1,6 +1,7 @@
 package com.foxminded.schoolmanagementapp.console.command;
 
 import com.foxminded.schoolmanagementapp.console.ConsoleView;
+import com.foxminded.schoolmanagementapp.console.LoopStatus;
 import com.foxminded.schoolmanagementapp.console.MenuOption;
 import com.foxminded.schoolmanagementapp.console.systemConsole.ConsoleInputReader;
 import com.foxminded.schoolmanagementapp.dto.StudentDto;
@@ -19,7 +20,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class FindStudentsByCourseNameCommandTest {
+class FindStudentsByCourseNameHandlerTest {
 
     private static final String FIELD_NAME = "Course name";
 
@@ -30,7 +31,7 @@ class FindStudentsByCourseNameCommandTest {
     @Mock
     private StudentService studentService;
     @InjectMocks
-    private FindStudentsByCourseNameCommand command;
+    private FindStudentsByCourseNameHandler command;
 
     @Test
     void menuOption_shouldReturnFindStudentsOption() {
@@ -50,9 +51,9 @@ class FindStudentsByCourseNameCommandTest {
         when(studentService.findStudentsByCourseName(courseName))
                 .thenReturn(students);
 
-        ExecuteControl actual = command.execute();
+        LoopStatus actual = command.execute();
 
-        assertThat(actual).isEqualTo(ExecuteControl.CONTINUE);
+        assertThat(actual).isEqualTo(LoopStatus.CONTINUE);
         verify(view).promptForCourseName();
         verify(inputReader).readRequiredText(FIELD_NAME);
         verify(studentService).findStudentsByCourseName(courseName);
@@ -69,9 +70,9 @@ class FindStudentsByCourseNameCommandTest {
                         "Course not found with name: " + courseName
                 ));
 
-        ExecuteControl actual = command.execute();
+        LoopStatus actual = command.execute();
 
-        assertThat(actual).isEqualTo(ExecuteControl.CONTINUE);
+        assertThat(actual).isEqualTo(LoopStatus.CONTINUE);
         verify(view).promptForCourseName();
         verify(studentService).findStudentsByCourseName(courseName);
         verify(view).showStudents(courseName, List.of());

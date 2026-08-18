@@ -1,7 +1,6 @@
 package com.foxminded.schoolmanagementapp.console;
 
-import com.foxminded.schoolmanagementapp.console.command.ExecuteControl;
-import com.foxminded.schoolmanagementapp.console.command.MenuCommand;
+import com.foxminded.schoolmanagementapp.console.command.MenuOptionHandler;
 import org.springframework.stereotype.Component;
 
 import java.util.EnumMap;
@@ -11,14 +10,14 @@ import java.util.Map;
 @Component
 public class MenuCommandDispatcher {
 
-    private final Map<MenuOption, MenuCommand> commands;
+    private final Map<MenuOption, MenuOptionHandler> commands;
 
-    public MenuCommandDispatcher(List<MenuCommand> commandList) {
-        EnumMap<MenuOption, MenuCommand> commandMap =
+    public MenuCommandDispatcher(List<MenuOptionHandler> commandList) {
+        EnumMap<MenuOption, MenuOptionHandler> commandMap =
                 new EnumMap<>(MenuOption.class);
 
-        for (MenuCommand command : commandList) {
-            MenuCommand previous = commandMap.put(
+        for (MenuOptionHandler command : commandList) {
+            MenuOptionHandler previous = commandMap.put(
                     command.menuOption(),
                     command
             );
@@ -34,8 +33,8 @@ public class MenuCommandDispatcher {
         this.commands = Map.copyOf(commandMap);
     }
 
-    public ExecuteControl dispatch(MenuOption option) {
-        MenuCommand command = commands.get(option);
+    public LoopStatus dispatch(MenuOption option) {
+        MenuOptionHandler command = commands.get(option);
         if (command == null) {
             throw new IllegalStateException(
                     "No command registered for menu option: " + option

@@ -1,19 +1,18 @@
 package com.foxminded.schoolmanagementapp.console;
 
-import com.foxminded.schoolmanagementapp.console.command.ExecuteControl;
-import com.foxminded.schoolmanagementapp.console.command.MenuCommand;
+import com.foxminded.schoolmanagementapp.console.command.MenuOptionHandler;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
-class MenuCommandDispatcherTest {
+class MenuOptionHandlerDispatcherTest {
 
     @Test
     void constructor_shouldThrowException_whenMultipleCommandsUseSameOption() {
-        MenuCommand first = commandFor(MenuOption.VIEW_COURSES);
-        MenuCommand second = commandFor(MenuOption.VIEW_COURSES);
+        MenuOptionHandler first = commandFor(MenuOption.VIEW_COURSES);
+        MenuOptionHandler second = commandFor(MenuOption.VIEW_COURSES);
 
         assertThatIllegalStateException()
                 .isThrownBy(() -> new MenuCommandDispatcher(
@@ -27,7 +26,7 @@ class MenuCommandDispatcherTest {
 
     @Test
     void dispatch_shouldThrowException_whenCommandIsNotRegistered() {
-        MenuCommand registeredCommand = commandFor(MenuOption.VIEW_GROUPS);
+        MenuOptionHandler registeredCommand = commandFor(MenuOption.VIEW_GROUPS);
 
         MenuCommandDispatcher dispatcher = new MenuCommandDispatcher(
                 List.of(registeredCommand)
@@ -41,17 +40,17 @@ class MenuCommandDispatcherTest {
 
     }
 
-    private MenuCommand commandFor(MenuOption option) {
-        ExecuteControl execute = option == MenuOption.EXIT
-                ? ExecuteControl.EXIT : ExecuteControl.CONTINUE;
-        return new MenuCommand() {
+    private MenuOptionHandler commandFor(MenuOption option) {
+        LoopStatus execute = option == MenuOption.EXIT
+                ? LoopStatus.EXIT : LoopStatus.CONTINUE;
+        return new MenuOptionHandler() {
             @Override
             public MenuOption menuOption() {
                 return option;
             }
 
             @Override
-            public ExecuteControl execute() {
+            public LoopStatus execute() {
                 return execute;
             }
         };

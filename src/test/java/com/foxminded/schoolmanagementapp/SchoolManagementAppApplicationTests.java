@@ -3,7 +3,7 @@ package com.foxminded.schoolmanagementapp;
 import com.foxminded.schoolmanagementapp.console.ConsoleMenu;
 import com.foxminded.schoolmanagementapp.console.MenuCommandDispatcher;
 import com.foxminded.schoolmanagementapp.console.MenuOption;
-import com.foxminded.schoolmanagementapp.console.command.MenuCommand;
+import com.foxminded.schoolmanagementapp.console.command.MenuOptionHandler;
 import com.foxminded.schoolmanagementapp.service.CourseService;
 import com.foxminded.schoolmanagementapp.service.GroupService;
 import com.foxminded.schoolmanagementapp.service.StudentService;
@@ -31,7 +31,7 @@ import static org.mockito.Mockito.mock;
 class SchoolManagementAppApplicationTests {
 
     @Autowired
-    private List<MenuCommand> commands;
+    private List<MenuOptionHandler> commands;
     @Autowired
     private MenuCommandDispatcher dispatcher;
     @Autowired
@@ -41,7 +41,7 @@ class SchoolManagementAppApplicationTests {
     void context_shouldRegisterCommandForEveryMenuOption() {
         assertThat(commands)
                 .hasSize(MenuOption.values().length)
-                .extracting(MenuCommand::menuOption)
+                .extracting(MenuOptionHandler::menuOption)
                 .containsExactlyInAnyOrder(MenuOption.values());
 
         assertThat(dispatcher).isNotNull();

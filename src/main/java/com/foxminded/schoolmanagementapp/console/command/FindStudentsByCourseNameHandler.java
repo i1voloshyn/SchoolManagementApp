@@ -1,6 +1,7 @@
 package com.foxminded.schoolmanagementapp.console.command;
 
 import com.foxminded.schoolmanagementapp.console.ConsoleView;
+import com.foxminded.schoolmanagementapp.console.LoopStatus;
 import com.foxminded.schoolmanagementapp.console.MenuOption;
 import com.foxminded.schoolmanagementapp.console.systemConsole.ConsoleInputReader;
 import com.foxminded.schoolmanagementapp.dto.StudentDto;
@@ -13,8 +14,8 @@ import java.util.List;
 
 @AllArgsConstructor
 @Component
-public class FindStudentsByCourseNameCommand
-        implements MenuCommand {
+public class FindStudentsByCourseNameHandler
+        implements MenuOptionHandler {
 
     private final static String COURSE_NAME = "Course name";
 
@@ -28,7 +29,7 @@ public class FindStudentsByCourseNameCommand
     }
 
     @Override
-    public ExecuteControl execute() {
+    public LoopStatus execute() {
         view.promptForCourseName();
 
         String courseName =
@@ -38,7 +39,7 @@ public class FindStudentsByCourseNameCommand
 
         view.showStudents(courseName, students);
 
-        return ExecuteControl.CONTINUE;
+        return LoopStatus.CONTINUE;
     }
 
     private List<StudentDto> findStudents(String courseName) {

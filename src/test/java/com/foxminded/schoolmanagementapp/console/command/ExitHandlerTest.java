@@ -1,6 +1,7 @@
 package com.foxminded.schoolmanagementapp.console.command;
 
 import com.foxminded.schoolmanagementapp.console.ConsoleView;
+import com.foxminded.schoolmanagementapp.console.LoopStatus;
 import com.foxminded.schoolmanagementapp.console.MenuOption;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,12 +13,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-class ExitCommandTest {
+class ExitHandlerTest {
 
     @Mock
     private ConsoleView view;
     @InjectMocks
-    private ExitCommand command;
+    private ExitHandler command;
 
     @Test
     void menuOption_shouldReturnExitOption() {
@@ -26,9 +27,9 @@ class ExitCommandTest {
 
     @Test
     void execute_shouldShowGoodbyeAndReturnExit() {
-        ExecuteControl actual = command.execute();
+        LoopStatus actual = command.execute();
 
-        assertThat(actual).isEqualTo(ExecuteControl.EXIT);
+        assertThat(actual).isEqualTo(LoopStatus.EXIT);
         verify(view).showGoodbye();
     }
 }

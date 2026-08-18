@@ -1,6 +1,7 @@
 package com.foxminded.schoolmanagementapp.console.command;
 
 import com.foxminded.schoolmanagementapp.console.ConsoleView;
+import com.foxminded.schoolmanagementapp.console.LoopStatus;
 import com.foxminded.schoolmanagementapp.console.MenuOption;
 import com.foxminded.schoolmanagementapp.model.Group;
 import com.foxminded.schoolmanagementapp.service.GroupService;
@@ -11,7 +12,7 @@ import java.util.List;
 
 @AllArgsConstructor
 @Component
-public class ViewGroupsCommand implements MenuCommand {
+public class ViewGroupsHandler implements MenuOptionHandler {
 
     private final GroupService groupService;
     private final ConsoleView view;
@@ -22,11 +23,11 @@ public class ViewGroupsCommand implements MenuCommand {
     }
 
     @Override
-    public ExecuteControl execute() {
+    public LoopStatus execute() {
         List<Group> groups = groupService.findAll();
 
         view.showGroups(groups);
 
-        return ExecuteControl.CONTINUE;
+        return LoopStatus.CONTINUE;
     }
 }
