@@ -1,5 +1,6 @@
 package com.foxminded.schoolmanagementapp.repository;
 
+import com.foxminded.schoolmanagementapp.exception.StudentNotFoundException;
 import com.foxminded.schoolmanagementapp.model.Student;
 import org.jspecify.annotations.Nullable;
 import org.springframework.jdbc.JdbcUpdateAffectedIncorrectNumberOfRowsException;
@@ -123,6 +124,9 @@ public class JdbcStudentRepository implements StudentsRepository {
                     DELETE_STUDENT_QUERY,
                     new MapSqlParameterSource("id", id)
             );
+            if (affectedRows == 0) {
+                throw new StudentNotFoundException(id);
+            }
             validateQuery(DELETE_STUDENT_QUERY, 1, affectedRows);
         });
     }

@@ -2,7 +2,6 @@ package com.foxminded.schoolmanagementapp.service;
 
 import com.foxminded.schoolmanagementapp.GlobalMapper;
 import com.foxminded.schoolmanagementapp.dto.StudentDto;
-import com.foxminded.schoolmanagementapp.exception.StudentNotFoundException;
 import com.foxminded.schoolmanagementapp.repository.StudentsRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -49,9 +48,7 @@ public class StudentService {
 
     public void deleteStudent(Long studentId) {
         validateStudentId(studentId);
-        if (studentsRepository.findById(studentId).isEmpty()) {
-            throw new StudentNotFoundException(studentId);
-        }
+
         studentsRepository.delete(studentId);
     }
 
