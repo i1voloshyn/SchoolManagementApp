@@ -40,11 +40,13 @@ public class JdbcStudentRepository implements StudentsRepository {
             FROM students
             WHERE last_name = :last_name
             """;
-    private static final String FIND_STUDENTS_BY_COURSE_ID_QUERY = """
-            SELECT s.id, s.group_id, s.first_name, s.last_name
-            FROM students s
-            JOIN students_courses sc ON sc.student_id = s.id
-            WHERE sc.course_id = :id
+
+    private static final String FIND_STUDENTS_BY_COURSE_NAME = """
+             SELECT s.id, s.group_id, s.first_name, s.last_name
+             FROM students s
+                      JOIN students_courses sc ON sc.student_id = s.id
+                      JOIN courses c ON c.id = sc.course_id
+             WHERE c.name = :course_name
             """;
     private static final RowMapper<@Nullable Student> STUDENT_MAPPER = (rs, rowNumber) -> {
         Long groupId = rs.getLong("group_id");
@@ -151,10 +153,10 @@ public class JdbcStudentRepository implements StudentsRepository {
     }
 
     @Override
-    public List<Student> findByCourseId(Long id) {
+    public List<Student> findByCourseName(String courseName) {
         return namedParameterJdbcTemplate.query(
-                FIND_STUDENTS_BY_COURSE_ID_QUERY,
-                new MapSqlParameterSource("id", id),
+                FIND_STUDENTS_BY_COURSE_NAME,
+                new MapSqlParameterSource("course_name", courseName),
                 STUDENT_MAPPER
         );
     }

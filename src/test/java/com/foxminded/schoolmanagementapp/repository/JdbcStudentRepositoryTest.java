@@ -244,14 +244,9 @@ class JdbcStudentRepositoryTest {
     @Sql(value = {"/fixtures/clean_up.sql",
             "/fixtures/enrollments/students_with_courses.sql"})
     @Test
-    void findByCourseId_shouldReturnAllStudents_enrolledInExpectedCourse() {
-        Long courseId = jdbcTemplate.queryForObject(
-                "SELECT id FROM courses WHERE name = ?",
-                Long.class,
-                "Java"
-        );
-
-        List<Student> actual = repository.findByCourseId(courseId);
+    void findByCourseName_shouldReturnAllStudents_enrolledInExpectedCourse() {
+        String name = "Java";
+        List<Student> actual = repository.findByCourseName(name);
 
         assertThat(actual)
                 .extracting(Student::getFirstName)
@@ -261,9 +256,11 @@ class JdbcStudentRepositoryTest {
     @Sql(value = {"/fixtures/clean_up.sql",
             "/fixtures/enrollments/students_with_courses.sql"})
     @Test
-    void findByCourseId_shouldReturnEmptyList_whenCourseHasNoEnrollments() {
-        List<Student> actual = repository.findByCourseId(-1L);
+    void findByCourseName_shouldReturnEmptyList_forNonExistedCourse() {
+        String name = "Wrong-Java";
+        List<Student> actual = repository.findByCourseName(name);
 
         assertThat(actual).isEmpty();
     }
+
 }

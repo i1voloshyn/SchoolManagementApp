@@ -40,14 +40,12 @@ class StudentServiceTest {
 
     @Test
     void findStudentsByCourseName_shouldReturnStudentsEnrolledInCourse() {
-        Long courseId = 10L;
-        Course course = new Course(courseId, "Java", "Java course");
+        String courseName = "Java";
         List<Student> expected = List.of(
                 new Student(1L, 5L, "John", "Smith"),
                 new Student(2L, 5L, "Anna", "Brown")
         );
-        when(courseRepository.findByName("Java")).thenReturn(Optional.of(course));
-        when(studentsRepository.findByCourseId(courseId)).thenReturn(expected);
+        when(studentsRepository.findByCourseName(courseName)).thenReturn(expected);
 
         List<StudentDto> actual = service.findStudentsByCourseName("Java");
 
@@ -56,19 +54,19 @@ class StudentServiceTest {
         ).containsExactlyInAnyOrder(tuple(1L, 5L, "John", "Smith"),
                 tuple(2L, 5L, "Anna", "Brown"));
 
-        verify(studentsRepository).findByCourseId(courseId);
+        verify(studentsRepository).findByCourseName(courseName);
         verify(mapper).toStudentDto(new Student(1L, 5L, "John", "Smith"));
         verify(mapper).toStudentDto(new Student(2L, 5L, "Anna", "Brown"));
     }
 
     @Test
-    void findStudentsByCourseName_shouldThrowException_whenCourseDoesNotExist() {
-        when(courseRepository.findByName("Unknown")).thenReturn(Optional.empty());
+    void findStudentsByCourseName_shouldReturnEmptyList_whenCourseDoesNotExist() {
+        String nonExistedCourse = "NonExistedCourse";
+        when(studentsRepository.findByCourseName(nonExistedCourse)).thenReturn(List.of());
 
-        assertThatExceptionOfType(CourseNotFoundException.class)
-                .isThrownBy(() -> service.findStudentsByCourseName("Unknown"));
-        verifyNoInteractions(studentsRepository);
-        verifyNoInteractions(mapper);
+        var actual = service.findStudentsByCourseName(nonExistedCourse);
+
+        assertThat(actual).isEmpty();
     }
 
     @Test
