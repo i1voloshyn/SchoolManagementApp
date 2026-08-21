@@ -9,22 +9,13 @@ import com.foxminded.schoolmanagementapp.service.StudentService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayDeque;
-import java.util.List;
-import java.util.Queue;
-
 @AllArgsConstructor
 @Component
 public class CreateStudentAction implements MenuActionRunner {
     private static final String FIRST_NAME = "First name";
     private static final String LAST_NAME = "Last name";
-
-    private final Queue<String> studentCreationFlow = new ArrayDeque<>(
-            List.of(
-                    "Enter student first name:",
-                    "Enter student last name:"
-            )
-    );
+    private static final String FIRST_NAME_PROMPT = "Enter student first name:";
+    private static final String LAST_NAME_PROMPT = "Enter student first name:";
 
     private final ConsoleInputReader inputReader;
     private final StudentService studentService;
@@ -37,10 +28,10 @@ public class CreateStudentAction implements MenuActionRunner {
 
     @Override
     public LoopStatus execute() {
-        consoleView.promptForWriteOperationFlow(studentCreationFlow.poll());
+        consoleView.promptForWriteOperationFlow(FIRST_NAME_PROMPT);
         String firstName = inputReader.readRequiredText(FIRST_NAME);
 
-        consoleView.promptForWriteOperationFlow(studentCreationFlow.poll());
+        consoleView.promptForWriteOperationFlow(LAST_NAME_PROMPT);
         String lastName = inputReader.readRequiredText(LAST_NAME);
 
         studentService.addStudent(new StudentDto(null, null, firstName, lastName));
