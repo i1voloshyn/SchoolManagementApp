@@ -43,6 +43,11 @@ public class ConsoleView {
         output.writeLine("Enter course name:");
     }
 
+
+    public void promptForWriteOperationFlow(String message) {
+        output.writeLine(message);
+    }
+
     public void showGroups(List<Group> groups) {
         if (groups.isEmpty()) {
             output.writeLine("No groups found.");
@@ -107,5 +112,9 @@ public class ConsoleView {
 
     public void showGoodbye() {
         output.writeLine("Goodbye!");
+    }
+
+    public void showSuccessMessageOnCreation(String entity) {
+        output.writeLine(entity + " was successfully created!");
     }
 }

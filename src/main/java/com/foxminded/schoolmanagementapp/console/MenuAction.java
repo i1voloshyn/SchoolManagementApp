@@ -22,6 +22,10 @@ public enum MenuAction {
             4,
             "View all groups"
     ),
+    CREATE_STUDENT(
+            5,
+            "Create new studen"
+    ),
     EXIT(
             0,
             "Exit"
