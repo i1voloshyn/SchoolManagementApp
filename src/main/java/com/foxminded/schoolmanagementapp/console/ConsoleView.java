@@ -110,11 +110,19 @@ public class ConsoleView {
         output.writeLine("Invalid input: " + message);
     }
 
+    public void showOperationError(String message) {
+        output.writeLine("Operation failed: " + message);
+    }
+
     public void showGoodbye() {
         output.writeLine("Goodbye!");
     }
 
     public void showSuccessMessageOnCreation(String entity) {
         output.writeLine(entity + " was successfully created!");
+    }
+
+    public void showSuccessMessageOnDeletion(String entity) {
+        output.writeLine(entity + " was successfully deleted!");
     }
 }

@@ -2,6 +2,7 @@ package com.foxminded.schoolmanagementapp.console.systemConsole;
 
 import com.foxminded.schoolmanagementapp.exception.consoleException.BlankConsoleInputException;
 import com.foxminded.schoolmanagementapp.exception.consoleException.NegativeNumberException;
+import com.foxminded.schoolmanagementapp.exception.consoleException.NonPositiveNumberException;
 import com.foxminded.schoolmanagementapp.exception.consoleException.NonNumericInputException;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -129,6 +130,50 @@ class ConsoleInputReaderTest {
                 ))
                 .withMessage(
                         "Maximum student count must be a whole number, but was '%s'."
+                                .formatted(inputValue)
+                );
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = {1L, 10L, Long.MAX_VALUE})
+    void readPositiveLong_shouldReturnValidNumber(long expected) {
+        ConsoleInputReader inputReader = inputReaderReturning(
+                "  " + expected + "  "
+        );
+
+        long actual = inputReader.readPositiveLong("Student ID");
+
+        assertThat(actual).isEqualTo(expected);
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = {Long.MIN_VALUE, -1L, 0L})
+    void readPositiveLong_shouldThrowException_whenNumberIsNotPositive(
+            long inputValue
+    ) {
+        ConsoleInputReader inputReader = inputReaderReturning(
+                String.valueOf(inputValue)
+        );
+
+        assertThatExceptionOfType(NonPositiveNumberException.class)
+                .isThrownBy(() -> inputReader.readPositiveLong("Student ID"))
+                .withMessage(
+                        "Student ID must be greater than zero, but was %d."
+                                .formatted(inputValue)
+                );
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"ten", "2.5", "1_000", "9223372036854775808"})
+    void readPositiveLong_shouldThrowException_whenInputIsNotLong(
+            String inputValue
+    ) {
+        ConsoleInputReader inputReader = inputReaderReturning(inputValue);
+
+        assertThatExceptionOfType(NonNumericInputException.class)
+                .isThrownBy(() -> inputReader.readPositiveLong("Student ID"))
+                .withMessage(
+                        "Student ID must be a whole number, but was '%s'."
                                 .formatted(inputValue)
                 );
     }

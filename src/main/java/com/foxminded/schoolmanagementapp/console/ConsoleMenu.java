@@ -1,6 +1,7 @@
 package com.foxminded.schoolmanagementapp.console;
 
 import com.foxminded.schoolmanagementapp.console.systemConsole.ConsoleInputReader;
+import com.foxminded.schoolmanagementapp.exception.SchoolManagementException;
 import com.foxminded.schoolmanagementapp.exception.consoleException.ConsoleInputException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -32,6 +33,9 @@ public class ConsoleMenu {
             return actionRunnerDispatcher.dispatch(action);
         } catch (ConsoleInputException exception) {
             view.showInputError(exception.getMessage());
+            return LoopStatus.CONTINUE;
+        } catch (SchoolManagementException exception) {
+            view.showOperationError(exception.getMessage());
             return LoopStatus.CONTINUE;
         }
     }

@@ -24,7 +24,11 @@ public enum MenuAction {
     ),
     CREATE_STUDENT(
             5,
-            "Create new studen"
+            "Create new student"
+    ),
+    DELETE_STUDENT(
+            6,
+            "Delete student"
     ),
     EXIT(
             0,
