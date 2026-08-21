@@ -125,4 +125,8 @@ public class ConsoleView {
     public void showSuccessMessageOnDeletion(String entity) {
         output.writeLine(entity + " was successfully deleted!");
     }
+
+    public void showSuccessMessageOnEnrollment() {
+        output.writeLine("Student was successfully added to course!");
+    }
 }

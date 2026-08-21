@@ -5,6 +5,7 @@ import com.foxminded.schoolmanagementapp.console.MenuActionRunnerDispatcher;
 import com.foxminded.schoolmanagementapp.console.MenuAction;
 import com.foxminded.schoolmanagementapp.console.command.MenuActionRunner;
 import com.foxminded.schoolmanagementapp.service.CourseService;
+import com.foxminded.schoolmanagementapp.service.EnrollmentService;
 import com.foxminded.schoolmanagementapp.service.GroupService;
 import com.foxminded.schoolmanagementapp.service.StudentService;
 import org.junit.jupiter.api.Test;
@@ -73,6 +74,11 @@ class SchoolManagementAppApplicationTests {
         @Bean
         CourseService courseService() {
             return mock(CourseService.class);
+        }
+
+        @Bean
+        EnrollmentService enrollmentService() {
+            return mock(EnrollmentService.class);
         }
     }
 }

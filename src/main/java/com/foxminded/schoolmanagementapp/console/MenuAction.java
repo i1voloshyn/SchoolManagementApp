@@ -30,6 +30,10 @@ public enum MenuAction {
             6,
             "Delete student"
     ),
+    ADD_STUDENT_TO_COURSE(
+            7,
+            "Add student to course"
+    ),
     EXIT(
             0,
             "Exit"
