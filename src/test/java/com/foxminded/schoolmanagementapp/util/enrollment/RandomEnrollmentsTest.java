@@ -8,7 +8,6 @@ import net.datafaker.Faker;
 import net.datafaker.providers.base.Number;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -24,10 +23,6 @@ class RandomEnrollmentsTest {
     private Faker faker;
     @Mock
     private Number fakerNumber;
-    @Mock
-    private StudentCoursesAssignmentProperties properties;
-    @InjectMocks
-    private RandomEnrollments randomEnrollments;
 
     @Test
     void apply_shouldEnrollEveryStudentInConfiguredNumberOfDistinctCourses() {
@@ -43,9 +38,11 @@ class RandomEnrollmentsTest {
         int minCourses = 1;
         int maxCourses = 3;
         int enrollmentCount = 2;
+        StudentCoursesAssignmentProperties properties =
+                new StudentCoursesAssignmentProperties(minCourses, maxCourses);
+        RandomEnrollments randomEnrollments =
+                new RandomEnrollments(faker, properties);
 
-        when(properties.minCourses()).thenReturn(minCourses);
-        when(properties.maxCourses()).thenReturn(maxCourses);
         when(faker.number()).thenReturn(fakerNumber);
         when(fakerNumber.numberBetween(minCourses, maxCourses + 1)).thenReturn(enrollmentCount);
 

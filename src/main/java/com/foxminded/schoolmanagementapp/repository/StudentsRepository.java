@@ -18,5 +18,5 @@ public interface StudentsRepository {
 
     List<Student> findByLastName(String lastName);
 
-    List<Student> findByCourseId(Long courseId);
+    List<Student> findByCourseName(String courseName);
 }

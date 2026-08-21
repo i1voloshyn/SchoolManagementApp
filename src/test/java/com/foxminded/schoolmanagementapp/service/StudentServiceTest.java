@@ -1,11 +1,8 @@
 package com.foxminded.schoolmanagementapp.service;
 
 import com.foxminded.schoolmanagementapp.GlobalMapper;
-import com.foxminded.schoolmanagementapp.exception.CourseNotFoundException;
-import com.foxminded.schoolmanagementapp.exception.StudentNotFoundException;
-import com.foxminded.schoolmanagementapp.model.Course;
-import com.foxminded.schoolmanagementapp.model.Student;
 import com.foxminded.schoolmanagementapp.dto.StudentDto;
+import com.foxminded.schoolmanagementapp.model.Student;
 import com.foxminded.schoolmanagementapp.repository.CourseRepository;
 import com.foxminded.schoolmanagementapp.repository.StudentsRepository;
 import org.junit.jupiter.api.Test;
@@ -16,13 +13,10 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -40,14 +34,12 @@ class StudentServiceTest {
 
     @Test
     void findStudentsByCourseName_shouldReturnStudentsEnrolledInCourse() {
-        Long courseId = 10L;
-        Course course = new Course(courseId, "Java", "Java course");
+        String courseName = "Java";
         List<Student> expected = List.of(
                 new Student(1L, 5L, "John", "Smith"),
                 new Student(2L, 5L, "Anna", "Brown")
         );
-        when(courseRepository.findByName("Java")).thenReturn(Optional.of(course));
-        when(studentsRepository.findByCourseId(courseId)).thenReturn(expected);
+        when(studentsRepository.findByCourseName(courseName)).thenReturn(expected);
 
         List<StudentDto> actual = service.findStudentsByCourseName("Java");
 
@@ -56,19 +48,19 @@ class StudentServiceTest {
         ).containsExactlyInAnyOrder(tuple(1L, 5L, "John", "Smith"),
                 tuple(2L, 5L, "Anna", "Brown"));
 
-        verify(studentsRepository).findByCourseId(courseId);
+        verify(studentsRepository).findByCourseName(courseName);
         verify(mapper).toStudentDto(new Student(1L, 5L, "John", "Smith"));
         verify(mapper).toStudentDto(new Student(2L, 5L, "Anna", "Brown"));
     }
 
     @Test
-    void findStudentsByCourseName_shouldThrowException_whenCourseDoesNotExist() {
-        when(courseRepository.findByName("Unknown")).thenReturn(Optional.empty());
+    void findStudentsByCourseName_shouldReturnEmptyList_whenCourseDoesNotExist() {
+        String nonExistedCourse = "NonExistedCourse";
+        when(studentsRepository.findByCourseName(nonExistedCourse)).thenReturn(List.of());
 
-        assertThatExceptionOfType(CourseNotFoundException.class)
-                .isThrownBy(() -> service.findStudentsByCourseName("Unknown"));
-        verifyNoInteractions(studentsRepository);
-        verifyNoInteractions(mapper);
+        var actual = service.findStudentsByCourseName(nonExistedCourse);
+
+        assertThat(actual).isEmpty();
     }
 
     @Test
@@ -162,22 +154,10 @@ class StudentServiceTest {
     @Test
     void deleteStudent_shouldDeleteExistingStudent() {
         Long studentId = 1L;
-        Student student = new Student(studentId, 5L, "John", "Smith");
-        when(studentsRepository.findById(studentId)).thenReturn(Optional.of(student));
 
         service.deleteStudent(studentId);
 
         verify(studentsRepository).delete(studentId);
-    }
-
-    @Test
-    void deleteStudent_shouldThrowException_whenStudentDoesNotExist() {
-        Long studentId = 99L;
-        when(studentsRepository.findById(studentId)).thenReturn(Optional.empty());
-
-        assertThatExceptionOfType(StudentNotFoundException.class)
-                .isThrownBy(() -> service.deleteStudent(studentId));
-        verify(studentsRepository, never()).delete(studentId);
     }
 
     @Test

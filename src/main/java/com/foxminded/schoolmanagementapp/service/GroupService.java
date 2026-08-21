@@ -4,7 +4,6 @@ import com.foxminded.schoolmanagementapp.model.Group;
 import com.foxminded.schoolmanagementapp.repository.GroupRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.regex.Pattern;
@@ -19,6 +18,10 @@ public class GroupService {
     public Group createGroup(Group group) {
         validateNewGroup(group);
         return groupRepository.save(group);
+    }
+
+    public List<Group> findAll() {
+        return groupRepository.findAll();
     }
 
     public List<Group> findByMaximumStudentCount(int studentCount) {

@@ -1,33 +1,24 @@
 package com.foxminded.schoolmanagementapp.repository;
 
-import com.foxminded.schoolmanagementapp.model.Course;
+import com.foxminded.schoolmanagementapp.exception.StudentNotFoundException;
 import com.foxminded.schoolmanagementapp.model.Student;
-import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.jdbc.test.autoconfigure.JdbcTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Import;
-import org.springframework.jdbc.JdbcUpdateAffectedIncorrectNumberOfRowsException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.core.namedparam.SqlParameterSource;
-import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
-import javax.sql.DataSource;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatException;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @JdbcTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -123,6 +114,15 @@ class JdbcStudentRepositoryTest {
     }
 
     @Sql(value = {"/fixtures/clean_up.sql",
+            "/fixtures/students/insert_five_students.sql"})
+    @Test
+    void delete_shouldThrowException_forNonExistingStudentId() {
+        Long nonExistingId = 999L;
+        assertThatExceptionOfType(StudentNotFoundException.class)
+                .isThrownBy(() -> repository.delete(nonExistingId));
+    }
+
+    @Sql(value = {"/fixtures/clean_up.sql",
             "/fixtures/enrollments/students_with_courses.sql"})
     @Test
     void delete_shouldDeleteStudentEnrollments_butPreserveCourses() {
@@ -160,14 +160,6 @@ class JdbcStudentRepositoryTest {
         assertThat(remainingStudents).isZero();
         assertThat(remainingEnrollments).isZero();
         assertThat(remainingCourses).isEqualTo(coursesBeforeDelete);
-    }
-
-    @Sql("/fixtures/clean_up.sql")
-    @Test
-    void delete_shouldThrowException_whenStudentDoesNotExist() {
-        assertThatException()
-                .isThrownBy(() -> repository.delete(-1L))
-                .isInstanceOf(JdbcUpdateAffectedIncorrectNumberOfRowsException.class);
     }
 
     @Sql(value = {"/fixtures/clean_up.sql",
@@ -244,14 +236,9 @@ class JdbcStudentRepositoryTest {
     @Sql(value = {"/fixtures/clean_up.sql",
             "/fixtures/enrollments/students_with_courses.sql"})
     @Test
-    void findByCourseId_shouldReturnAllStudents_enrolledInExpectedCourse() {
-        Long courseId = jdbcTemplate.queryForObject(
-                "SELECT id FROM courses WHERE name = ?",
-                Long.class,
-                "Java"
-        );
-
-        List<Student> actual = repository.findByCourseId(courseId);
+    void findByCourseName_shouldReturnAllStudents_enrolledInExpectedCourse() {
+        String name = "Java";
+        List<Student> actual = repository.findByCourseName(name);
 
         assertThat(actual)
                 .extracting(Student::getFirstName)
@@ -261,8 +248,9 @@ class JdbcStudentRepositoryTest {
     @Sql(value = {"/fixtures/clean_up.sql",
             "/fixtures/enrollments/students_with_courses.sql"})
     @Test
-    void findByCourseId_shouldReturnEmptyList_whenCourseHasNoEnrollments() {
-        List<Student> actual = repository.findByCourseId(-1L);
+    void findByCourseName_shouldReturnEmptyList_forNonExistedCourse() {
+        String name = "Wrong-Java";
+        List<Student> actual = repository.findByCourseName(name);
 
         assertThat(actual).isEmpty();
     }

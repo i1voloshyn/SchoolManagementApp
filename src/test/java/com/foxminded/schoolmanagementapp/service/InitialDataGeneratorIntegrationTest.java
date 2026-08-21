@@ -15,7 +15,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest
+@SpringBootTest(properties = "school.console.enabled=false")
 @Testcontainers
 @Sql(
         scripts = "/fixtures/clean_up.sql",

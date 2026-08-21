@@ -1,11 +1,7 @@
 package com.foxminded.schoolmanagementapp.service;
 
 import com.foxminded.schoolmanagementapp.GlobalMapper;
-import com.foxminded.schoolmanagementapp.exception.CourseNotFoundException;
-import com.foxminded.schoolmanagementapp.exception.StudentNotFoundException;
-import com.foxminded.schoolmanagementapp.model.Course;
 import com.foxminded.schoolmanagementapp.dto.StudentDto;
-import com.foxminded.schoolmanagementapp.repository.CourseRepository;
 import com.foxminded.schoolmanagementapp.repository.StudentsRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,7 +12,6 @@ import java.util.List;
 @Service
 public class StudentService {
     private final StudentsRepository studentsRepository;
-    private final CourseRepository courseRepository;
     private final GlobalMapper mapper;
 
     public List<StudentDto> findStudentsByCourseName(String courseName) {
@@ -24,10 +19,7 @@ public class StudentService {
             throw new IllegalArgumentException("Course name must not be blank");
         }
 
-        Course course = courseRepository.findByName(courseName)
-                .orElseThrow(() -> new CourseNotFoundException("Course not found with name: " + courseName));
-
-        return studentsRepository.findByCourseId(course.getId())
+        return studentsRepository.findByCourseName(courseName)
                 .stream()
                 .map(mapper::toStudentDto)
                 .toList();
@@ -56,9 +48,7 @@ public class StudentService {
 
     public void deleteStudent(Long studentId) {
         validateStudentId(studentId);
-        if (studentsRepository.findById(studentId).isEmpty()) {
-            throw new StudentNotFoundException(studentId);
-        }
+
         studentsRepository.delete(studentId);
     }
 

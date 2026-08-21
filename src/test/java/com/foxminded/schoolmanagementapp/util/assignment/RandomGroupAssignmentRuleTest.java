@@ -5,7 +5,6 @@ import net.datafaker.Faker;
 import net.datafaker.providers.base.Number;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -21,10 +20,6 @@ class RandomGroupAssignmentRuleTest {
     private Faker faker;
     @Mock
     Number fakerNumber;
-    @Mock
-    private GroupAssignmentProperties properties;
-    @InjectMocks
-    private RandomGroupAssignmentRule rule;
 
     @Test
     void apply_shouldGenerateRandomListIds_withStudentsCountLength() {
@@ -35,8 +30,11 @@ class RandomGroupAssignmentRuleTest {
         int random = 5;
 
         int studentsCount = 20;
-        when(properties.minStudents()).thenReturn(minStudents);
-        when(properties.maxStudents()).thenReturn(maxStudents);
+        GroupAssignmentProperties properties =
+                new GroupAssignmentProperties(minStudents, maxStudents);
+        RandomGroupAssignmentRule rule =
+                new RandomGroupAssignmentRule(faker, properties);
+
         when(faker.number()).thenReturn(fakerNumber);
         when(fakerNumber.numberBetween(minStudents, maxStudents + 1)).thenReturn(random);
 
