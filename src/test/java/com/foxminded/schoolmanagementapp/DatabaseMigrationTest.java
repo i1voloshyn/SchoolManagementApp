@@ -1,14 +1,6 @@
 package com.foxminded.schoolmanagementapp;
 
-import org.flywaydb.core.Flyway;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.postgresql.PostgreSQLContainer;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -17,40 +9,54 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.flywaydb.core.Flyway;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Testcontainers
 class DatabaseMigrationTest {
 
-    @Container
-    @ServiceConnection
+    @Container @ServiceConnection
     private static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:18.4");
 
     @BeforeAll
     void beforeAll() {
-        Flyway flyway = Flyway.configure()
-                .dataSource(POSTGRES.getJdbcUrl(),
-                        POSTGRES.getUsername(),
-                        POSTGRES.getPassword())
-                .locations("classpath:db/migration")
-                .load();
+        Flyway flyway =
+                Flyway.configure()
+                        .dataSource(
+                                POSTGRES.getJdbcUrl(),
+                                POSTGRES.getUsername(),
+                                POSTGRES.getPassword())
+                        .locations("classpath:db/migration")
+                        .load();
         flyway.migrate();
     }
 
     @Test
     void migration_shouldCreateExpectedTables() throws SQLException {
-        String queryTablesSql = """
+        String queryTablesSql =
+                """
                 SELECT table_name
                 FROM information_schema.tables
                 WHERE table_schema = 'public'
                 """;
-        List<String> expectedTables = List.of("students", "courses", "groups", "students_courses", "flyway_schema_history");
+        List<String> expectedTables =
+                List.of(
+                        "students",
+                        "courses",
+                        "groups",
+                        "students_courses",
+                        "flyway_schema_history");
 
         try (Connection jdbcConnection = POSTGRES.createConnection("");
-             PreparedStatement statement = jdbcConnection.prepareStatement(queryTablesSql);
-             ResultSet tables = statement.executeQuery()) {
+                PreparedStatement statement = jdbcConnection.prepareStatement(queryTablesSql);
+                ResultSet tables = statement.executeQuery()) {
 
             List<String> actualTables = new ArrayList<>();
             while (tables.next()) {
@@ -63,12 +69,14 @@ class DatabaseMigrationTest {
 
     @Test
     void migration_shouldCreateCoursesTable_withExpectedColumns() throws SQLException {
-        String selectFromCoursesSql = """
+        String selectFromCoursesSql =
+                """
                 SELECT * FROM courses
                 """;
         try (Connection jdbcConnection = POSTGRES.createConnection("");
-             PreparedStatement statement = jdbcConnection.prepareStatement(selectFromCoursesSql);
-             ResultSet resultSet = statement.executeQuery()) {
+                PreparedStatement statement =
+                        jdbcConnection.prepareStatement(selectFromCoursesSql);
+                ResultSet resultSet = statement.executeQuery()) {
 
             ResultSetMetaData actual = resultSet.getMetaData();
 
@@ -81,12 +89,14 @@ class DatabaseMigrationTest {
 
     @Test
     void migration_shouldCreateStudentsTable_withExpectedColumns() throws SQLException {
-        String selectFromStudentsSql = """
+        String selectFromStudentsSql =
+                """
                 SELECT * FROM students
                 """;
         try (Connection jdbcConnection = POSTGRES.createConnection("");
-             PreparedStatement statement = jdbcConnection.prepareStatement(selectFromStudentsSql);
-             ResultSet resultSet = statement.executeQuery()) {
+                PreparedStatement statement =
+                        jdbcConnection.prepareStatement(selectFromStudentsSql);
+                ResultSet resultSet = statement.executeQuery()) {
 
             ResultSetMetaData actual = resultSet.getMetaData();
 
@@ -102,8 +112,8 @@ class DatabaseMigrationTest {
     void migration_shouldCreateGroupsTable_withExpectedColumns() throws SQLException {
         String selectFromGroupsSql = "SELECT * FROM groups";
         try (Connection jdbcConnection = POSTGRES.createConnection("");
-             PreparedStatement statement = jdbcConnection.prepareStatement(selectFromGroupsSql);
-             ResultSet resultSet = statement.executeQuery()) {
+                PreparedStatement statement = jdbcConnection.prepareStatement(selectFromGroupsSql);
+                ResultSet resultSet = statement.executeQuery()) {
 
             ResultSetMetaData actual = resultSet.getMetaData();
 
@@ -117,8 +127,9 @@ class DatabaseMigrationTest {
     void migration_shouldCreateStudentsCoursesTable_withExpectedColumns() throws SQLException {
         String selectFromStudentsCoursesSql = "SELECT * FROM students_courses";
         try (Connection jdbcConnection = POSTGRES.createConnection("");
-             PreparedStatement statement = jdbcConnection.prepareStatement(selectFromStudentsCoursesSql);
-             ResultSet resultSet = statement.executeQuery()) {
+                PreparedStatement statement =
+                        jdbcConnection.prepareStatement(selectFromStudentsCoursesSql);
+                ResultSet resultSet = statement.executeQuery()) {
 
             ResultSetMetaData actual = resultSet.getMetaData();
 
@@ -149,7 +160,8 @@ class DatabaseMigrationTest {
     }
 
     private long insertCourse(Connection connection) throws SQLException {
-        String sql = """
+        String sql =
+                """
                 INSERT INTO courses (name, description)
                 VALUES (?, ?)
                 RETURNING id
@@ -170,7 +182,8 @@ class DatabaseMigrationTest {
     }
 
     private long insertStudent(Connection connection) throws SQLException {
-        String sql = """
+        String sql =
+                """
                 INSERT INTO students (group_id, first_name, last_name)
                 VALUES (?, ?, ?)
                 RETURNING id
@@ -191,12 +204,10 @@ class DatabaseMigrationTest {
         }
     }
 
-    private void insertEnrollment(
-            Connection connection,
-            long studentId,
-            long courseId
-    ) throws SQLException {
-        String sql = """
+    private void insertEnrollment(Connection connection, long studentId, long courseId)
+            throws SQLException {
+        String sql =
+                """
                 INSERT INTO students_courses (student_id, course_id)
                 VALUES (?, ?)
                 """;
@@ -213,11 +224,9 @@ class DatabaseMigrationTest {
         }
     }
 
-    private void deleteStudent(
-            Connection connection,
-            long studentId
-    ) throws SQLException {
-        String sql = """
+    private void deleteStudent(Connection connection, long studentId) throws SQLException {
+        String sql =
+                """
                 DELETE FROM students
                 WHERE id = ?
                 """;
@@ -229,17 +238,14 @@ class DatabaseMigrationTest {
 
             if (deletedRows != 1) {
                 throw new SQLException(
-                        "Expected to delete one student, but deleted: " + deletedRows
-                );
+                        "Expected to delete one student, but deleted: " + deletedRows);
             }
         }
     }
 
-    private void deleteCourse(
-            Connection connection,
-            long courseId
-    ) throws SQLException {
-        String sql = """
+    private void deleteCourse(Connection connection, long courseId) throws SQLException {
+        String sql =
+                """
                 DELETE FROM courses
                 WHERE id = ?
                 """;
@@ -251,17 +257,14 @@ class DatabaseMigrationTest {
 
             if (deletedRows != 1) {
                 throw new SQLException(
-                        "Expected to delete one course, but deleted: " + deletedRows
-                );
+                        "Expected to delete one course, but deleted: " + deletedRows);
             }
         }
     }
 
-    private boolean studentExists(
-            Connection connection,
-            long studentId
-    ) throws SQLException {
-        String sql = """
+    private boolean studentExists(Connection connection, long studentId) throws SQLException {
+        String sql =
+                """
                 SELECT EXISTS (
                     SELECT 1
                     FROM students
@@ -279,11 +282,9 @@ class DatabaseMigrationTest {
         }
     }
 
-    private boolean courseExists(
-            Connection connection,
-            long courseId
-    ) throws SQLException {
-        String sql = """
+    private boolean courseExists(Connection connection, long courseId) throws SQLException {
+        String sql =
+                """
                 SELECT EXISTS (
                     SELECT 1
                     FROM courses
@@ -301,12 +302,10 @@ class DatabaseMigrationTest {
         }
     }
 
-    private boolean enrollmentExists(
-            Connection connection,
-            long studentId,
-            long courseId
-    ) throws SQLException {
-        String sql = """
+    private boolean enrollmentExists(Connection connection, long studentId, long courseId)
+            throws SQLException {
+        String sql =
+                """
                 SELECT EXISTS (
                     SELECT 1
                     FROM students_courses

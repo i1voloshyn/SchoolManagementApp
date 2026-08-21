@@ -1,32 +1,25 @@
 package com.foxminded.schoolmanagementapp.console;
 
 import com.foxminded.schoolmanagementapp.console.command.MenuActionRunner;
-import org.springframework.stereotype.Component;
-
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @Component
 public class MenuActionRunnerDispatcher {
-
     private final Map<MenuAction, MenuActionRunner> actions;
 
     public MenuActionRunnerDispatcher(List<MenuActionRunner> actionList) {
-        EnumMap<MenuAction, MenuActionRunner> actionsMap =
-                new EnumMap<>(MenuAction.class);
+        EnumMap<MenuAction, MenuActionRunner> actionsMap = new EnumMap<>(MenuAction.class);
 
         for (MenuActionRunner actionRunner : actionList) {
-            MenuActionRunner previous = actionsMap.put(
-                    actionRunner.getAction(),
-                    actionRunner
-            );
+            MenuActionRunner previous = actionsMap.put(actionRunner.getAction(), actionRunner);
 
             if (previous != null) {
                 throw new IllegalStateException(
                         "Multiple commands registered for menu option: "
-                                + actionRunner.getAction()
-                );
+                                + actionRunner.getAction());
             }
         }
 
@@ -36,9 +29,7 @@ public class MenuActionRunnerDispatcher {
     public LoopStatus dispatch(MenuAction action) {
         MenuActionRunner actionRunner = actions.get(action);
         if (actionRunner == null) {
-            throw new IllegalStateException(
-                    "No command registered for menu action: " + action
-            );
+            throw new IllegalStateException("No command registered for menu action: " + action);
         }
         return actionRunner.execute();
     }

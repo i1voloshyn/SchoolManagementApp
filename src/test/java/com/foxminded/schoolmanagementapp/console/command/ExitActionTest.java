@@ -1,5 +1,8 @@
 package com.foxminded.schoolmanagementapp.console.command;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+
 import com.foxminded.schoolmanagementapp.console.ConsoleView;
 import com.foxminded.schoolmanagementapp.console.LoopStatus;
 import com.foxminded.schoolmanagementapp.console.MenuAction;
@@ -9,16 +12,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
-
 @ExtendWith(MockitoExtension.class)
 class ExitActionTest {
 
-    @Mock
-    private ConsoleView view;
-    @InjectMocks
-    private ExitAction command;
+    @Mock private ConsoleView view;
+    @InjectMocks private ExitAction command;
 
     @Test
     void getAction() {

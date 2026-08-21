@@ -1,5 +1,10 @@
 package com.foxminded.schoolmanagementapp.console;
 
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
 import com.foxminded.schoolmanagementapp.console.systemConsole.ConsoleInputReader;
 import com.foxminded.schoolmanagementapp.exception.StudentNotFoundException;
 import com.foxminded.schoolmanagementapp.exception.consoleException.NonNumericInputException;
@@ -9,22 +14,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
 class ConsoleMenuTest {
 
-    @Mock
-    ConsoleInputReader reader;
-    @Mock
-    ConsoleView view;
-    @Mock
-    MenuActionRunnerDispatcher dispatcher;
-    @InjectMocks
-    ConsoleMenu menu;
+    @Mock ConsoleInputReader reader;
+    @Mock ConsoleView view;
+    @Mock MenuActionRunnerDispatcher dispatcher;
+    @InjectMocks ConsoleMenu menu;
 
     @Test
     void start_shouldDispatchSelectedActionAndStop_whenActionReturnsExit() {
@@ -44,9 +40,7 @@ class ConsoleMenuTest {
     void start_shouldShowInputErrorAndContinue_whenInputIsNotNumeric() {
         var exception = new NonNumericInputException("Menu item", "abc");
 
-        when(reader.readActionNumber())
-                .thenThrow(exception)
-                .thenReturn(MenuAction.EXIT.number());
+        when(reader.readActionNumber()).thenThrow(exception).thenReturn(MenuAction.EXIT.number());
         when(dispatcher.dispatch(MenuAction.EXIT)).thenReturn(LoopStatus.EXIT);
 
         menu.start();
@@ -64,12 +58,9 @@ class ConsoleMenuTest {
         long studentId = 999L;
         var exception = new StudentNotFoundException(studentId);
 
-        when(reader.readActionNumber()).thenReturn(
-                MenuAction.DELETE_STUDENT.number(),
-                MenuAction.EXIT.number()
-        );
-        when(dispatcher.dispatch(MenuAction.DELETE_STUDENT))
-                .thenThrow(exception);
+        when(reader.readActionNumber())
+                .thenReturn(MenuAction.DELETE_STUDENT.number(), MenuAction.EXIT.number());
+        when(dispatcher.dispatch(MenuAction.DELETE_STUDENT)).thenThrow(exception);
         when(dispatcher.dispatch(MenuAction.EXIT)).thenReturn(LoopStatus.EXIT);
 
         menu.start();
@@ -78,9 +69,7 @@ class ConsoleMenuTest {
         verify(view, times(2)).showMenu();
         verify(reader, times(2)).readActionNumber();
         verify(dispatcher).dispatch(MenuAction.DELETE_STUDENT);
-        verify(view).showOperationError(
-                "Student not found with ID: " + studentId
-        );
+        verify(view).showOperationError("Student not found with ID: " + studentId);
         verify(dispatcher).dispatch(MenuAction.EXIT);
         verifyNoMoreInteractions(view, reader, dispatcher);
     }

@@ -10,12 +10,10 @@ import com.foxminded.schoolmanagementapp.util.datagenerator.DataGenerator;
 import com.foxminded.schoolmanagementapp.util.datagenerator.GroupsGenerator;
 import com.foxminded.schoolmanagementapp.util.datagenerator.StudentGenerator;
 import com.foxminded.schoolmanagementapp.util.enrollment.EnrollmentsRule;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-
 
 @AllArgsConstructor
 @Service
@@ -50,8 +48,7 @@ public class InitialDataGenerator implements DataGenerator {
     }
 
     private List<Group> createGroups() {
-        return groupsGenerator.generateGroups(properties.groupsCount())
-                .stream()
+        return groupsGenerator.generateGroups(properties.groupsCount()).stream()
                 .map(groupService::createGroup)
                 .toList();
     }
@@ -63,9 +60,7 @@ public class InitialDataGenerator implements DataGenerator {
     }
 
     private List<StudentDto> createStudentsWithGroups(List<Group> groups) {
-        List<Long> groupIds = groups.stream()
-                .map(Group::getId)
-                .toList();
+        List<Long> groupIds = groups.stream().map(Group::getId).toList();
 
         return studentGenerator.generateStudentsWithGroups(groupIds).stream()
                 .map(studentService::addStudent)

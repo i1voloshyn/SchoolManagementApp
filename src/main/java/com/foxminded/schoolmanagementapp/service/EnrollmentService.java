@@ -2,10 +2,9 @@ package com.foxminded.schoolmanagementapp.service;
 
 import com.foxminded.schoolmanagementapp.model.Enrollment;
 import com.foxminded.schoolmanagementapp.repository.EnrollmentRepository;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @AllArgsConstructor
 @Service
@@ -22,12 +21,13 @@ public class EnrollmentService {
             throw new IllegalArgumentException("Enrollments must not be null");
         }
 
-        enrollments.forEach(enrollment -> {
-            if (enrollment == null) {
-                throw new IllegalArgumentException("Enrollment must not be null");
-            }
-            validateIds(enrollment.studentId(), enrollment.courseId());
-        });
+        enrollments.forEach(
+                enrollment -> {
+                    if (enrollment == null) {
+                        throw new IllegalArgumentException("Enrollment must not be null");
+                    }
+                    validateIds(enrollment.studentId(), enrollment.courseId());
+                });
 
         enrollmentRepository.enrollAll(enrollments);
     }

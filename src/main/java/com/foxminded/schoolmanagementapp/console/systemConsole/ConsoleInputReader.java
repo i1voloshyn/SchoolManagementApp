@@ -2,16 +2,15 @@ package com.foxminded.schoolmanagementapp.console.systemConsole;
 
 import com.foxminded.schoolmanagementapp.exception.consoleException.BlankConsoleInputException;
 import com.foxminded.schoolmanagementapp.exception.consoleException.NegativeNumberException;
-import com.foxminded.schoolmanagementapp.exception.consoleException.NonPositiveNumberException;
 import com.foxminded.schoolmanagementapp.exception.consoleException.NonNumericInputException;
+import com.foxminded.schoolmanagementapp.exception.consoleException.NonPositiveNumberException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @AllArgsConstructor
 @Component
 public class ConsoleInputReader {
-
-    private final static String MENU_ITEM = "Menu item";
+    private static final String MENU_ITEM = "Menu item";
 
     private final ConsoleInput input;
 

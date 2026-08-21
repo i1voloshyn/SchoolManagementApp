@@ -1,5 +1,13 @@
 package com.foxminded.schoolmanagementapp.console.command;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
 import com.foxminded.schoolmanagementapp.console.ConsoleView;
 import com.foxminded.schoolmanagementapp.console.LoopStatus;
 import com.foxminded.schoolmanagementapp.console.systemConsole.ConsoleInputReader;
@@ -11,28 +19,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
 class AddStudentToCourseActionTest {
-
     private static final String STUDENT_ID = "Student ID";
     private static final String COURSE_ID = "Course ID";
 
-    @Mock
-    ConsoleInputReader reader;
-    @Mock
-    EnrollmentService service;
-    @Mock
-    ConsoleView view;
-    @InjectMocks
-    AddStudentToCourseAction action;
+    @Mock ConsoleInputReader reader;
+    @Mock EnrollmentService service;
+    @Mock ConsoleView view;
+    @InjectMocks AddStudentToCourseAction action;
 
     @Test
     void execute_shouldAddStudentToCourse() {
@@ -90,5 +85,4 @@ class AddStudentToCourseActionTest {
         verify(view, never()).showSuccessMessageOnEnrollment();
         verifyNoMoreInteractions(view, reader);
     }
-
 }

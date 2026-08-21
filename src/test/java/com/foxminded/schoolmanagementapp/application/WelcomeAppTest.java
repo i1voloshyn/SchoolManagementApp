@@ -10,13 +10,9 @@ import org.springframework.boot.ApplicationArguments;
 @ExtendWith(MockitoExtension.class)
 class WelcomeAppTest {
 
-    @Mock
-    DataGenerator dataGenerator;
-    @Mock
-    private ApplicationArguments applicationArguments;
+    @Mock DataGenerator dataGenerator;
+    @Mock private ApplicationArguments applicationArguments;
 
     @Test
-    void run_shouldPrintExpectedMessage() {
-
-    }
+    void run_shouldPrintExpectedMessage() {}
 }

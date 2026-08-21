@@ -9,9 +9,8 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 @Component
 public class ConsoleMenu {
-
-    private final ConsoleInputReader inputReader;
     private final ConsoleView view;
+    private final ConsoleInputReader inputReader;
     private final MenuActionRunnerDispatcher actionRunnerDispatcher;
 
     public void start() {

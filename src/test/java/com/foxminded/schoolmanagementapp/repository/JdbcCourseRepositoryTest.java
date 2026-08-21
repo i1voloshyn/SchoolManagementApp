@@ -1,7 +1,12 @@
 package com.foxminded.schoolmanagementapp.repository;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatException;
+
 import com.foxminded.schoolmanagementapp.exception.CourseNotFoundException;
 import com.foxminded.schoolmanagementapp.model.Course;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
@@ -14,26 +19,17 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatException;
-
 @JdbcTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(JdbcCourseRepository.class)
 @Testcontainers
 class JdbcCourseRepositoryTest {
 
-    @Container
-    @ServiceConnection
+    @Container @ServiceConnection
     private static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:18.4");
 
-    @Autowired
-    CourseRepository repository;
-    @Autowired
-    JdbcTemplate jdbcTemplate;
+    @Autowired CourseRepository repository;
+    @Autowired JdbcTemplate jdbcTemplate;
 
     @Sql("/fixtures/clean_up.sql")
     @Test
@@ -42,37 +38,31 @@ class JdbcCourseRepositoryTest {
 
         Course saved = repository.save(courseToSave);
 
-        Course actual = jdbcTemplate.queryForObject(
-                "SELECT id, name, description FROM courses WHERE id = ?",
-                (resultSet, rowNumber) -> new Course(
-                        resultSet.getLong("id"),
-                        resultSet.getString("name"),
-                        resultSet.getString("description")
-                ),
-                saved.getId()
-        );
+        Course actual =
+                jdbcTemplate.queryForObject(
+                        "SELECT id, name, description FROM courses WHERE id = ?",
+                        (resultSet, rowNumber) ->
+                                new Course(
+                                        resultSet.getLong("id"),
+                                        resultSet.getString("name"),
+                                        resultSet.getString("description")),
+                        saved.getId());
 
         assertThat(saved.getId()).isNotNull();
         assertThat(actual).isEqualTo(saved);
     }
 
-
-    @Sql(value = {"/fixtures/clean_up.sql",
-            "/fixtures/courses/insert_five_courses.sql"})
+    @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/courses/insert_five_courses.sql"})
     @Test
     void delete_shouldDeleteExpectedCourse() {
-        Long courseIdToDelete = jdbcTemplate.queryForObject(
-                "SELECT id FROM courses LIMIT 1",
-                Long.class
-        );
+        Long courseIdToDelete =
+                jdbcTemplate.queryForObject("SELECT id FROM courses LIMIT 1", Long.class);
 
         repository.delete(courseIdToDelete);
 
-        Long remainingCourses = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM courses WHERE id = ?",
-                Long.class,
-                courseIdToDelete
-        );
+        Long remainingCourses =
+                jdbcTemplate.queryForObject(
+                        "SELECT COUNT(*) FROM courses WHERE id = ?", Long.class, courseIdToDelete);
 
         assertThat(remainingCourses).isZero();
     }
@@ -85,17 +75,16 @@ class JdbcCourseRepositoryTest {
                 .isInstanceOf(CourseNotFoundException.class);
     }
 
-    @Sql(value = {"/fixtures/clean_up.sql",
-            "/fixtures/courses/insert_five_courses.sql"})
+    @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/courses/insert_five_courses.sql"})
     @Test
     void findAll_shouldReturnAllCourses_fromDatabase() {
-        List<String> expectedDescriptions = List.of(
-                "Java fundamentals",
-                "Advanced Java Course",
-                "Relational databases and SQL",
-                "Spring Framework fundamentals",
-                "Version control with Git"
-        );
+        List<String> expectedDescriptions =
+                List.of(
+                        "Java fundamentals",
+                        "Advanced Java Course",
+                        "Relational databases and SQL",
+                        "Spring Framework fundamentals",
+                        "Version control with Git");
 
         List<Course> actual = repository.findAll();
 
@@ -112,15 +101,12 @@ class JdbcCourseRepositoryTest {
         assertThat(actual).isEmpty();
     }
 
-    @Sql(value = {"/fixtures/clean_up.sql",
-            "/fixtures/courses/insert_five_courses.sql"})
+    @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/courses/insert_five_courses.sql"})
     @Test
     void findById_shouldReturnExpectedCourse_whenCourseExists() {
-        Long courseId = jdbcTemplate.queryForObject(
-                "SELECT id FROM courses WHERE name = ?",
-                Long.class,
-                "Spring"
-        );
+        Long courseId =
+                jdbcTemplate.queryForObject(
+                        "SELECT id FROM courses WHERE name = ?", Long.class, "Spring");
 
         Optional<Course> actual = repository.findById(courseId);
 
@@ -139,8 +125,7 @@ class JdbcCourseRepositoryTest {
         assertThat(actual).isEmpty();
     }
 
-    @Sql(value = {"/fixtures/clean_up.sql",
-            "/fixtures/courses/insert_five_courses.sql"})
+    @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/courses/insert_five_courses.sql"})
     @Test
     void findByName_shouldReturnOneCourse_withExpectedName() {
         Optional<Course> actual = repository.findByName("Java");
@@ -149,8 +134,7 @@ class JdbcCourseRepositoryTest {
         assertThat(actual.get()).extracting(Course::getName).isEqualTo("Java");
     }
 
-    @Sql(value = {"/fixtures/clean_up.sql",
-            "/fixtures/courses/insert_five_courses.sql"})
+    @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/courses/insert_five_courses.sql"})
     @Test
     void findByName_shouldReturnEmptyOptional_whenNameDoesNotExist() {
         Optional<Course> actual = repository.findByName("Unknown");
@@ -158,32 +142,24 @@ class JdbcCourseRepositoryTest {
         assertThat(actual).isEmpty();
     }
 
-    @Sql(value = {"/fixtures/clean_up.sql",
-            "/fixtures/enrollments/students_with_courses.sql"})
+    @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/enrollments/students_with_courses.sql"})
     @Test
     void findByStudentId_shouldReturnAllCourses_forExpectedStudent() {
-        Long studentId = jdbcTemplate.queryForObject(
-                "SELECT id FROM students WHERE first_name = ?",
-                Long.class,
-                "John"
-        );
+        Long studentId =
+                jdbcTemplate.queryForObject(
+                        "SELECT id FROM students WHERE first_name = ?", Long.class, "John");
 
         List<Course> actual = repository.findByStudentId(studentId);
 
-        assertThat(actual)
-                .extracting(Course::getName)
-                .containsExactlyInAnyOrder("Java", "SQL");
+        assertThat(actual).extracting(Course::getName).containsExactlyInAnyOrder("Java", "SQL");
     }
 
-    @Sql(value = {"/fixtures/clean_up.sql",
-            "/fixtures/enrollments/students_with_courses.sql"})
+    @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/enrollments/students_with_courses.sql"})
     @Test
     void findByStudentId_shouldReturnEmptyList_whenStudentHasNoEnrollments() {
-        Long studentId = jdbcTemplate.queryForObject(
-                "SELECT id FROM students WHERE first_name = ?",
-                Long.class,
-                "Emily"
-        );
+        Long studentId =
+                jdbcTemplate.queryForObject(
+                        "SELECT id FROM students WHERE first_name = ?", Long.class, "Emily");
 
         List<Course> actual = repository.findByStudentId(studentId);
 

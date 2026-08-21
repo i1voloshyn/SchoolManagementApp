@@ -1,5 +1,14 @@
 package com.foxminded.schoolmanagementapp.console.command;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
 import com.foxminded.schoolmanagementapp.console.ConsoleView;
 import com.foxminded.schoolmanagementapp.console.LoopStatus;
 import com.foxminded.schoolmanagementapp.console.systemConsole.ConsoleInputReader;
@@ -12,29 +21,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
 class CreateStudentActionTest {
-
     private static final String FIRST_NAME = "First name";
     private static final String LAST_NAME = "Last name";
 
-    @Mock
-    StudentService service;
-    @Mock
-    ConsoleInputReader reader;
-    @Mock
-    ConsoleView view;
-    @InjectMocks
-    CreateStudentAction action;
+    @Mock StudentService service;
+    @Mock ConsoleInputReader reader;
+    @Mock ConsoleView view;
+    @InjectMocks CreateStudentAction action;
 
     @Test
     void execute_shouldNotCreateStudent_whenFirstNameValidationFails() {

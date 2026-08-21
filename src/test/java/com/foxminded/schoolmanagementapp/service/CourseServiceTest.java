@@ -1,9 +1,16 @@
 package com.foxminded.schoolmanagementapp.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
 import com.foxminded.schoolmanagementapp.GlobalMapper;
-import com.foxminded.schoolmanagementapp.model.Course;
 import com.foxminded.schoolmanagementapp.dto.CourseDto;
+import com.foxminded.schoolmanagementapp.model.Course;
 import com.foxminded.schoolmanagementapp.repository.CourseRepository;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -11,23 +18,12 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
 class CourseServiceTest {
 
-    @Mock
-    private CourseRepository courseRepository;
-    @Spy
-    private GlobalMapper mapper;
-    @InjectMocks
-    private CourseService service;
+    @Mock private CourseRepository courseRepository;
+    @Spy private GlobalMapper mapper;
+    @InjectMocks private CourseService service;
 
     @Test
     void createCourse_shouldReturnSavedCourseDto() {
@@ -91,18 +87,18 @@ class CourseServiceTest {
 
     @Test
     void findAll_shouldReturnCourseDtos() {
-        List<Course> courses = List.of(
-                new Course(1L, "Java", "Java programming course"),
-                new Course(2L, "SQL", "Relational databases course")
-        );
+        List<Course> courses =
+                List.of(
+                        new Course(1L, "Java", "Java programming course"),
+                        new Course(2L, "SQL", "Relational databases course"));
         when(courseRepository.findAll()).thenReturn(courses);
 
         List<CourseDto> actual = service.findAll();
 
-        assertThat(actual).containsExactly(
-                new CourseDto(1L, "Java", "Java programming course"),
-                new CourseDto(2L, "SQL", "Relational databases course")
-        );
+        assertThat(actual)
+                .containsExactly(
+                        new CourseDto(1L, "Java", "Java programming course"),
+                        new CourseDto(2L, "SQL", "Relational databases course"));
         verify(courseRepository).findAll();
     }
 

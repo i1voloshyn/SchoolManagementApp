@@ -15,11 +15,11 @@ public class CreateStudentAction implements MenuActionRunner {
     private static final String FIRST_NAME = "First name";
     private static final String LAST_NAME = "Last name";
     private static final String FIRST_NAME_PROMPT = "Enter student first name:";
-    private static final String LAST_NAME_PROMPT = "Enter student first name:";
+    private static final String LAST_NAME_PROMPT = "Enter student last name:";
 
+    private final ConsoleView consoleView;
     private final ConsoleInputReader inputReader;
     private final StudentService studentService;
-    private final ConsoleView consoleView;
 
     @Override
     public MenuAction getAction() {
@@ -39,5 +39,4 @@ public class CreateStudentAction implements MenuActionRunner {
         consoleView.showSuccessMessageOnCreation("Student");
         return LoopStatus.CONTINUE;
     }
-
 }

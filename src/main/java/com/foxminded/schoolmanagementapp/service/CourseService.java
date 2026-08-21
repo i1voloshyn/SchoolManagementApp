@@ -1,13 +1,12 @@
 package com.foxminded.schoolmanagementapp.service;
 
 import com.foxminded.schoolmanagementapp.GlobalMapper;
-import com.foxminded.schoolmanagementapp.model.Course;
 import com.foxminded.schoolmanagementapp.dto.CourseDto;
+import com.foxminded.schoolmanagementapp.model.Course;
 import com.foxminded.schoolmanagementapp.repository.CourseRepository;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @AllArgsConstructor
 @Service
@@ -32,9 +31,7 @@ public class CourseService {
     }
 
     public List<CourseDto> findAll() {
-        return courseRepository.findAll().stream()
-                .map(mapper::toCourseDto)
-                .toList();
+        return courseRepository.findAll().stream().map(mapper::toCourseDto).toList();
     }
 
     private void validateRequest(CourseDto request) {

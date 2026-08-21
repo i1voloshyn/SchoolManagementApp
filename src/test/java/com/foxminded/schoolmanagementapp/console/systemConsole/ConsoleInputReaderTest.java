@@ -1,37 +1,23 @@
 package com.foxminded.schoolmanagementapp.console.systemConsole;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
 import com.foxminded.schoolmanagementapp.exception.consoleException.BlankConsoleInputException;
 import com.foxminded.schoolmanagementapp.exception.consoleException.NegativeNumberException;
-import com.foxminded.schoolmanagementapp.exception.consoleException.NonPositiveNumberException;
 import com.foxminded.schoolmanagementapp.exception.consoleException.NonNumericInputException;
+import com.foxminded.schoolmanagementapp.exception.consoleException.NonPositiveNumberException;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 class ConsoleInputReaderTest {
 
     @ParameterizedTest
-    @ValueSource(ints = {
-            Integer.MIN_VALUE,
-            -10,
-            -1,
-            0,
-            1,
-            2,
-            3,
-            4,
-            5,
-            100,
-            Integer.MAX_VALUE
-    })
+    @ValueSource(ints = {Integer.MIN_VALUE, -10, -1, 0, 1, 2, 3, 4, 5, 100, Integer.MAX_VALUE})
     void readActionNumber_shouldReturnIntegerAndIgnoreWhitespace(int expected) {
-        ConsoleInputReader inputReader = inputReaderReturning(
-                "  " + expected + "  "
-        );
+        ConsoleInputReader inputReader = inputReaderReturning("  " + expected + "  ");
 
         int actual = inputReader.readActionNumber();
 
@@ -40,25 +26,19 @@ class ConsoleInputReaderTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"abc", "1.5", "1a", "2147483648"})
-    void readActionNumber_shouldThrowException_whenInputIsNotInteger(
-            String inputValue
-    ) {
+    void readActionNumber_shouldThrowException_whenInputIsNotInteger(String inputValue) {
         ConsoleInputReader inputReader = inputReaderReturning(inputValue);
 
         assertThatExceptionOfType(NonNumericInputException.class)
                 .isThrownBy(inputReader::readActionNumber)
                 .withMessage(
-                        "Menu item must be a whole number, but was '%s'."
-                                .formatted(inputValue)
-                );
+                        "Menu item must be a whole number, but was '%s'.".formatted(inputValue));
     }
 
     @ParameterizedTest
     @NullAndEmptySource
     @ValueSource(strings = {" ", "\t", " \n "})
-    void readRequiredText_shouldThrowException_whenInputIsBlank(
-            String inputValue
-    ) {
+    void readRequiredText_shouldThrowException_whenInputIsBlank(String inputValue) {
         ConsoleInputReader inputReader = inputReaderReturning(inputValue);
 
         assertThatExceptionOfType(BlankConsoleInputException.class)
@@ -67,16 +47,8 @@ class ConsoleInputReaderTest {
     }
 
     @ParameterizedTest
-    @CsvSource({
-            "Java, Java",
-            "' Java ', Java",
-            "'  SQL  ', SQL",
-            "'Spring Boot', 'Spring Boot'"
-    })
-    void readRequiredText_shouldReturnTrimmedText(
-            String inputValue,
-            String expected
-    ) {
+    @CsvSource({"Java, Java", "' Java ', Java", "'  SQL  ', SQL", "'Spring Boot', 'Spring Boot'"})
+    void readRequiredText_shouldReturnTrimmedText(String inputValue, String expected) {
         ConsoleInputReader inputReader = inputReaderReturning(inputValue);
 
         String actual = inputReader.readRequiredText("Course name");
@@ -87,59 +59,41 @@ class ConsoleInputReaderTest {
     @ParameterizedTest
     @ValueSource(ints = {0, 1, 10, Integer.MAX_VALUE})
     void readNonNegativeInteger_shouldReturnValidNumber(int expected) {
-        ConsoleInputReader inputReader = inputReaderReturning(
-                "  " + expected + "  "
-        );
+        ConsoleInputReader inputReader = inputReaderReturning("  " + expected + "  ");
 
-        int actual = inputReader.readNonNegativeInteger(
-                "Maximum student count"
-        );
+        int actual = inputReader.readNonNegativeInteger("Maximum student count");
 
         assertThat(actual).isEqualTo(expected);
     }
 
     @ParameterizedTest
     @ValueSource(ints = {-1, -10, Integer.MIN_VALUE})
-    void readNonNegativeInteger_shouldThrowException_whenNumberIsNegative(
-            int inputValue
-    ) {
-        ConsoleInputReader inputReader = inputReaderReturning(
-                String.valueOf(inputValue)
-        );
+    void readNonNegativeInteger_shouldThrowException_whenNumberIsNegative(int inputValue) {
+        ConsoleInputReader inputReader = inputReaderReturning(String.valueOf(inputValue));
 
         assertThatExceptionOfType(NegativeNumberException.class)
-                .isThrownBy(() -> inputReader.readNonNegativeInteger(
-                        "Maximum student count"
-                ))
+                .isThrownBy(() -> inputReader.readNonNegativeInteger("Maximum student count"))
                 .withMessage(
                         "Maximum student count must be zero or greater, but was %d."
-                                .formatted(inputValue)
-                );
+                                .formatted(inputValue));
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"ten", "2.5", "1_000", "2147483648"})
-    void readNonNegativeInteger_shouldThrowException_whenInputIsNotInteger(
-            String inputValue
-    ) {
+    void readNonNegativeInteger_shouldThrowException_whenInputIsNotInteger(String inputValue) {
         ConsoleInputReader inputReader = inputReaderReturning(inputValue);
 
         assertThatExceptionOfType(NonNumericInputException.class)
-                .isThrownBy(() -> inputReader.readNonNegativeInteger(
-                        "Maximum student count"
-                ))
+                .isThrownBy(() -> inputReader.readNonNegativeInteger("Maximum student count"))
                 .withMessage(
                         "Maximum student count must be a whole number, but was '%s'."
-                                .formatted(inputValue)
-                );
+                                .formatted(inputValue));
     }
 
     @ParameterizedTest
     @ValueSource(longs = {1L, 10L, Long.MAX_VALUE})
     void readPositiveLong_shouldReturnValidNumber(long expected) {
-        ConsoleInputReader inputReader = inputReaderReturning(
-                "  " + expected + "  "
-        );
+        ConsoleInputReader inputReader = inputReaderReturning("  " + expected + "  ");
 
         long actual = inputReader.readPositiveLong("Student ID");
 
@@ -148,34 +102,24 @@ class ConsoleInputReaderTest {
 
     @ParameterizedTest
     @ValueSource(longs = {Long.MIN_VALUE, -1L, 0L})
-    void readPositiveLong_shouldThrowException_whenNumberIsNotPositive(
-            long inputValue
-    ) {
-        ConsoleInputReader inputReader = inputReaderReturning(
-                String.valueOf(inputValue)
-        );
+    void readPositiveLong_shouldThrowException_whenNumberIsNotPositive(long inputValue) {
+        ConsoleInputReader inputReader = inputReaderReturning(String.valueOf(inputValue));
 
         assertThatExceptionOfType(NonPositiveNumberException.class)
                 .isThrownBy(() -> inputReader.readPositiveLong("Student ID"))
                 .withMessage(
-                        "Student ID must be greater than zero, but was %d."
-                                .formatted(inputValue)
-                );
+                        "Student ID must be greater than zero, but was %d.".formatted(inputValue));
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"ten", "2.5", "1_000", "9223372036854775808"})
-    void readPositiveLong_shouldThrowException_whenInputIsNotLong(
-            String inputValue
-    ) {
+    void readPositiveLong_shouldThrowException_whenInputIsNotLong(String inputValue) {
         ConsoleInputReader inputReader = inputReaderReturning(inputValue);
 
         assertThatExceptionOfType(NonNumericInputException.class)
                 .isThrownBy(() -> inputReader.readPositiveLong("Student ID"))
                 .withMessage(
-                        "Student ID must be a whole number, but was '%s'."
-                                .formatted(inputValue)
-                );
+                        "Student ID must be a whole number, but was '%s'.".formatted(inputValue));
     }
 
     private ConsoleInputReader inputReaderReturning(String inputValue) {

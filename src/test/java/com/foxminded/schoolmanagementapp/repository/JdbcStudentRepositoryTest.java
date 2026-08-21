@@ -1,7 +1,12 @@
 package com.foxminded.schoolmanagementapp.repository;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
 import com.foxminded.schoolmanagementapp.exception.StudentNotFoundException;
 import com.foxminded.schoolmanagementapp.model.Student;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
@@ -14,50 +19,39 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 @JdbcTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(JdbcStudentRepository.class)
 @Testcontainers
 class JdbcStudentRepositoryTest {
 
-    @Container
-    @ServiceConnection
+    @Container @ServiceConnection
     private static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:18.4");
 
-    @Autowired
-    StudentsRepository repository;
-    @Autowired
-    JdbcTemplate jdbcTemplate;
+    @Autowired StudentsRepository repository;
+    @Autowired JdbcTemplate jdbcTemplate;
 
     @Sql("/fixtures/clean_up.sql")
     @Test
     void save_shouldSaveAndReturnStudent_withGeneratedId() {
         jdbcTemplate.update("INSERT INTO groups (name) VALUES (?)", "Test Group");
-        Long groupId = jdbcTemplate.queryForObject(
-                "SELECT id FROM groups WHERE name = ?",
-                Long.class,
-                "Test Group"
-        );
+        Long groupId =
+                jdbcTemplate.queryForObject(
+                        "SELECT id FROM groups WHERE name = ?", Long.class, "Test Group");
         Student studentToSave = new Student(null, groupId, "Test", "Student");
 
         Student saved = repository.save(studentToSave);
 
-        Student actual = jdbcTemplate.queryForObject(
-                "SELECT id, group_id, first_name, last_name FROM students WHERE id = ?",
-                (resultSet, rowNumber) -> new Student(
-                        resultSet.getLong("id"),
-                        resultSet.getLong("group_id"),
-                        resultSet.getString("first_name"),
-                        resultSet.getString("last_name")
-                ),
-                saved.getId()
-        );
+        Student actual =
+                jdbcTemplate.queryForObject(
+                        "SELECT id, group_id, first_name, last_name FROM students WHERE id = ?",
+                        (resultSet, rowNumber) ->
+                                new Student(
+                                        resultSet.getLong("id"),
+                                        resultSet.getLong("group_id"),
+                                        resultSet.getString("first_name"),
+                                        resultSet.getString("last_name")),
+                        saved.getId());
 
         assertThat(saved.getId()).isNotNull();
         assertThat(actual).isEqualTo(saved);
@@ -67,54 +61,44 @@ class JdbcStudentRepositoryTest {
     @Test
     void saveAll_shouldSaveBatchAndReturnStudents_withGeneratedIds() {
         jdbcTemplate.update("INSERT INTO groups (name) VALUES (?)", "Test Group");
-        Long groupId = jdbcTemplate.queryForObject(
-                "SELECT id FROM groups WHERE name = ?",
-                Long.class,
-                "Test Group"
-        );
-        List<Student> students = List.of(
-                new Student(null, groupId, "John", "Smith"),
-                new Student(null, null, "Anna", "Brown"),
-                new Student(null, groupId, "Peter", "Jones")
-        );
+        Long groupId =
+                jdbcTemplate.queryForObject(
+                        "SELECT id FROM groups WHERE name = ?", Long.class, "Test Group");
+        List<Student> students =
+                List.of(
+                        new Student(null, groupId, "John", "Smith"),
+                        new Student(null, null, "Anna", "Brown"),
+                        new Student(null, groupId, "Peter", "Jones"));
 
         List<Student> saved = repository.saveAll(students);
 
         assertThat(saved)
                 .hasSize(3)
                 .allSatisfy(student -> assertThat(student.getId()).isPositive());
-        assertThat(saved)
-                .extracting(Student::getId)
-                .doesNotHaveDuplicates();
+        assertThat(saved).extracting(Student::getId).doesNotHaveDuplicates();
 
-        Long persistedStudents = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM students",
-                Long.class
-        );
+        Long persistedStudents =
+                jdbcTemplate.queryForObject("SELECT COUNT(*) FROM students", Long.class);
         assertThat(persistedStudents).isEqualTo(3L);
     }
 
-    @Sql(value = {"/fixtures/clean_up.sql",
-            "/fixtures/students/insert_five_students.sql"})
+    @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/students/insert_five_students.sql"})
     @Test
     void delete_shouldDeleteExpectedStudent() {
-        Long studentIdToDelete = jdbcTemplate.queryForObject(
-                "SELECT id FROM students LIMIT 1",
-                Long.class
-        );
+        Long studentIdToDelete =
+                jdbcTemplate.queryForObject("SELECT id FROM students LIMIT 1", Long.class);
 
         repository.delete(studentIdToDelete);
 
-        Long remainingStudents = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM students WHERE id = ?",
-                Long.class,
-                studentIdToDelete
-        );
+        Long remainingStudents =
+                jdbcTemplate.queryForObject(
+                        "SELECT COUNT(*) FROM students WHERE id = ?",
+                        Long.class,
+                        studentIdToDelete);
         assertThat(remainingStudents).isZero();
     }
 
-    @Sql(value = {"/fixtures/clean_up.sql",
-            "/fixtures/students/insert_five_students.sql"})
+    @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/students/insert_five_students.sql"})
     @Test
     void delete_shouldThrowException_forNonExistingStudentId() {
         Long nonExistingId = 999L;
@@ -122,39 +106,33 @@ class JdbcStudentRepositoryTest {
                 .isThrownBy(() -> repository.delete(nonExistingId));
     }
 
-    @Sql(value = {"/fixtures/clean_up.sql",
-            "/fixtures/enrollments/students_with_courses.sql"})
+    @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/enrollments/students_with_courses.sql"})
     @Test
     void delete_shouldDeleteStudentEnrollments_butPreserveCourses() {
         Long coursesBeforeDelete = 3L;
-        Long studentIdToDelete = jdbcTemplate.queryForObject(
-                "SELECT id FROM students WHERE first_name = ?",
-                Long.class,
-                "John"
-        );
-        Long enrollmentsBeforeDelete = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM students_courses WHERE student_id = ?",
-                Long.class,
-                studentIdToDelete
-        );
-
+        Long studentIdToDelete =
+                jdbcTemplate.queryForObject(
+                        "SELECT id FROM students WHERE first_name = ?", Long.class, "John");
+        Long enrollmentsBeforeDelete =
+                jdbcTemplate.queryForObject(
+                        "SELECT COUNT(*) FROM students_courses WHERE student_id = ?",
+                        Long.class,
+                        studentIdToDelete);
 
         repository.delete(studentIdToDelete);
 
-        Long remainingStudents = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM students WHERE id = ?",
-                Long.class,
-                studentIdToDelete
-        );
-        Long remainingEnrollments = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM students_courses WHERE student_id = ?",
-                Long.class,
-                studentIdToDelete
-        );
-        Long remainingCourses = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM courses",
-                Long.class
-        );
+        Long remainingStudents =
+                jdbcTemplate.queryForObject(
+                        "SELECT COUNT(*) FROM students WHERE id = ?",
+                        Long.class,
+                        studentIdToDelete);
+        Long remainingEnrollments =
+                jdbcTemplate.queryForObject(
+                        "SELECT COUNT(*) FROM students_courses WHERE student_id = ?",
+                        Long.class,
+                        studentIdToDelete);
+        Long remainingCourses =
+                jdbcTemplate.queryForObject("SELECT COUNT(*) FROM courses", Long.class);
 
         assertThat(enrollmentsBeforeDelete).isEqualTo(2L);
         assertThat(remainingStudents).isZero();
@@ -162,8 +140,7 @@ class JdbcStudentRepositoryTest {
         assertThat(remainingCourses).isEqualTo(coursesBeforeDelete);
     }
 
-    @Sql(value = {"/fixtures/clean_up.sql",
-            "/fixtures/students/insert_five_students.sql"})
+    @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/students/insert_five_students.sql"})
     @Test
     void findAll_shouldReturnAllStudents_fromDatabase() {
         List<String> expectedFirstNames = List.of("John", "Anna", "Mark", "Kate", "Emily");
@@ -183,15 +160,12 @@ class JdbcStudentRepositoryTest {
         assertThat(actual).isEmpty();
     }
 
-    @Sql(value = {"/fixtures/clean_up.sql",
-            "/fixtures/students/insert_five_students.sql"})
+    @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/students/insert_five_students.sql"})
     @Test
     void findById_shouldReturnExpectedStudent_whenStudentExists() {
-        Long studentId = jdbcTemplate.queryForObject(
-                "SELECT id FROM students WHERE first_name = ?",
-                Long.class,
-                "Mark"
-        );
+        Long studentId =
+                jdbcTemplate.queryForObject(
+                        "SELECT id FROM students WHERE first_name = ?", Long.class, "Mark");
 
         Optional<Student> actual = repository.findById(studentId);
 
@@ -210,8 +184,7 @@ class JdbcStudentRepositoryTest {
         assertThat(actual).isEmpty();
     }
 
-    @Sql(value = {"/fixtures/clean_up.sql",
-            "/fixtures/students/insert_five_students.sql"})
+    @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/students/insert_five_students.sql"})
     @Test
     void findByLastName_shouldReturnAllStudents_withExpectedLastName() {
         List<Student> actual = repository.findByLastName("Smith");
@@ -219,13 +192,10 @@ class JdbcStudentRepositoryTest {
         assertThat(actual)
                 .extracting(Student::getFirstName)
                 .containsExactlyInAnyOrder("John", "Anna");
-        assertThat(actual)
-                .extracting(Student::getLastName)
-                .containsOnly("Smith");
+        assertThat(actual).extracting(Student::getLastName).containsOnly("Smith");
     }
 
-    @Sql(value = {"/fixtures/clean_up.sql",
-            "/fixtures/students/insert_five_students.sql"})
+    @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/students/insert_five_students.sql"})
     @Test
     void findByLastName_shouldReturnEmptyList_whenLastNameDoesNotExist() {
         List<Student> actual = repository.findByLastName("Unknown");
@@ -233,8 +203,7 @@ class JdbcStudentRepositoryTest {
         assertThat(actual).isEmpty();
     }
 
-    @Sql(value = {"/fixtures/clean_up.sql",
-            "/fixtures/enrollments/students_with_courses.sql"})
+    @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/enrollments/students_with_courses.sql"})
     @Test
     void findByCourseName_shouldReturnAllStudents_enrolledInExpectedCourse() {
         String name = "Java";
@@ -245,8 +214,7 @@ class JdbcStudentRepositoryTest {
                 .containsExactlyInAnyOrder("John", "Anna");
     }
 
-    @Sql(value = {"/fixtures/clean_up.sql",
-            "/fixtures/enrollments/students_with_courses.sql"})
+    @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/enrollments/students_with_courses.sql"})
     @Test
     void findByCourseName_shouldReturnEmptyList_forNonExistedCourse() {
         String name = "Wrong-Java";

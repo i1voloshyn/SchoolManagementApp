@@ -3,11 +3,7 @@ package com.foxminded.schoolmanagementapp.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "school.data-generator")
-public record DataGeneratorProperties(
-        int studentsCount,
-        int groupsCount,
-        int coursesCount
-) {
+public record DataGeneratorProperties(int studentsCount, int groupsCount, int coursesCount) {
     public DataGeneratorProperties {
         if (studentsCount < 0) {
             throw new IllegalArgumentException("Students count must not be negative");

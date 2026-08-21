@@ -1,5 +1,13 @@
 package com.foxminded.schoolmanagementapp.console.command;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
 import com.foxminded.schoolmanagementapp.console.ConsoleView;
 import com.foxminded.schoolmanagementapp.console.LoopStatus;
 import com.foxminded.schoolmanagementapp.console.systemConsole.ConsoleInputReader;
@@ -11,31 +19,21 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
 class DeleteStudentFromCourseActionTest {
-
     private static final String STUDENT_ID = "Student ID";
     private static final String COURSE_ID = "Course ID";
     private static final String CONFIRMATION = "Confirmation";
+    private static final String DELETE = "Y";
+    private static final String CANCEL = "N";
     private static final String CONFIRMATION_PROMPT =
-            "Confirm student removal from course? Type 'Y' to remove, 'N' to cancel";
+            "Permanently delete student from course? Type '%s' to delete, '%s' to cancel"
+                    .formatted(DELETE, CANCEL);
 
-    @Mock
-    EnrollmentService service;
-    @Mock
-    ConsoleView view;
-    @Mock
-    ConsoleInputReader reader;
-    @InjectMocks
-    DeleteStudentFromCourseAction action;
+    @Mock EnrollmentService service;
+    @Mock ConsoleView view;
+    @Mock ConsoleInputReader reader;
+    @InjectMocks DeleteStudentFromCourseAction action;
 
     @Test
     void execute_shouldRemoveStudentFromCourse_whenRemovalIsConfirmed() {
@@ -67,14 +65,11 @@ class DeleteStudentFromCourseActionTest {
 
         when(reader.readPositiveLong(STUDENT_ID)).thenReturn(studentId);
         when(reader.readPositiveLong(COURSE_ID)).thenReturn(courseId);
-        when(reader.readRequiredText(CONFIRMATION))
-                .thenReturn(invalidConfirmation);
+        when(reader.readRequiredText(CONFIRMATION)).thenReturn(invalidConfirmation);
 
         assertThatExceptionOfType(InvalidConfirmationException.class)
                 .isThrownBy(action::execute)
-                .withMessage(
-                        "Confirmation must be 'Y' or 'N', but was 'maybe'."
-                );
+                .withMessage("Confirmation must be 'Y' or 'N', but was 'maybe'.");
 
         verify(view).promptForWriteOperationFlow("Enter student ID:");
         verify(reader).readPositiveLong(STUDENT_ID);

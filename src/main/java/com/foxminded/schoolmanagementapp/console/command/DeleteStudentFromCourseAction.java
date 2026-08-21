@@ -12,21 +12,22 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 @Component
 public class DeleteStudentFromCourseAction implements MenuActionRunner {
-
     private static final String STUDENT_ID = "Student ID";
     private static final String COURSE_ID = "Course ID";
-    private static final String CONFIRMATION = "Confirmation";
+    private static final String COURSE_ID_PROMPT = "Enter course ID:";
+    private static final String STUDENT_ID_PROMPT = "Enter student ID:";
+
     private static final String DELETE = "Y";
     private static final String CANCEL = "N";
-    private static final String STUDENT_ID_PROMPT = "Enter student ID:";
-    private static final String COURSE_ID_PROMPT = "Enter course ID:";
+
+    private static final String CONFIRMATION = "Confirmation";
     private static final String CONFIRMATION_PROMPT =
-            "Confirm student removal from course? Type '%s' to remove, '%s' to cancel"
+            "Permanently delete student from course? Type '%s' to delete, '%s' to cancel"
                     .formatted(DELETE, CANCEL);
 
-    private final EnrollmentService enrollmentService;
     private final ConsoleView consoleView;
     private final ConsoleInputReader inputReader;
+    private final EnrollmentService enrollmentService;
 
     @Override
     public MenuAction getAction() {

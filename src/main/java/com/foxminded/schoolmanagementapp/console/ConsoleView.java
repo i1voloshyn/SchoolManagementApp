@@ -4,10 +4,9 @@ import com.foxminded.schoolmanagementapp.console.systemConsole.ConsoleOutput;
 import com.foxminded.schoolmanagementapp.dto.CourseDto;
 import com.foxminded.schoolmanagementapp.dto.StudentDto;
 import com.foxminded.schoolmanagementapp.model.Group;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @AllArgsConstructor
 @Component
@@ -24,12 +23,7 @@ public class ConsoleView {
         output.writeLine("Select an action:");
 
         for (MenuAction option : MenuAction.values()) {
-            output.writeLine(
-                    "%d - %s".formatted(
-                            option.number(),
-                            option.description()
-                    )
-            );
+            output.writeLine("%d - %s".formatted(option.number(), option.description()));
         }
 
         output.writeLine("Enter menu item:");
@@ -43,7 +37,6 @@ public class ConsoleView {
         output.writeLine("Enter course name:");
     }
 
-
     public void promptForWriteOperationFlow(String message) {
         output.writeLine(message);
     }
@@ -56,37 +49,27 @@ public class ConsoleView {
 
         output.writeLine("ID | NAME");
 
-        groups.forEach(group -> output.writeLine(
-                "%s | %s".formatted(
-                        group.getId(),
-                        group.getName()
-                )
-        ));
+        groups.forEach(
+                group -> output.writeLine("%s | %s".formatted(group.getId(), group.getName())));
     }
 
-    public void showStudents(
-            String courseName,
-            List<StudentDto> students
-    ) {
+    public void showStudents(String courseName, List<StudentDto> students) {
         if (students.isEmpty()) {
-            output.writeLine(
-                    "No students found for course: " + courseName
-            );
+            output.writeLine("No students found for course: " + courseName);
             return;
         }
 
         output.writeLine("ID | GROUP ID | FIRST NAME | LAST NAME");
 
-        students.forEach(student -> output.writeLine(
-                "%s | %s | %s | %s".formatted(
-                        student.id(),
-                        student.groupId() == null
-                                ? "-"
-                                : student.groupId(),
-                        student.firstName(),
-                        student.lastName()
-                )
-        ));
+        students.forEach(
+                student ->
+                        output.writeLine(
+                                "%s | %s | %s | %s"
+                                        .formatted(
+                                                student.id(),
+                                                student.groupId() == null ? "-" : student.groupId(),
+                                                student.firstName(),
+                                                student.lastName())));
     }
 
     public void showCourses(List<CourseDto> courses) {
@@ -97,13 +80,12 @@ public class ConsoleView {
 
         output.writeLine("ID | NAME | DESCRIPTION");
 
-        courses.forEach(course -> output.writeLine(
-                "%s | %s | %s".formatted(
-                        course.id(),
-                        course.name(),
-                        course.description()
-                )
-        ));
+        courses.forEach(
+                course ->
+                        output.writeLine(
+                                "%s | %s | %s"
+                                        .formatted(
+                                                course.id(), course.name(), course.description())));
     }
 
     public void showInputError(String message) {
@@ -122,8 +104,12 @@ public class ConsoleView {
         output.writeLine(entity + " was successfully created!");
     }
 
-    public void showSuccessMessageOnDeletion(String entity) {
+    public void showSuccessMessageOnRemoval(String entity) {
         output.writeLine(entity + " was successfully deleted!");
+    }
+
+    public void showCancellationMessageOnRemoval(String entity) {
+        output.writeLine(entity + " removal was canceled.");
     }
 
     public void showSuccessMessageOnEnrollment() {

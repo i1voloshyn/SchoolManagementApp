@@ -21,35 +21,27 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class FindStudentsByCourseNameActionTest {
-
     private static final String FIELD_NAME = "Course name";
 
-    @Mock
-    private ConsoleInputReader inputReader;
-    @Mock
-    private ConsoleView view;
-    @Mock
-    private StudentService studentService;
-    @InjectMocks
-    private FindStudentsByCourseNameAction command;
+    @Mock private ConsoleInputReader inputReader;
+    @Mock private ConsoleView view;
+    @Mock private StudentService studentService;
+    @InjectMocks private FindStudentsByCourseNameAction command;
 
     @Test
     void getAction() {
-        assertThat(command.getAction())
-                .isEqualTo(MenuAction.FIND_STUDENTS_BY_COURSE_NAME);
+        assertThat(command.getAction()).isEqualTo(MenuAction.FIND_STUDENTS_BY_COURSE_NAME);
     }
 
     @Test
     void execute_shouldReadCourseNameAndDisplayMatchingStudents() {
         String courseName = "Java";
-        List<StudentDto> students = List.of(
-                new StudentDto(1L, 10L, "John", "Smith"),
-                new StudentDto(2L, null, "Anna", "Brown")
-        );
-        when(inputReader.readRequiredText(FIELD_NAME))
-                .thenReturn(courseName);
-        when(studentService.findStudentsByCourseName(courseName))
-                .thenReturn(students);
+        List<StudentDto> students =
+                List.of(
+                        new StudentDto(1L, 10L, "John", "Smith"),
+                        new StudentDto(2L, null, "Anna", "Brown"));
+        when(inputReader.readRequiredText(FIELD_NAME)).thenReturn(courseName);
+        when(studentService.findStudentsByCourseName(courseName)).thenReturn(students);
 
         LoopStatus actual = command.execute();
 
@@ -63,12 +55,10 @@ class FindStudentsByCourseNameActionTest {
     @Test
     void execute_shouldDisplayEmptyResult_whenCourseDoesNotExist() {
         String courseName = "Unknown";
-        when(inputReader.readRequiredText(FIELD_NAME))
-                .thenReturn(courseName);
+        when(inputReader.readRequiredText(FIELD_NAME)).thenReturn(courseName);
         when(studentService.findStudentsByCourseName(courseName))
-                .thenThrow(new CourseNotFoundException(
-                        "Course not found with name: " + courseName
-                ));
+                .thenThrow(
+                        new CourseNotFoundException("Course not found with name: " + courseName));
 
         LoopStatus actual = command.execute();
 
