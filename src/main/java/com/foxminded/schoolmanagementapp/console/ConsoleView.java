@@ -129,4 +129,12 @@ public class ConsoleView {
     public void showSuccessMessageOnEnrollment() {
         output.writeLine("Student was successfully added to course!");
     }
+
+    public void showSuccessMessageOnRemovalFromCourse() {
+        output.writeLine("Student was successfully removed from course!");
+    }
+
+    public void showCancellationMessageOnRemovalFromCourse() {
+        output.writeLine("Student removal from course was canceled.");
+    }
 }
