@@ -1,20 +1,19 @@
 package com.foxminded.schoolmanagementapp.console.command;
 
-import static com.foxminded.schoolmanagementapp.console.ConsoleMessage.FIRST_NAME;
-import static com.foxminded.schoolmanagementapp.console.ConsoleMessage.FIRST_NAME_PROMPT;
-import static com.foxminded.schoolmanagementapp.console.ConsoleMessage.LAST_NAME;
-import static com.foxminded.schoolmanagementapp.console.ConsoleMessage.LAST_NAME_PROMPT;
-import static com.foxminded.schoolmanagementapp.console.ConsoleMessage.STUDENT;
-
 import com.foxminded.schoolmanagementapp.console.ConsoleView;
-import com.foxminded.schoolmanagementapp.console.LoopStatus;
-import com.foxminded.schoolmanagementapp.console.MenuAction;
+import com.foxminded.schoolmanagementapp.console.constants.Entity;
+import com.foxminded.schoolmanagementapp.console.constants.Field;
+import com.foxminded.schoolmanagementapp.console.constants.LoopStatus;
+import com.foxminded.schoolmanagementapp.console.constants.MenuAction;
+import com.foxminded.schoolmanagementapp.console.constants.Prompt;
 import com.foxminded.schoolmanagementapp.console.systemConsole.ConsoleInputReader;
 import com.foxminded.schoolmanagementapp.dto.StudentDto;
 import com.foxminded.schoolmanagementapp.service.StudentService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @AllArgsConstructor
 @Component
 public class CreateStudentAction implements MenuActionRunner {
@@ -29,15 +28,19 @@ public class CreateStudentAction implements MenuActionRunner {
 
     @Override
     public LoopStatus execute() {
-        consoleView.promptForWriteOperationFlow(FIRST_NAME_PROMPT.text());
-        String firstName = inputReader.readRequiredText(FIRST_NAME.text());
+        log.info("Student creation requested...");
+        consoleView.promptForWriteOperationFlow(Prompt.FIRST_NAME.getValue());
+        String firstName = inputReader.readRequiredText(Field.FIRST_NAME.getValue());
 
-        consoleView.promptForWriteOperationFlow(LAST_NAME_PROMPT.text());
-        String lastName = inputReader.readRequiredText(LAST_NAME.text());
+        consoleView.promptForWriteOperationFlow(Prompt.LAST_NAME.getValue());
+        String lastName = inputReader.readRequiredText(Field.LAST_NAME.getValue());
+        log.debug("Student creation input accepted");
 
-        studentService.addStudent(new StudentDto(null, null, firstName, lastName));
+        StudentDto student = studentService.addStudent(new StudentDto(null, null, firstName, lastName));
 
-        consoleView.showSuccessMessageOnCreation(STUDENT.text());
+        log.info("Student creation completed: studentId={}", student.id());
+
+        consoleView.showSuccessMessageOnCreation(Entity.STUDENT.getValue());
         return LoopStatus.CONTINUE;
     }
 }

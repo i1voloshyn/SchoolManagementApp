@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import com.foxminded.schoolmanagementapp.console.ConsoleMenu;
-import com.foxminded.schoolmanagementapp.console.MenuAction;
+import com.foxminded.schoolmanagementapp.console.constants.MenuAction;
 import com.foxminded.schoolmanagementapp.console.MenuActionRunnerDispatcher;
 import com.foxminded.schoolmanagementapp.console.command.MenuActionRunner;
 import com.foxminded.schoolmanagementapp.service.CourseService;

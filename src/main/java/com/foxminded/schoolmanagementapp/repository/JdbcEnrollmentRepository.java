@@ -5,6 +5,7 @@ import com.foxminded.schoolmanagementapp.exception.EnrollmentNotFoundException;
 import com.foxminded.schoolmanagementapp.model.Enrollment;
 import java.sql.Statement;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.JdbcUpdateAffectedIncorrectNumberOfRowsException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -13,28 +14,29 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.support.TransactionTemplate;
 
+@Slf4j
 @Repository
 public class JdbcEnrollmentRepository implements EnrollmentRepository {
     private static final String ENROLL_STUDENT_QUERY =
             """
-            INSERT INTO students_courses (student_id, course_id)
-            VALUES (:student_id, :course_id)
-            """;
+                    INSERT INTO students_courses (student_id, course_id)
+                    VALUES (:student_id, :course_id)
+                    """;
     private static final String REMOVE_STUDENT_QUERY =
             """
-            DELETE FROM students_courses
-            WHERE student_id = :student_id
-              AND course_id = :course_id
-            """;
+                    DELETE FROM students_courses
+                    WHERE student_id = :student_id
+                      AND course_id = :course_id
+                    """;
     private static final String ENROLLMENT_EXISTS_QUERY =
             """
-            SELECT EXISTS (
-                SELECT 1
-                FROM students_courses
-                WHERE student_id = :student_id
-                  AND course_id = :course_id
-            )
-            """;
+                    SELECT EXISTS (
+                        SELECT 1
+                        FROM students_courses
+                        WHERE student_id = :student_id
+                          AND course_id = :course_id
+                    )
+                    """;
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
     private final TransactionTemplate transactionTemplate;
 
@@ -57,6 +59,8 @@ public class JdbcEnrollmentRepository implements EnrollmentRepository {
                         validateQuery(ENROLL_STUDENT_QUERY, 1, affectedRows);
                     });
         } catch (DataIntegrityViolationException e) {
+            log.warn("Enrollment rejected:studentId = {}, courseId = {}", studentId, courseId, e);
+
             throw new EnrollmentException(
                     "Cannot enroll student %d in course %d".formatted(studentId, courseId), e);
         }
@@ -82,6 +86,8 @@ public class JdbcEnrollmentRepository implements EnrollmentRepository {
                         validateBatch(affectedRows, enrollments.size());
                     });
         } catch (DataIntegrityViolationException e) {
+            log.warn("Batch enrollment rejected", e);
+
             throw new EnrollmentException("Cannot create enrollment batch", e);
         }
     }

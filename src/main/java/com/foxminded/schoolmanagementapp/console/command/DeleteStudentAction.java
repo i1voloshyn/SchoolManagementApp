@@ -1,22 +1,20 @@
 package com.foxminded.schoolmanagementapp.console.command;
 
-import static com.foxminded.schoolmanagementapp.console.ConsoleMessage.CANCEL_OPTION;
-import static com.foxminded.schoolmanagementapp.console.ConsoleMessage.CONFIRMATION;
-import static com.foxminded.schoolmanagementapp.console.ConsoleMessage.DELETE_OPTION;
-import static com.foxminded.schoolmanagementapp.console.ConsoleMessage.DELETE_STUDENT_CONFIRMATION_PROMPT;
-import static com.foxminded.schoolmanagementapp.console.ConsoleMessage.STUDENT;
-import static com.foxminded.schoolmanagementapp.console.ConsoleMessage.STUDENT_ID;
-import static com.foxminded.schoolmanagementapp.console.ConsoleMessage.STUDENT_ID_PROMPT;
-
+import com.foxminded.schoolmanagementapp.console.constants.ConfirmationOption;
 import com.foxminded.schoolmanagementapp.console.ConsoleView;
-import com.foxminded.schoolmanagementapp.console.LoopStatus;
-import com.foxminded.schoolmanagementapp.console.MenuAction;
+import com.foxminded.schoolmanagementapp.console.constants.Entity;
+import com.foxminded.schoolmanagementapp.console.constants.Field;
+import com.foxminded.schoolmanagementapp.console.constants.LoopStatus;
+import com.foxminded.schoolmanagementapp.console.constants.MenuAction;
+import com.foxminded.schoolmanagementapp.console.constants.Prompt;
 import com.foxminded.schoolmanagementapp.console.systemConsole.ConsoleInputReader;
 import com.foxminded.schoolmanagementapp.exception.consoleException.InvalidConfirmationException;
 import com.foxminded.schoolmanagementapp.service.StudentService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @AllArgsConstructor
 @Component
 public class DeleteStudentAction implements MenuActionRunner {
@@ -31,34 +29,44 @@ public class DeleteStudentAction implements MenuActionRunner {
 
     @Override
     public LoopStatus execute() {
-        consoleView.promptForWriteOperationFlow(STUDENT_ID_PROMPT.text());
-        long studentId = inputReader.readPositiveLong(STUDENT_ID.text());
+        log.info("Request to delete a student...");
+
+        consoleView.promptForWriteOperationFlow(Prompt.STUDENT_ID.getValue());
+        long studentId = inputReader.readPositiveLong(Field.STUDENT_ID.getValue());
 
         consoleView.promptForWriteOperationFlow(confirmationPrompt());
-        String confirmationAnswer = inputReader.readRequiredText(CONFIRMATION.text());
+        String confirmationAnswer = inputReader.readRequiredText(Field.CONFIRMATION.getValue());
 
         if (isRemovalConfirmed(confirmationAnswer)) {
             studentService.deleteStudent(studentId);
-            consoleView.showSuccessMessageOnRemoval(STUDENT.text());
+            consoleView.showSuccessMessageOnRemoval(Entity.STUDENT.getValue());
         } else {
-            consoleView.showCancellationMessageOnRemoval(STUDENT.text());
+            log.info("Cancel student deletion");
+            consoleView.showCancellationMessageOnRemoval(Entity.STUDENT.getValue());
         }
+        log.info("Successfully deleted student with ID: {}", studentId);
         return LoopStatus.CONTINUE;
     }
 
     private String confirmationPrompt() {
-        return DELETE_STUDENT_CONFIRMATION_PROMPT.format(
-                DELETE_OPTION.text(), CANCEL_OPTION.text());
+        return Prompt.DELETE_STUDENT_CONFIRMATION
+                .getValue()
+                .formatted(
+                        ConfirmationOption.DELETE.getValue(),
+                        ConfirmationOption.CANCEL.getValue());
     }
 
     private boolean isRemovalConfirmed(String answer) {
-        if (DELETE_OPTION.text().equalsIgnoreCase(answer)) {
+        if (ConfirmationOption.DELETE.getValue().equalsIgnoreCase(answer)) {
             return true;
         }
-        if (CANCEL_OPTION.text().equalsIgnoreCase(answer)) {
+        if (ConfirmationOption.CANCEL.getValue().equalsIgnoreCase(answer)) {
             return false;
         }
 
-        throw new InvalidConfirmationException(answer, DELETE_OPTION.text(), CANCEL_OPTION.text());
+        throw new InvalidConfirmationException(
+                answer,
+                ConfirmationOption.DELETE.getValue(),
+                ConfirmationOption.CANCEL.getValue());
     }
 }

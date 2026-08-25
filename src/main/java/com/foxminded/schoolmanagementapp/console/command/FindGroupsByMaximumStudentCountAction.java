@@ -1,10 +1,9 @@
 package com.foxminded.schoolmanagementapp.console.command;
 
-import static com.foxminded.schoolmanagementapp.console.ConsoleMessage.MAXIMUM_STUDENT_COUNT;
-
 import com.foxminded.schoolmanagementapp.console.ConsoleView;
-import com.foxminded.schoolmanagementapp.console.LoopStatus;
-import com.foxminded.schoolmanagementapp.console.MenuAction;
+import com.foxminded.schoolmanagementapp.console.constants.Field;
+import com.foxminded.schoolmanagementapp.console.constants.LoopStatus;
+import com.foxminded.schoolmanagementapp.console.constants.MenuAction;
 import com.foxminded.schoolmanagementapp.console.systemConsole.ConsoleInputReader;
 import com.foxminded.schoolmanagementapp.model.Group;
 import com.foxminded.schoolmanagementapp.service.GroupService;
@@ -28,7 +27,8 @@ public class FindGroupsByMaximumStudentCountAction implements MenuActionRunner {
     public LoopStatus execute() {
         view.promptForMaximumStudentCount();
 
-        int maximumStudentCount = inputReader.readNonNegativeInteger(MAXIMUM_STUDENT_COUNT.text());
+        int maximumStudentCount =
+                inputReader.readNonNegativeInteger(Field.MAXIMUM_STUDENT_COUNT.getValue());
 
         List<Group> groups = groupService.findByMaximumStudentCount(maximumStudentCount);
 

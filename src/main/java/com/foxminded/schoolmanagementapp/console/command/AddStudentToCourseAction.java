@@ -1,18 +1,17 @@
 package com.foxminded.schoolmanagementapp.console.command;
 
-import static com.foxminded.schoolmanagementapp.console.ConsoleMessage.COURSE_ID;
-import static com.foxminded.schoolmanagementapp.console.ConsoleMessage.COURSE_ID_PROMPT;
-import static com.foxminded.schoolmanagementapp.console.ConsoleMessage.STUDENT_ID;
-import static com.foxminded.schoolmanagementapp.console.ConsoleMessage.STUDENT_ID_PROMPT;
-
 import com.foxminded.schoolmanagementapp.console.ConsoleView;
-import com.foxminded.schoolmanagementapp.console.LoopStatus;
-import com.foxminded.schoolmanagementapp.console.MenuAction;
+import com.foxminded.schoolmanagementapp.console.constants.Field;
+import com.foxminded.schoolmanagementapp.console.constants.LoopStatus;
+import com.foxminded.schoolmanagementapp.console.constants.MenuAction;
+import com.foxminded.schoolmanagementapp.console.constants.Prompt;
 import com.foxminded.schoolmanagementapp.console.systemConsole.ConsoleInputReader;
 import com.foxminded.schoolmanagementapp.service.EnrollmentService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @AllArgsConstructor
 @Component
 public class AddStudentToCourseAction implements MenuActionRunner {
@@ -27,15 +26,17 @@ public class AddStudentToCourseAction implements MenuActionRunner {
 
     @Override
     public LoopStatus execute() {
-        consoleView.promptForWriteOperationFlow(STUDENT_ID_PROMPT.text());
-        long studentId = inputReader.readPositiveLong(STUDENT_ID.text());
+        log.debug("Enrollment requested...");
+        consoleView.promptForWriteOperationFlow(Prompt.STUDENT_ID.getValue());
+        long studentId = inputReader.readPositiveLong(Field.STUDENT_ID.getValue());
 
-        consoleView.promptForWriteOperationFlow(COURSE_ID_PROMPT.text());
-        long courseId = inputReader.readPositiveLong(COURSE_ID.text());
+        consoleView.promptForWriteOperationFlow(Prompt.COURSE_ID.getValue());
+        long courseId = inputReader.readPositiveLong(Field.COURSE_ID.getValue());
 
         enrollmentService.addStudentToCourse(studentId, courseId);
 
         consoleView.showSuccessMessageOnEnrollment();
+        log.debug("Successfully enrolled student with ID: {} into course with ID: {}.", studentId, courseId);
         return LoopStatus.CONTINUE;
     }
 }

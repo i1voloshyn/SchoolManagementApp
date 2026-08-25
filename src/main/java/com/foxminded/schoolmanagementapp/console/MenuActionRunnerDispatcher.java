@@ -4,6 +4,8 @@ import com.foxminded.schoolmanagementapp.console.command.MenuActionRunner;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import com.foxminded.schoolmanagementapp.console.constants.LoopStatus;
+import com.foxminded.schoolmanagementapp.console.constants.MenuAction;
 import org.springframework.stereotype.Component;
 
 @Component

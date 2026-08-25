@@ -1,4 +1,4 @@
-package com.foxminded.schoolmanagementapp.console;
+package com.foxminded.schoolmanagementapp.console.constants;
 
 import com.foxminded.schoolmanagementapp.exception.consoleException.InvalidMenuOptionException;
 import java.util.Arrays;

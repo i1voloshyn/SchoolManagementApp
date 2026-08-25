@@ -1,10 +1,9 @@
 package com.foxminded.schoolmanagementapp.console.command;
 
-import static com.foxminded.schoolmanagementapp.console.ConsoleMessage.COURSE_NAME;
-
 import com.foxminded.schoolmanagementapp.console.ConsoleView;
-import com.foxminded.schoolmanagementapp.console.LoopStatus;
-import com.foxminded.schoolmanagementapp.console.MenuAction;
+import com.foxminded.schoolmanagementapp.console.constants.Field;
+import com.foxminded.schoolmanagementapp.console.constants.LoopStatus;
+import com.foxminded.schoolmanagementapp.console.constants.MenuAction;
 import com.foxminded.schoolmanagementapp.console.systemConsole.ConsoleInputReader;
 import com.foxminded.schoolmanagementapp.dto.StudentDto;
 import com.foxminded.schoolmanagementapp.exception.CourseNotFoundException;
@@ -30,7 +29,7 @@ public class FindStudentsByCourseNameAction implements MenuActionRunner {
     public LoopStatus execute() {
         view.promptForCourseName();
 
-        String courseName = inputReader.readRequiredText(COURSE_NAME.text());
+        String courseName = inputReader.readRequiredText(Field.COURSE_NAME.getValue());
 
         List<StudentDto> students = findStudents(courseName);
 
