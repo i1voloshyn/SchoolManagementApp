@@ -1,8 +1,13 @@
 package com.foxminded.schoolmanagementapp.repository;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatException;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
 import com.foxminded.schoolmanagementapp.exception.EnrollmentException;
 import com.foxminded.schoolmanagementapp.exception.EnrollmentNotFoundException;
 import com.foxminded.schoolmanagementapp.model.Enrollment;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
@@ -15,29 +20,19 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatException;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 @JdbcTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(JdbcEnrollmentRepository.class)
 @Testcontainers
 class JdbcEnrollmentRepositoryTest {
 
-    @Container
-    @ServiceConnection
+    @Container @ServiceConnection
     private static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:18.4");
 
-    @Autowired
-    EnrollmentRepository repository;
-    @Autowired
-    JdbcTemplate jdbcTemplate;
+    @Autowired EnrollmentRepository repository;
+    @Autowired JdbcTemplate jdbcTemplate;
 
-    @Sql(value = {"/fixtures/clean_up.sql",
-            "/fixtures/enrollments/students_with_courses.sql"})
+    @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/enrollments/students_with_courses.sql"})
     @Test
     void enroll_shouldCreateExpectedEnrollment() {
         Long studentId = findStudentId("Emily");
@@ -45,40 +40,45 @@ class JdbcEnrollmentRepositoryTest {
 
         repository.enroll(studentId, courseId);
 
-        Long enrollmentCount = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM students_courses WHERE student_id = ? AND course_id = ?",
-                Long.class,
-                studentId,
-                courseId
-        );
+        Long enrollmentCount =
+                jdbcTemplate.queryForObject(
+                        "SELECT COUNT(*) FROM students_courses WHERE student_id = ? AND course_id ="
+                                + " ?",
+                        Long.class,
+                        studentId,
+                        courseId);
         assertThat(enrollmentCount).isOne();
     }
 
-    @Sql(value = {"/fixtures/clean_up.sql",
-            "/fixtures/enrollments/insert_students_and_courses.sql"})
+    @Sql(
+            value = {
+                "/fixtures/clean_up.sql",
+                "/fixtures/enrollments/insert_students_and_courses.sql"
+            })
     @Test
     void enrollAll_shouldCreateAllEnrollmentsInBatch() {
         Long johnId = findStudentId("John");
         Long annaId = findStudentId("Anna");
         Long javaId = findCourseId("Java");
         Long sqlId = findCourseId("SQL");
-        List<Enrollment> enrollments = List.of(
-                new Enrollment(johnId, javaId),
-                new Enrollment(johnId, sqlId),
-                new Enrollment(annaId, javaId)
-        );
+        List<Enrollment> enrollments =
+                List.of(
+                        new Enrollment(johnId, javaId),
+                        new Enrollment(johnId, sqlId),
+                        new Enrollment(annaId, javaId));
 
         repository.enrollAll(enrollments);
 
-        Long enrollmentCount = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM students_courses",
-                Long.class
-        );
+        Long enrollmentCount =
+                jdbcTemplate.queryForObject("SELECT COUNT(*) FROM students_courses", Long.class);
         assertThat(enrollmentCount).isEqualTo(3L);
     }
 
-    @Sql(value = {"/fixtures/clean_up.sql",
-            "/fixtures/enrollments/insert_students_and_courses.sql"})
+    @Sql(
+            value = {
+                "/fixtures/clean_up.sql",
+                "/fixtures/enrollments/insert_students_and_courses.sql"
+            })
     @Test
     void enroll_shouldVerifyStudentAndCourse_andCreateExpectedEnrollment() {
         Long studentId = findStudentId("Emily");
@@ -86,17 +86,21 @@ class JdbcEnrollmentRepositoryTest {
 
         repository.enroll(studentId, courseId);
 
-        Long enrollmentCount = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM students_courses WHERE student_id = ? AND course_id = ?",
-                Long.class,
-                studentId,
-                courseId
-        );
+        Long enrollmentCount =
+                jdbcTemplate.queryForObject(
+                        "SELECT COUNT(*) FROM students_courses WHERE student_id = ? AND course_id ="
+                                + " ?",
+                        Long.class,
+                        studentId,
+                        courseId);
         assertThat(enrollmentCount).isOne();
     }
 
-    @Sql(value = {"/fixtures/clean_up.sql",
-            "/fixtures/enrollments/insert_students_and_courses.sql"})
+    @Sql(
+            value = {
+                "/fixtures/clean_up.sql",
+                "/fixtures/enrollments/insert_students_and_courses.sql"
+            })
     @Test
     void enroll_shouldVerifyStudentAndCourse_andDoNotCreateEnrollment_whenStudentIsMissing() {
         Long wrongStudentId = 99L;
@@ -106,8 +110,7 @@ class JdbcEnrollmentRepositoryTest {
                 .isThrownBy(() -> repository.enroll(wrongStudentId, courseId));
     }
 
-    @Sql(value = {"/fixtures/clean_up.sql",
-            "/fixtures/enrollments/students_with_courses.sql"})
+    @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/enrollments/students_with_courses.sql"})
     @Test
     void enroll_shouldThrowException_whenEnrollmentAlreadyExists() {
         Long studentId = findStudentId("John");
@@ -118,8 +121,7 @@ class JdbcEnrollmentRepositoryTest {
                 .isInstanceOf(EnrollmentException.class);
     }
 
-    @Sql(value = {"/fixtures/clean_up.sql",
-            "/fixtures/enrollments/students_with_courses.sql"})
+    @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/enrollments/students_with_courses.sql"})
     @Test
     void enroll_shouldThrowException_whenStudentDoesNotExist() {
         Long courseId = findCourseId("Java");
@@ -129,8 +131,7 @@ class JdbcEnrollmentRepositoryTest {
                 .isInstanceOf(EnrollmentException.class);
     }
 
-    @Sql(value = {"/fixtures/clean_up.sql",
-            "/fixtures/enrollments/students_with_courses.sql"})
+    @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/enrollments/students_with_courses.sql"})
     @Test
     void remove_shouldRemoveExpectedEnrollment() {
         Long studentId = findStudentId("John");
@@ -138,17 +139,17 @@ class JdbcEnrollmentRepositoryTest {
 
         repository.remove(studentId, courseId);
 
-        Long enrollmentCount = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM students_courses WHERE student_id = ? AND course_id = ?",
-                Long.class,
-                studentId,
-                courseId
-        );
+        Long enrollmentCount =
+                jdbcTemplate.queryForObject(
+                        "SELECT COUNT(*) FROM students_courses WHERE student_id = ? AND course_id ="
+                                + " ?",
+                        Long.class,
+                        studentId,
+                        courseId);
         assertThat(enrollmentCount).isZero();
     }
 
-    @Sql(value = {"/fixtures/clean_up.sql",
-            "/fixtures/enrollments/students_with_courses.sql"})
+    @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/enrollments/students_with_courses.sql"})
     @Test
     void remove_shouldThrowException_whenEnrollmentDoesNotExist() {
         Long studentId = findStudentId("Emily");
@@ -159,8 +160,7 @@ class JdbcEnrollmentRepositoryTest {
                 .isInstanceOf(EnrollmentNotFoundException.class);
     }
 
-    @Sql(value = {"/fixtures/clean_up.sql",
-            "/fixtures/enrollments/students_with_courses.sql"})
+    @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/enrollments/students_with_courses.sql"})
     @Test
     void exists_shouldReturnTrue_whenEnrollmentExists() {
         Long studentId = findStudentId("John");
@@ -171,8 +171,7 @@ class JdbcEnrollmentRepositoryTest {
         assertThat(actual).isTrue();
     }
 
-    @Sql(value = {"/fixtures/clean_up.sql",
-            "/fixtures/enrollments/students_with_courses.sql"})
+    @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/enrollments/students_with_courses.sql"})
     @Test
     void exists_shouldReturnFalse_whenEnrollmentDoesNotExist() {
         Long studentId = findStudentId("Emily");
@@ -185,17 +184,11 @@ class JdbcEnrollmentRepositoryTest {
 
     private Long findStudentId(String firstName) {
         return jdbcTemplate.queryForObject(
-                "SELECT id FROM students WHERE first_name = ?",
-                Long.class,
-                firstName
-        );
+                "SELECT id FROM students WHERE first_name = ?", Long.class, firstName);
     }
 
     private Long findCourseId(String courseName) {
         return jdbcTemplate.queryForObject(
-                "SELECT id FROM courses WHERE name = ?",
-                Long.class,
-                courseName
-        );
+                "SELECT id FROM courses WHERE name = ?", Long.class, courseName);
     }
 }

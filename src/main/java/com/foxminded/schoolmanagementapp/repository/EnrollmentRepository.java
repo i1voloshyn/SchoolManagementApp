@@ -1,7 +1,6 @@
 package com.foxminded.schoolmanagementapp.repository;
 
 import com.foxminded.schoolmanagementapp.model.Enrollment;
-
 import java.util.List;
 
 public interface EnrollmentRepository {

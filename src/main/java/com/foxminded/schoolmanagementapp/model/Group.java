@@ -9,7 +9,6 @@ import org.jspecify.annotations.Nullable;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Group {
-    @Nullable
-    private Long id;
+    @Nullable private Long id;
     private String name;
 }

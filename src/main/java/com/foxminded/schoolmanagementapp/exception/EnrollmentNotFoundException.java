@@ -4,7 +4,6 @@ public class EnrollmentNotFoundException extends EnrollmentException {
     public EnrollmentNotFoundException(Long studentId, Long courseId) {
         super(
                 "Enrollment was not found for student %d and course %d"
-                        .formatted(studentId, courseId)
-        );
+                        .formatted(studentId, courseId));
     }
 }

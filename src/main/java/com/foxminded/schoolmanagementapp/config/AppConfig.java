@@ -1,12 +1,9 @@
 package com.foxminded.schoolmanagementapp.config;
 
+import java.util.Scanner;
 import net.datafaker.Faker;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
-import java.util.Scanner;
 
 @Configuration
 public class AppConfig {
@@ -19,5 +16,4 @@ public class AppConfig {
     public Scanner scanner() {
         return new Scanner(System.in);
     }
-
 }

@@ -2,10 +2,9 @@ package com.foxminded.schoolmanagementapp.util;
 
 import com.foxminded.schoolmanagementapp.model.Group;
 import com.foxminded.schoolmanagementapp.util.datagenerator.GroupsGenerator;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.stream.IntStream;
+import org.springframework.stereotype.Component;
 
 @Component
 public class DefaultGroupsDataGenerator implements GroupsGenerator {

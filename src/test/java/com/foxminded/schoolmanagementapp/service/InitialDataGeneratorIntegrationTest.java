@@ -1,6 +1,9 @@
 package com.foxminded.schoolmanagementapp.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.foxminded.schoolmanagementapp.config.DataGeneratorProperties;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -11,30 +14,18 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 @SpringBootTest(properties = "school.console.enabled=false")
 @Testcontainers
-@Sql(
-        scripts = "/fixtures/clean_up.sql",
-        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
-)
+@Sql(scripts = "/fixtures/clean_up.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class InitialDataGeneratorIntegrationTest {
 
-    @Container
-    @ServiceConnection
-    private static final PostgreSQLContainer POSTGRES =
-            new PostgreSQLContainer("postgres:18.4");
+    @Container @ServiceConnection
+    private static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:18.4");
 
-    @Autowired
-    private InitialDataGenerator dataGenerator;
-    @Autowired
-    DataGeneratorProperties properties;
+    @Autowired private InitialDataGenerator dataGenerator;
+    @Autowired DataGeneratorProperties properties;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    @Autowired private JdbcTemplate jdbcTemplate;
 
     @Test
     void generateDataIfEmpty_shouldGenerateExpectedCounts() {
@@ -54,53 +45,45 @@ class InitialDataGeneratorIntegrationTest {
     void generateDataIfEmpty_shouldGenerateCorrectGroupNames() {
         dataGenerator.generateDataIfEmpty();
 
-        List<String> groupNames = jdbcTemplate.queryForList(
-                "SELECT name FROM groups",
-                String.class
-        );
+        List<String> groupNames =
+                jdbcTemplate.queryForList("SELECT name FROM groups", String.class);
 
-        assertThat(groupNames)
-                .hasSize(10)
-                .allMatch(name -> name.matches("AA-\\d{2}"));
+        assertThat(groupNames).hasSize(10).allMatch(name -> name.matches("AA-\\d{2}"));
     }
 
     @Test
     void generateDataIfEmpty_shouldAssignOnlyExistingGroups() {
         dataGenerator.generateDataIfEmpty();
 
-        List<Long> existingGroupIds = jdbcTemplate.queryForList(
-                "SELECT id FROM groups",
-                Long.class
-        );
-        List<Long> assignedGroupIds = jdbcTemplate.queryForList(
-                """
+        List<Long> existingGroupIds =
+                jdbcTemplate.queryForList("SELECT id FROM groups", Long.class);
+        List<Long> assignedGroupIds =
+                jdbcTemplate.queryForList(
+                        """
                         SELECT group_id
                         FROM students
                         WHERE group_id IS NOT NULL
                         """,
-                Long.class
-        );
+                        Long.class);
 
-        assertThat(assignedGroupIds)
-                .allMatch(existingGroupIds::contains);
+        assertThat(assignedGroupIds).allMatch(existingGroupIds::contains);
     }
 
     @Test
     void generateDataIfEmpty_shouldEnrollEveryStudentInOneToThreeCourses() {
         dataGenerator.generateDataIfEmpty();
 
-        List<Integer> courseCounts = jdbcTemplate.queryForList(
-                """
+        List<Integer> courseCounts =
+                jdbcTemplate.queryForList(
+                        """
                         SELECT COUNT(*)
                         FROM students_courses
                         GROUP BY student_id
                         """,
-                Integer.class
-        );
+                        Integer.class);
 
         assertThat(courseCounts).hasSize(properties.studentsCount());
-        assertThat(courseCounts)
-                .allMatch(count -> count >= 1 && count <= 3);
+        assertThat(courseCounts).allMatch(count -> count >= 1 && count <= 3);
     }
 
     @Test
@@ -121,8 +104,7 @@ class InitialDataGeneratorIntegrationTest {
                 count("SELECT COUNT(*) FROM groups"),
                 count("SELECT COUNT(*) FROM courses"),
                 count("SELECT COUNT(*) FROM students"),
-                count("SELECT COUNT(*) FROM students_courses")
-        );
+                count("SELECT COUNT(*) FROM students_courses"));
     }
 
     private int count(String sql) {
@@ -130,11 +112,5 @@ class InitialDataGeneratorIntegrationTest {
         return result == null ? 0 : result;
     }
 
-    private record DatabaseCounts(
-            int groups,
-            int courses,
-            int students,
-            int enrollments
-    ) {
-    }
+    private record DatabaseCounts(int groups, int courses, int students, int enrollments) {}
 }

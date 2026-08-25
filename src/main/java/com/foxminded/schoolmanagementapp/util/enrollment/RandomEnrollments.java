@@ -4,14 +4,13 @@ import com.foxminded.schoolmanagementapp.config.StudentCoursesAssignmentProperti
 import com.foxminded.schoolmanagementapp.dto.CourseDto;
 import com.foxminded.schoolmanagementapp.dto.StudentDto;
 import com.foxminded.schoolmanagementapp.model.Enrollment;
-import lombok.AllArgsConstructor;
-import net.datafaker.Faker;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import lombok.AllArgsConstructor;
+import net.datafaker.Faker;
+import org.springframework.stereotype.Component;
 
 @AllArgsConstructor
 @Component
@@ -38,7 +37,8 @@ public class RandomEnrollments implements EnrollmentsRule {
     }
 
     private List<Enrollment> enrollStudent(Long studentId, List<Long> courseIds) {
-        int enrollmentCount = faker.number().numberBetween(properties.minCourses(), properties.maxCourses()+1);
+        int enrollmentCount =
+                faker.number().numberBetween(properties.minCourses(), properties.maxCourses() + 1);
         List<Long> shuffledIds = new ArrayList<>(courseIds);
         Collections.shuffle(shuffledIds);
 
@@ -49,23 +49,17 @@ public class RandomEnrollments implements EnrollmentsRule {
     }
 
     private List<Long> extractStudentIds(List<StudentDto> students) {
-        return students.stream()
-                .map(StudentDto::id)
-                .toList();
+        return students.stream().map(StudentDto::id).toList();
     }
 
     private List<Long> extractCourseIds(List<CourseDto> courses) {
-        return courses.stream()
-                .map(CourseDto::id)
-                .toList();
+        return courses.stream().map(CourseDto::id).toList();
     }
-
 
     private void validateAvailableCourses(int coursesCount) {
         if (coursesCount < properties.maxCourses()) {
             throw new IllegalArgumentException(
-                    "At least %d courses are required".formatted(properties.maxCourses())
-            );
+                    "At least %d courses are required".formatted(properties.maxCourses()));
         }
     }
 }

@@ -3,10 +3,9 @@ package com.foxminded.schoolmanagementapp.service;
 import com.foxminded.schoolmanagementapp.GlobalMapper;
 import com.foxminded.schoolmanagementapp.dto.StudentDto;
 import com.foxminded.schoolmanagementapp.repository.StudentsRepository;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @AllArgsConstructor
 @Service
@@ -19,8 +18,7 @@ public class StudentService {
             throw new IllegalArgumentException("Course name must not be blank");
         }
 
-        return studentsRepository.findByCourseName(courseName)
-                .stream()
+        return studentsRepository.findByCourseName(courseName).stream()
                 .map(mapper::toStudentDto)
                 .toList();
     }
@@ -37,11 +35,9 @@ public class StudentService {
 
         students.forEach(this::validateNewStudent);
 
-        return studentsRepository.saveAll(
-                        students.stream()
-                                .map(mapper::toStudent)
-                                .toList()
-                ).stream()
+        return studentsRepository
+                .saveAll(students.stream().map(mapper::toStudent).toList())
+                .stream()
                 .map(mapper::toStudentDto)
                 .toList();
     }

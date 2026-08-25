@@ -1,12 +1,20 @@
 package com.foxminded.schoolmanagementapp;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+
 import com.foxminded.schoolmanagementapp.console.ConsoleMenu;
-import com.foxminded.schoolmanagementapp.console.MenuActionRunnerDispatcher;
 import com.foxminded.schoolmanagementapp.console.MenuAction;
+import com.foxminded.schoolmanagementapp.console.MenuActionRunnerDispatcher;
 import com.foxminded.schoolmanagementapp.console.command.MenuActionRunner;
 import com.foxminded.schoolmanagementapp.service.CourseService;
+import com.foxminded.schoolmanagementapp.service.EnrollmentService;
 import com.foxminded.schoolmanagementapp.service.GroupService;
 import com.foxminded.schoolmanagementapp.service.StudentService;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Scanner;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,26 +24,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Scanner;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(
-        classes = SchoolManagementAppApplicationTests.ConsoleWiringConfiguration.class
-)
+        classes = SchoolManagementAppApplicationTests.ConsoleWiringConfiguration.class)
 class SchoolManagementAppApplicationTests {
 
-    @Autowired
-    private List<MenuActionRunner> commands;
-    @Autowired
-    private MenuActionRunnerDispatcher dispatcher;
-    @Autowired
-    private ConsoleMenu consoleMenu;
+    @Autowired private List<MenuActionRunner> commands;
+    @Autowired private MenuActionRunnerDispatcher dispatcher;
+    @Autowired private ConsoleMenu consoleMenu;
 
     @Test
     void context_shouldRegisterCommandForEveryMenuOption() {
@@ -54,10 +50,7 @@ class SchoolManagementAppApplicationTests {
 
         @Bean
         Scanner scanner() {
-            return new Scanner(
-                    new ByteArrayInputStream(new byte[0]),
-                    StandardCharsets.UTF_8
-            );
+            return new Scanner(new ByteArrayInputStream(new byte[0]), StandardCharsets.UTF_8);
         }
 
         @Bean
@@ -73,6 +66,11 @@ class SchoolManagementAppApplicationTests {
         @Bean
         CourseService courseService() {
             return mock(CourseService.class);
+        }
+
+        @Bean
+        EnrollmentService enrollmentService() {
+            return mock(EnrollmentService.class);
         }
     }
 }

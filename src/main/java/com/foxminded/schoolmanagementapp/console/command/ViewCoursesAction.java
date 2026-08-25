@@ -5,10 +5,9 @@ import com.foxminded.schoolmanagementapp.console.LoopStatus;
 import com.foxminded.schoolmanagementapp.console.MenuAction;
 import com.foxminded.schoolmanagementapp.dto.CourseDto;
 import com.foxminded.schoolmanagementapp.service.CourseService;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @AllArgsConstructor
 @Component

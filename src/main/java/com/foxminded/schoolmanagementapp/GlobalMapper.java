@@ -1,9 +1,9 @@
 package com.foxminded.schoolmanagementapp;
 
-import com.foxminded.schoolmanagementapp.model.Course;
 import com.foxminded.schoolmanagementapp.dto.CourseDto;
-import com.foxminded.schoolmanagementapp.model.Student;
 import com.foxminded.schoolmanagementapp.dto.StudentDto;
+import com.foxminded.schoolmanagementapp.model.Course;
+import com.foxminded.schoolmanagementapp.model.Student;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -20,11 +20,7 @@ public class GlobalMapper {
 
     public Student toStudent(StudentDto request) {
         return new Student(
-                request.id(),
-                request.groupId(),
-                request.firstName(),
-                request.lastName()
-        );
+                request.id(), request.groupId(), request.firstName(), request.lastName());
     }
 
     public StudentDto toStudentDto(Student student) {
@@ -32,7 +28,6 @@ public class GlobalMapper {
                 student.getId(),
                 student.getGroupId(),
                 student.getFirstName(),
-                student.getLastName()
-        );
+                student.getLastName());
     }
 }

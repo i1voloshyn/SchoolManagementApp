@@ -1,17 +1,16 @@
 package com.foxminded.schoolmanagementapp.util;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.foxminded.schoolmanagementapp.config.DataGeneratorProperties;
 import com.foxminded.schoolmanagementapp.dto.StudentDto;
 import com.foxminded.schoolmanagementapp.util.assignment.GroupAssignmentRule;
 import com.foxminded.schoolmanagementapp.util.datagenerator.StudentGenerator;
-import net.datafaker.Faker;
-import org.junit.jupiter.api.Test;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import net.datafaker.Faker;
+import org.junit.jupiter.api.Test;
 
 class FakerStudentsDataGeneratorTest {
 
@@ -25,25 +24,17 @@ class FakerStudentsDataGeneratorTest {
 
         assertThat(actual)
                 .hasSize(3)
-                .allSatisfy(student -> {
-                    assertThat(student.id()).isNull();
-                    assertThat(student.firstName()).isNotBlank();
-                    assertThat(student.lastName()).isNotBlank();
-                });
-        assertThat(actual)
-                .extracting(StudentDto::groupId)
-                .containsExactly(1L, null, 2L);
+                .allSatisfy(
+                        student -> {
+                            assertThat(student.id()).isNull();
+                            assertThat(student.firstName()).isNotBlank();
+                            assertThat(student.lastName()).isNotBlank();
+                        });
+        assertThat(actual).extracting(StudentDto::groupId).containsExactly(1L, null, 2L);
     }
 
-
     private StudentGenerator generator(
-            DataGeneratorProperties properties,
-            GroupAssignmentRule assignmentRule
-    ) {
-        return new FakerStudentsDataGenerator(
-                new Faker(new Random(1)),
-                properties,
-                assignmentRule
-        );
+            DataGeneratorProperties properties, GroupAssignmentRule assignmentRule) {
+        return new FakerStudentsDataGenerator(new Faker(new Random(1)), properties, assignmentRule);
     }
 }

@@ -1,7 +1,6 @@
 package com.foxminded.schoolmanagementapp.repository;
 
 import com.foxminded.schoolmanagementapp.model.Student;
-
 import java.util.List;
 import java.util.Optional;
 

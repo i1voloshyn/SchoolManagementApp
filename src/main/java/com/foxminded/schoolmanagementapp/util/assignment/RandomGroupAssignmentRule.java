@@ -1,14 +1,13 @@
 package com.foxminded.schoolmanagementapp.util.assignment;
 
 import com.foxminded.schoolmanagementapp.config.GroupAssignmentProperties;
-import lombok.AllArgsConstructor;
-import net.datafaker.Faker;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.IntStream;
+import lombok.AllArgsConstructor;
+import net.datafaker.Faker;
+import org.springframework.stereotype.Component;
 
 @AllArgsConstructor
 @Component
@@ -39,8 +38,9 @@ public class RandomGroupAssignmentRule implements GroupAssignmentRule {
     }
 
     private int generateIdsRepetition(int assignmentsCount, int studentsCount) {
-        int idRepetition = faker.number().numberBetween(properties.minStudents(),
-                properties.maxStudents() + 1);
+        int idRepetition =
+                faker.number()
+                        .numberBetween(properties.minStudents(), properties.maxStudents() + 1);
 
         boolean assignmentsCountInRange = (assignmentsCount + idRepetition) < studentsCount;
 

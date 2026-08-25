@@ -14,13 +14,11 @@ import java.util.List;
 
 @AllArgsConstructor
 @Component
-public class FindStudentsByCourseNameAction
-        implements MenuActionRunner {
+public class FindStudentsByCourseNameAction implements MenuActionRunner {
+    private static final String COURSE_NAME = "Course name";
 
-    private final static String COURSE_NAME = "Course name";
-
-    private final ConsoleInputReader inputReader;
     private final ConsoleView view;
+    private final ConsoleInputReader inputReader;
     private final StudentService studentService;
 
     @Override
@@ -32,8 +30,7 @@ public class FindStudentsByCourseNameAction
     public LoopStatus execute() {
         view.promptForCourseName();
 
-        String courseName =
-                inputReader.readRequiredText(COURSE_NAME);
+        String courseName = inputReader.readRequiredText(COURSE_NAME);
 
         List<StudentDto> students = findStudents(courseName);
 

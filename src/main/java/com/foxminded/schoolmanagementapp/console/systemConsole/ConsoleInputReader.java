@@ -3,14 +3,14 @@ package com.foxminded.schoolmanagementapp.console.systemConsole;
 import com.foxminded.schoolmanagementapp.exception.consoleException.BlankConsoleInputException;
 import com.foxminded.schoolmanagementapp.exception.consoleException.NegativeNumberException;
 import com.foxminded.schoolmanagementapp.exception.consoleException.NonNumericInputException;
+import com.foxminded.schoolmanagementapp.exception.consoleException.NonPositiveNumberException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @AllArgsConstructor
 @Component
 public class ConsoleInputReader {
-
-    private final static String MENU_ITEM = "Menu item";
+    private static final String MENU_ITEM = "Menu item";
 
     private final ConsoleInput input;
 
@@ -30,6 +30,17 @@ public class ConsoleInputReader {
         return number;
     }
 
+    public long readPositiveLong(String fieldName) {
+        String value = readRequiredText(fieldName);
+        long number = parseLong(value, fieldName);
+
+        if (number <= 0) {
+            throw new NonPositiveNumberException(fieldName, number);
+        }
+
+        return number;
+    }
+
     public String readRequiredText(String fieldName) {
         String value = input.readLine();
 
@@ -43,6 +54,14 @@ public class ConsoleInputReader {
     private int parseInteger(String value, String fieldName) {
         try {
             return Integer.parseInt(value);
+        } catch (NumberFormatException exception) {
+            throw new NonNumericInputException(fieldName, value);
+        }
+    }
+
+    private long parseLong(String value, String fieldName) {
+        try {
+            return Long.parseLong(value);
         } catch (NumberFormatException exception) {
             throw new NonNumericInputException(fieldName, value);
         }

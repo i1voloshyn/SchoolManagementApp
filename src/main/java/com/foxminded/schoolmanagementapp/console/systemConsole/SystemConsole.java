@@ -1,14 +1,12 @@
 package com.foxminded.schoolmanagementapp.console.systemConsole;
 
+import java.util.Scanner;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.util.Scanner;
 
 @AllArgsConstructor
 @Component
 public class SystemConsole implements ConsoleInput, ConsoleOutput {
-
     private final Scanner scanner;
 
     @Override

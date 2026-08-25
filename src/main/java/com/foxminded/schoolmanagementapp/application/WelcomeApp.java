@@ -11,11 +11,7 @@ import org.springframework.stereotype.Component;
 
 @AllArgsConstructor
 @Component
-@ConditionalOnProperty(
-        name = "school.console.enabled",
-        havingValue = "true",
-        matchIfMissing = true
-)
+@ConditionalOnProperty(name = "school.console.enabled", havingValue = "true", matchIfMissing = true)
 public class WelcomeApp implements ApplicationRunner {
     private final DataGenerator dataGenerator;
     private final ConsoleMenu consoleMenu;

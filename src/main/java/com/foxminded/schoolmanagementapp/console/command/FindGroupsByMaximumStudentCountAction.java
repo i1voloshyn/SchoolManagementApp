@@ -13,13 +13,12 @@ import java.util.List;
 
 @AllArgsConstructor
 @Component
-public class FindGroupsByMaximumStudentCountAction
-        implements MenuActionRunner {
+public class FindGroupsByMaximumStudentCountAction implements MenuActionRunner {
 
     private static final String MAXIMUM_STUDENT_COUNT = "Maximum student count";
 
-    private final ConsoleInputReader inputReader;
     private final ConsoleView view;
+    private final ConsoleInputReader inputReader;
     private final GroupService groupService;
 
     @Override
@@ -31,15 +30,9 @@ public class FindGroupsByMaximumStudentCountAction
     public LoopStatus execute() {
         view.promptForMaximumStudentCount();
 
-        int maximumStudentCount =
-                inputReader.readNonNegativeInteger(
-                        MAXIMUM_STUDENT_COUNT
-                );
+        int maximumStudentCount = inputReader.readNonNegativeInteger(MAXIMUM_STUDENT_COUNT);
 
-        List<Group> groups =
-                groupService.findByMaximumStudentCount(
-                        maximumStudentCount
-                );
+        List<Group> groups = groupService.findByMaximumStudentCount(maximumStudentCount);
 
         view.showGroups(groups);
 
