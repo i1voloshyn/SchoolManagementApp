@@ -1,5 +1,14 @@
 package com.foxminded.schoolmanagementapp.console.command;
 
+import static com.foxminded.schoolmanagementapp.console.ConsoleMessage.CANCEL_OPTION;
+import static com.foxminded.schoolmanagementapp.console.ConsoleMessage.CONFIRMATION;
+import static com.foxminded.schoolmanagementapp.console.ConsoleMessage.COURSE_ID;
+import static com.foxminded.schoolmanagementapp.console.ConsoleMessage.COURSE_ID_PROMPT;
+import static com.foxminded.schoolmanagementapp.console.ConsoleMessage.DELETE_OPTION;
+import static com.foxminded.schoolmanagementapp.console.ConsoleMessage.DELETE_STUDENT_FROM_COURSE_CONFIRMATION_PROMPT;
+import static com.foxminded.schoolmanagementapp.console.ConsoleMessage.STUDENT_ID;
+import static com.foxminded.schoolmanagementapp.console.ConsoleMessage.STUDENT_ID_PROMPT;
+
 import com.foxminded.schoolmanagementapp.console.ConsoleView;
 import com.foxminded.schoolmanagementapp.console.LoopStatus;
 import com.foxminded.schoolmanagementapp.console.MenuAction;
@@ -12,19 +21,6 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 @Component
 public class DeleteStudentFromCourseAction implements MenuActionRunner {
-    private static final String STUDENT_ID = "Student ID";
-    private static final String COURSE_ID = "Course ID";
-    private static final String COURSE_ID_PROMPT = "Enter course ID:";
-    private static final String STUDENT_ID_PROMPT = "Enter student ID:";
-
-    private static final String DELETE = "Y";
-    private static final String CANCEL = "N";
-
-    private static final String CONFIRMATION = "Confirmation";
-    private static final String CONFIRMATION_PROMPT =
-            "Permanently delete student from course? Type '%s' to delete, '%s' to cancel"
-                    .formatted(DELETE, CANCEL);
-
     private final ConsoleView consoleView;
     private final ConsoleInputReader inputReader;
     private final EnrollmentService enrollmentService;
@@ -36,14 +32,14 @@ public class DeleteStudentFromCourseAction implements MenuActionRunner {
 
     @Override
     public LoopStatus execute() {
-        consoleView.promptForWriteOperationFlow(STUDENT_ID_PROMPT);
-        long studentId = inputReader.readPositiveLong(STUDENT_ID);
+        consoleView.promptForWriteOperationFlow(STUDENT_ID_PROMPT.text());
+        long studentId = inputReader.readPositiveLong(STUDENT_ID.text());
 
-        consoleView.promptForWriteOperationFlow(COURSE_ID_PROMPT);
-        long courseId = inputReader.readPositiveLong(COURSE_ID);
+        consoleView.promptForWriteOperationFlow(COURSE_ID_PROMPT.text());
+        long courseId = inputReader.readPositiveLong(COURSE_ID.text());
 
-        consoleView.promptForWriteOperationFlow(CONFIRMATION_PROMPT);
-        String confirmationAnswer = inputReader.readRequiredText(CONFIRMATION);
+        consoleView.promptForWriteOperationFlow(confirmationPrompt());
+        String confirmationAnswer = inputReader.readRequiredText(CONFIRMATION.text());
 
         if (isRemovalConfirmed(confirmationAnswer)) {
             enrollmentService.removeStudentFromCourse(studentId, courseId);
@@ -55,14 +51,18 @@ public class DeleteStudentFromCourseAction implements MenuActionRunner {
         return LoopStatus.CONTINUE;
     }
 
+    private String confirmationPrompt() {
+        return DELETE_STUDENT_FROM_COURSE_CONFIRMATION_PROMPT.format(DELETE_OPTION.text(), CANCEL_OPTION.text());
+    }
+
     private boolean isRemovalConfirmed(String answer) {
-        if (DELETE.equalsIgnoreCase(answer)) {
+        if (DELETE_OPTION.text().equalsIgnoreCase(answer)) {
             return true;
         }
-        if (CANCEL.equalsIgnoreCase(answer)) {
+        if (CANCEL_OPTION.text().equalsIgnoreCase(answer)) {
             return false;
         }
 
-        throw new InvalidConfirmationException(answer, DELETE, CANCEL);
+        throw new InvalidConfirmationException(answer, DELETE_OPTION.text(), CANCEL_OPTION.text());
     }
 }

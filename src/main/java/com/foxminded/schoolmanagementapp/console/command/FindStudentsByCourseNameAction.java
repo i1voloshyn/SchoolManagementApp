@@ -1,5 +1,7 @@
 package com.foxminded.schoolmanagementapp.console.command;
 
+import static com.foxminded.schoolmanagementapp.console.ConsoleMessage.COURSE_NAME;
+
 import com.foxminded.schoolmanagementapp.console.ConsoleView;
 import com.foxminded.schoolmanagementapp.console.LoopStatus;
 import com.foxminded.schoolmanagementapp.console.MenuAction;
@@ -7,15 +9,13 @@ import com.foxminded.schoolmanagementapp.console.systemConsole.ConsoleInputReade
 import com.foxminded.schoolmanagementapp.dto.StudentDto;
 import com.foxminded.schoolmanagementapp.exception.CourseNotFoundException;
 import com.foxminded.schoolmanagementapp.service.StudentService;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @AllArgsConstructor
 @Component
 public class FindStudentsByCourseNameAction implements MenuActionRunner {
-    private static final String COURSE_NAME = "Course name";
 
     private final ConsoleView view;
     private final ConsoleInputReader inputReader;
@@ -30,7 +30,7 @@ public class FindStudentsByCourseNameAction implements MenuActionRunner {
     public LoopStatus execute() {
         view.promptForCourseName();
 
-        String courseName = inputReader.readRequiredText(COURSE_NAME);
+        String courseName = inputReader.readRequiredText(COURSE_NAME.text());
 
         List<StudentDto> students = findStudents(courseName);
 
