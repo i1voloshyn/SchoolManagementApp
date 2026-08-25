@@ -10,8 +10,10 @@ import com.foxminded.schoolmanagementapp.exception.CourseNotFoundException;
 import com.foxminded.schoolmanagementapp.service.StudentService;
 import java.util.List;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @AllArgsConstructor
 @Component
 public class FindStudentsByCourseNameAction implements MenuActionRunner {
@@ -27,6 +29,7 @@ public class FindStudentsByCourseNameAction implements MenuActionRunner {
 
     @Override
     public LoopStatus execute() {
+        log.info("Student search by course name requested...");
         view.promptForCourseName();
 
         String courseName = inputReader.readRequiredText(Field.COURSE_NAME.getValue());
@@ -34,6 +37,10 @@ public class FindStudentsByCourseNameAction implements MenuActionRunner {
         List<StudentDto> students = findStudents(courseName);
 
         view.showStudents(courseName, students);
+        log.info(
+                "Student search completed: courseName={}, resultCount={}",
+                courseName,
+                students.size());
 
         return LoopStatus.CONTINUE;
     }
@@ -42,6 +49,7 @@ public class FindStudentsByCourseNameAction implements MenuActionRunner {
         try {
             return studentService.findStudentsByCourseName(courseName);
         } catch (CourseNotFoundException exception) {
+            log.debug("Student search course not found: courseName={}", courseName);
             return List.of();
         }
     }

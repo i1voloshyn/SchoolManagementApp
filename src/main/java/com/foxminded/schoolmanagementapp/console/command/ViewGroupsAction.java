@@ -7,8 +7,10 @@ import com.foxminded.schoolmanagementapp.model.Group;
 import com.foxminded.schoolmanagementapp.service.GroupService;
 import java.util.List;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @AllArgsConstructor
 @Component
 public class ViewGroupsAction implements MenuActionRunner {
@@ -22,9 +24,11 @@ public class ViewGroupsAction implements MenuActionRunner {
 
     @Override
     public LoopStatus execute() {
+        log.info("Group list requested...");
         List<Group> groups = groupService.findAll();
 
         view.showGroups(groups);
+        log.info("Group list completed: resultCount={}", groups.size());
 
         return LoopStatus.CONTINUE;
     }

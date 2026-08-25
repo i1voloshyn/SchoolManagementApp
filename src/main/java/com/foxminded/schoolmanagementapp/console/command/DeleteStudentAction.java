@@ -29,7 +29,7 @@ public class DeleteStudentAction implements MenuActionRunner {
 
     @Override
     public LoopStatus execute() {
-        log.info("Request to delete a student...");
+        log.info("Student deletion requested...");
 
         consoleView.promptForWriteOperationFlow(Prompt.STUDENT_ID.getValue());
         long studentId = inputReader.readPositiveLong(Field.STUDENT_ID.getValue());
@@ -39,12 +39,13 @@ public class DeleteStudentAction implements MenuActionRunner {
 
         if (isRemovalConfirmed(confirmationAnswer)) {
             studentService.deleteStudent(studentId);
+            log.info("Student deletion completed: studentId={}", studentId);
             consoleView.showSuccessMessageOnRemoval(Entity.STUDENT.getValue());
         } else {
-            log.info("Cancel student deletion");
+            log.info("Student deletion cancelled: studentId={}", studentId);
             consoleView.showCancellationMessageOnRemoval(Entity.STUDENT.getValue());
         }
-        log.info("Successfully deleted student with ID: {}", studentId);
+
         return LoopStatus.CONTINUE;
     }
 

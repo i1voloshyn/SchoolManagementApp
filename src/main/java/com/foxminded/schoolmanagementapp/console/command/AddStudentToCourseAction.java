@@ -26,7 +26,7 @@ public class AddStudentToCourseAction implements MenuActionRunner {
 
     @Override
     public LoopStatus execute() {
-        log.debug("Enrollment requested...");
+        log.info("Student enrollment requested...");
         consoleView.promptForWriteOperationFlow(Prompt.STUDENT_ID.getValue());
         long studentId = inputReader.readPositiveLong(Field.STUDENT_ID.getValue());
 
@@ -35,8 +35,9 @@ public class AddStudentToCourseAction implements MenuActionRunner {
 
         enrollmentService.addStudentToCourse(studentId, courseId);
 
+        log.info(
+                "Student enrollment completed: studentId={}, courseId={}", studentId, courseId);
         consoleView.showSuccessMessageOnEnrollment();
-        log.debug("Successfully enrolled student with ID: {} into course with ID: {}.", studentId, courseId);
         return LoopStatus.CONTINUE;
     }
 }

@@ -143,6 +143,7 @@ public class JdbcEnrollmentRepository implements EnrollmentRepository {
 
     private void validateQuery(String query, int expected, int actual) {
         if (actual != expected) {
+            log.warn("Error while executing query: {}", query);
             throw new JdbcUpdateAffectedIncorrectNumberOfRowsException(query, expected, actual);
         }
     }

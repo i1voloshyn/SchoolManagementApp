@@ -4,6 +4,7 @@ import com.foxminded.schoolmanagementapp.exception.CourseNotFoundException;
 import com.foxminded.schoolmanagementapp.model.Course;
 import java.util.List;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.JdbcUpdateAffectedIncorrectNumberOfRowsException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -14,41 +15,42 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.support.TransactionTemplate;
 
+@Slf4j
 @Repository
 public class JdbcCourseRepository implements CourseRepository {
     private static final String INSERT_COURSE_QUERY =
             """
-            INSERT INTO courses (name, description)
-            VALUES (:name, :description)
-            """;
+                    INSERT INTO courses (name, description)
+                    VALUES (:name, :description)
+                    """;
     private static final String DELETE_COURSE_QUERY =
             """
-            DELETE FROM courses WHERE id = :id
-            """;
+                    DELETE FROM courses WHERE id = :id
+                    """;
     private static final String FIND_ALL_COURSES_QUERY =
             """
-            SELECT id, name, description
-            FROM courses
-            """;
+                    SELECT id, name, description
+                    FROM courses
+                    """;
     private static final String FIND_COURSE_BY_ID_QUERY =
             """
-            SELECT id, name, description
-            FROM courses
-            WHERE id = :id
-            """;
+                    SELECT id, name, description
+                    FROM courses
+                    WHERE id = :id
+                    """;
     private static final String FIND_COURSES_BY_NAME_QUERY =
             """
-            SELECT id, name, description
-            FROM courses
-            WHERE name = :name
-            """;
+                    SELECT id, name, description
+                    FROM courses
+                    WHERE name = :name
+                    """;
     private static final String FIND_COURSES_BY_STUDENT_ID_QUERY =
             """
-            SELECT c.id, c.name, c.description
-            FROM courses c
-            JOIN students_courses sc ON sc.course_id = c.id
-            WHERE sc.student_id = :student_id
-            """;
+                    SELECT c.id, c.name, c.description
+                    FROM courses c
+                    JOIN students_courses sc ON sc.course_id = c.id
+                    WHERE sc.student_id = :student_id
+                    """;
     private static final RowMapper<Course> COURSE_MAPPER =
             (resultSet, rowNumber) ->
                     new Course(
@@ -84,7 +86,7 @@ public class JdbcCourseRepository implements CourseRepository {
                                     INSERT_COURSE_QUERY,
                                     parameters,
                                     keyHolder,
-                                    new String[] {"id"});
+                                    new String[]{"id"});
                     validateQuery(INSERT_COURSE_QUERY, 1, affectedRows);
 
                     course.setId(keyHolder.getKeyAs(Long.class));
@@ -142,6 +144,8 @@ public class JdbcCourseRepository implements CourseRepository {
 
     private void validateQuery(String query, int expected, int actual) {
         if (actual != expected) {
+            log.warn("Error while executing query: {}", query);
+
             throw new JdbcUpdateAffectedIncorrectNumberOfRowsException(query, expected, actual);
         }
     }

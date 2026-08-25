@@ -9,8 +9,10 @@ import com.foxminded.schoolmanagementapp.model.Group;
 import com.foxminded.schoolmanagementapp.service.GroupService;
 import java.util.List;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @AllArgsConstructor
 @Component
 public class FindGroupsByMaximumStudentCountAction implements MenuActionRunner {
@@ -25,6 +27,7 @@ public class FindGroupsByMaximumStudentCountAction implements MenuActionRunner {
 
     @Override
     public LoopStatus execute() {
+        log.info("Group search by maximum student count requested...");
         view.promptForMaximumStudentCount();
 
         int maximumStudentCount =
@@ -33,6 +36,10 @@ public class FindGroupsByMaximumStudentCountAction implements MenuActionRunner {
         List<Group> groups = groupService.findByMaximumStudentCount(maximumStudentCount);
 
         view.showGroups(groups);
+        log.info(
+                "Group search completed: maximumStudentCount={}, resultCount={}",
+                maximumStudentCount,
+                groups.size());
 
         return LoopStatus.CONTINUE;
     }

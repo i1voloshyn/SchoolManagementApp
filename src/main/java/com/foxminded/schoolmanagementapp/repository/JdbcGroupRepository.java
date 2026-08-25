@@ -2,6 +2,7 @@ package com.foxminded.schoolmanagementapp.repository;
 
 import com.foxminded.schoolmanagementapp.model.Group;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.JdbcUpdateAffectedIncorrectNumberOfRowsException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -12,28 +13,29 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.support.TransactionTemplate;
 
+@Slf4j
 @Repository
 public class JdbcGroupRepository implements GroupRepository {
     private static final String INSERT_GROUP_QUERY =
             """
-            INSERT INTO groups (name) VALUES (:name)
-            """;
+                    INSERT INTO groups (name) VALUES (:name)
+                    """;
     private static final String DELETE_GROUP_QUERY =
             """
-            DELETE from groups WHERE id = :id
-            """;
+                    DELETE from groups WHERE id = :id
+                    """;
     private static final String FIND_BY_MAX_STUDENT_COUNT_QUERY =
             """
-            SELECT g.id, g.name
-            FROM groups g
-            LEFT JOIN students s ON s.group_id = g.id
-            GROUP BY g.id, g.name
-            HAVING COUNT(s.id) <= :maximumStudentCount;
-            """;
+                    SELECT g.id, g.name
+                    FROM groups g
+                    LEFT JOIN students s ON s.group_id = g.id
+                    GROUP BY g.id, g.name
+                    HAVING COUNT(s.id) <= :maximumStudentCount;
+                    """;
     private static final String FIND_ALL_GROUPS_QUERY =
             """
-            SELECT id, name FROM groups
-            """;
+                    SELECT id, name FROM groups
+                    """;
     private static final RowMapper<Group> GROUP_MAPPER =
             (rs, rowNums) -> new Group(rs.getLong("id"), rs.getString("name"));
 
@@ -60,7 +62,7 @@ public class JdbcGroupRepository implements GroupRepository {
                                     INSERT_GROUP_QUERY,
                                     new MapSqlParameterSource("name", group.getName()),
                                     keyHolder,
-                                    new String[] {"id"});
+                                    new String[]{"id"});
                     validateQuery(INSERT_GROUP_QUERY, 1, affectedRows);
 
                     Long generatedId = keyHolder.getKeyAs(Long.class);
@@ -96,6 +98,7 @@ public class JdbcGroupRepository implements GroupRepository {
 
     private void validateQuery(String query, int expected, int actual) {
         if (actual != expected) {
+            log.warn("Error while executing query: {}", query);
             throw new JdbcUpdateAffectedIncorrectNumberOfRowsException(query, expected, actual);
         }
     }

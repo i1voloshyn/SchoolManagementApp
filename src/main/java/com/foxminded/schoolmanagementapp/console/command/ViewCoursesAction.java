@@ -7,8 +7,10 @@ import com.foxminded.schoolmanagementapp.dto.CourseDto;
 import com.foxminded.schoolmanagementapp.service.CourseService;
 import java.util.List;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @AllArgsConstructor
 @Component
 public class ViewCoursesAction implements MenuActionRunner {
@@ -23,9 +25,11 @@ public class ViewCoursesAction implements MenuActionRunner {
 
     @Override
     public LoopStatus execute() {
+        log.info("Course list requested...");
         List<CourseDto> courses = courseService.findAll();
 
         view.showCourses(courses);
+        log.info("Course list completed: resultCount={}", courses.size());
 
         return LoopStatus.CONTINUE;
     }

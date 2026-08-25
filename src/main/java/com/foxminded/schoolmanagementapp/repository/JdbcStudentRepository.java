@@ -6,6 +6,7 @@ import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 import org.springframework.jdbc.JdbcUpdateAffectedIncorrectNumberOfRowsException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -17,43 +18,44 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.support.TransactionTemplate;
 
+@Slf4j
 @Repository
 public class JdbcStudentRepository implements StudentsRepository {
     private static final String INSERT_STUDENT_QUERY =
             """
-            INSERT INTO students (group_id, first_name, last_name)
-            VALUES (:group_id, :first_name, :last_name)
-            """;
+                    INSERT INTO students (group_id, first_name, last_name)
+                    VALUES (:group_id, :first_name, :last_name)
+                    """;
     private static final String DELETE_STUDENT_QUERY =
             """
-            DELETE FROM students WHERE id = :id
-            """;
+                    DELETE FROM students WHERE id = :id
+                    """;
     private static final String FIND_ALL_STUDENTS_QUERY =
             """
-            SELECT id, group_id, first_name, last_name
-            FROM students
-            """;
+                    SELECT id, group_id, first_name, last_name
+                    FROM students
+                    """;
     private static final String FIND_STUDENT_BY_ID_QUERY =
             """
-            SELECT id, group_id, first_name, last_name
-            FROM students
-            WHERE id = :id
-            """;
+                    SELECT id, group_id, first_name, last_name
+                    FROM students
+                    WHERE id = :id
+                    """;
     private static final String FIND_STUDENTS_BY_LAST_NAME_QUERY =
             """
-            SELECT id, group_id, first_name, last_name
-            FROM students
-            WHERE last_name = :last_name
-            """;
+                    SELECT id, group_id, first_name, last_name
+                    FROM students
+                    WHERE last_name = :last_name
+                    """;
 
     private static final String FIND_STUDENTS_BY_COURSE_NAME =
             """
-             SELECT s.id, s.group_id, s.first_name, s.last_name
-             FROM students s
-                      JOIN students_courses sc ON sc.student_id = s.id
-                      JOIN courses c ON c.id = sc.course_id
-             WHERE c.name = :course_name
-            """;
+                     SELECT s.id, s.group_id, s.first_name, s.last_name
+                     FROM students s
+                              JOIN students_courses sc ON sc.student_id = s.id
+                              JOIN courses c ON c.id = sc.course_id
+                     WHERE c.name = :course_name
+                    """;
     private static final RowMapper<@Nullable Student> STUDENT_MAPPER =
             (rs, rowNumber) -> {
                 Long groupId = rs.getLong("group_id");
@@ -93,7 +95,7 @@ public class JdbcStudentRepository implements StudentsRepository {
                                     INSERT_STUDENT_QUERY,
                                     parameters,
                                     keyHolder,
-                                    new String[] {"id"});
+                                    new String[]{"id"});
                     validateQuery(INSERT_STUDENT_QUERY, 1, affectedRows);
 
                     student.setId(keyHolder.getKeyAs(Long.class));
@@ -120,7 +122,7 @@ public class JdbcStudentRepository implements StudentsRepository {
                                     INSERT_STUDENT_QUERY,
                                     parameters,
                                     keyHolder,
-                                    new String[] {"id"});
+                                    new String[]{"id"});
                     validateBatch(affectedRows, students.size());
                     assignGeneratedIds(students, keyHolder.getKeyList());
                     return List.copyOf(students);
@@ -214,6 +216,7 @@ public class JdbcStudentRepository implements StudentsRepository {
 
     private void validateQuery(String query, int expected, int actual) {
         if (actual != expected) {
+            log.warn("Error while executing query: {}", query);
             throw new JdbcUpdateAffectedIncorrectNumberOfRowsException(query, expected, actual);
         }
     }

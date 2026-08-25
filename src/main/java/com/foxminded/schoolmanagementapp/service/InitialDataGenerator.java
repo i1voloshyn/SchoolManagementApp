@@ -48,7 +48,8 @@ public class InitialDataGenerator implements DataGenerator {
         List<StudentDto> students = createStudentsWithGroups(groups);
         List<Enrollment> enrollments = enrollmentsRule.apply(students, courses);
 
-        log.info("Initial data generation completed: groups={}, courses={}, students={}, enrollments={}",
+        log.info(" Initial data generation completed: " +
+                        "groupsCount={}, coursesCount={}, studentsCount={}, enrollmentsCount={}",
                 properties.groupsCount(), properties.coursesCount(), properties.studentsCount(), enrollments.size());
 
         enrollmentService.addStudentsToCourses(enrollments);
