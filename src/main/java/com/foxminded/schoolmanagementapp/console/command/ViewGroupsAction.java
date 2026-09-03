@@ -24,7 +24,6 @@ public class ViewGroupsAction implements MenuActionRunner {
 
     @Override
     public LoopStatus execute() {
-        log.info("Group list requested...");
         List<Group> groups = groupService.findAll();
 
         view.showGroups(groups);

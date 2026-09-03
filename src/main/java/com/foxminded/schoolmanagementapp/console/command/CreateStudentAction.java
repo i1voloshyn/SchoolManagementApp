@@ -28,13 +28,11 @@ public class CreateStudentAction implements MenuActionRunner {
 
     @Override
     public LoopStatus execute() {
-        log.info("Student creation requested...");
         consoleView.promptForWriteOperationFlow(Prompt.FIRST_NAME.getValue());
         String firstName = inputReader.readRequiredText(Field.FIRST_NAME.getValue());
 
         consoleView.promptForWriteOperationFlow(Prompt.LAST_NAME.getValue());
         String lastName = inputReader.readRequiredText(Field.LAST_NAME.getValue());
-        log.debug("Student creation input accepted");
 
         StudentDto student = studentService.addStudent(new StudentDto(null, null, firstName, lastName));
 

@@ -25,7 +25,6 @@ public class ViewCoursesAction implements MenuActionRunner {
 
     @Override
     public LoopStatus execute() {
-        log.info("Course list requested...");
         List<CourseDto> courses = courseService.findAll();
 
         view.showCourses(courses);

@@ -27,7 +27,6 @@ public class FindGroupsByMaximumStudentCountAction implements MenuActionRunner {
 
     @Override
     public LoopStatus execute() {
-        log.info("Group search by maximum student count requested...");
         view.promptForMaximumStudentCount();
 
         int maximumStudentCount =

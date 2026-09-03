@@ -18,17 +18,12 @@ public class ConsoleMenu {
     private final MenuActionRunnerDispatcher actionRunnerDispatcher;
 
     public void start() {
-        log.info("Console menu started...");
-        try {
-            view.showGreeting();
+        view.showGreeting();
 
-            LoopStatus status = LoopStatus.CONTINUE;
+        LoopStatus status = LoopStatus.CONTINUE;
 
-            while (status == LoopStatus.CONTINUE) {
-                status = processNextCommand();
-            }
-        } finally {
-            log.info("Console menu stopped");
+        while (status == LoopStatus.CONTINUE) {
+            status = processNextCommand();
         }
     }
 
@@ -48,7 +43,7 @@ public class ConsoleMenu {
             view.showInputError(exception.getMessage());
             return LoopStatus.CONTINUE;
         } catch (SchoolManagementException exception) {
-            log.warn(
+            log.debug(
                     "Console operation failed: type={}, message={}",
                     exception.getClass().getSimpleName(),
                     exception.getMessage());

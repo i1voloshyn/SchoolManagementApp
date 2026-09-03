@@ -29,7 +29,6 @@ public class FindStudentsByCourseNameAction implements MenuActionRunner {
 
     @Override
     public LoopStatus execute() {
-        log.info("Student search by course name requested...");
         view.promptForCourseName();
 
         String courseName = inputReader.readRequiredText(Field.COURSE_NAME.getValue());

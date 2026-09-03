@@ -20,8 +20,6 @@ public class WelcomeApp implements ApplicationRunner {
 
     @Override
     public void run(@NonNull ApplicationArguments args) {
-        log.info("Console application runner starting...");
-
         dataGenerator.generateDataIfEmpty();
         consoleMenu.start();
     }
