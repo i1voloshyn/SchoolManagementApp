@@ -1,6 +1,8 @@
 package com.foxminded.schoolmanagementapp.console.command;
 
-import com.foxminded.schoolmanagementapp.console.constants.ConfirmationOption;
+import static com.foxminded.schoolmanagementapp.console.constants.ConfirmationOption.CANCEL;
+import static com.foxminded.schoolmanagementapp.console.constants.ConfirmationOption.DELETE;
+
 import com.foxminded.schoolmanagementapp.console.ConsoleView;
 import com.foxminded.schoolmanagementapp.console.constants.Entity;
 import com.foxminded.schoolmanagementapp.console.constants.Field;
@@ -40,10 +42,8 @@ public class DeleteStudentAction implements MenuActionRunner {
 
         if (isRemovalConfirmed(confirmationAnswer)) {
             studentService.deleteStudent(studentId);
-            log.info("Student deletion completed: studentId={}", studentId);
             consoleView.showSuccessMessageOnRemoval(Entity.STUDENT.getValue());
         } else {
-            log.debug("Student deletion cancelled: studentId={}", studentId);
             consoleView.showCancellationMessageOnRemoval(Entity.STUDENT.getValue());
         }
 
@@ -54,21 +54,21 @@ public class DeleteStudentAction implements MenuActionRunner {
         return Prompt.DELETE_STUDENT_CONFIRMATION
                 .getValue()
                 .formatted(
-                        ConfirmationOption.DELETE.getValue(),
-                        ConfirmationOption.CANCEL.getValue());
+                        DELETE.getValue(),
+                        CANCEL.getValue());
     }
 
     private boolean isRemovalConfirmed(String answer) {
-        if (ConfirmationOption.DELETE.getValue().equalsIgnoreCase(answer)) {
+        if (DELETE.getValue().equalsIgnoreCase(answer)) {
             return true;
         }
-        if (ConfirmationOption.CANCEL.getValue().equalsIgnoreCase(answer)) {
+        if (CANCEL.getValue().equalsIgnoreCase(answer)) {
             return false;
         }
 
         throw new InvalidConfirmationException(
                 answer,
-                ConfirmationOption.DELETE.getValue(),
-                ConfirmationOption.CANCEL.getValue());
+                DELETE.getValue(),
+                CANCEL.getValue());
     }
 }

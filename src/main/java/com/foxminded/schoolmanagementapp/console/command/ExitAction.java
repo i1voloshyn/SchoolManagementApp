@@ -22,7 +22,6 @@ public class ExitAction implements MenuActionRunner {
     @Override
     public LoopStatus execute() {
         view.showGoodbye();
-        log.info("Console exit completed");
 
         return LoopStatus.EXIT;
     }

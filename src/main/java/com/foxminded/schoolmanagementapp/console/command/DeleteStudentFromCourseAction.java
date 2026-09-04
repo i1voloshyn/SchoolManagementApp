@@ -1,6 +1,8 @@
 package com.foxminded.schoolmanagementapp.console.command;
 
-import com.foxminded.schoolmanagementapp.console.constants.ConfirmationOption;
+import static com.foxminded.schoolmanagementapp.console.constants.ConfirmationOption.CANCEL;
+import static com.foxminded.schoolmanagementapp.console.constants.ConfirmationOption.DELETE;
+
 import com.foxminded.schoolmanagementapp.console.ConsoleView;
 import com.foxminded.schoolmanagementapp.console.constants.Field;
 import com.foxminded.schoolmanagementapp.console.constants.LoopStatus;
@@ -37,18 +39,12 @@ public class DeleteStudentFromCourseAction implements MenuActionRunner {
         consoleView.promptForWriteOperationFlow(confirmationPrompt());
         String confirmationAnswer = inputReader.readRequiredText(Field.CONFIRMATION.getValue());
 
+        log.info("Requested student deletion from course. StudentId={}, CourseId={}", studentId, courseId);
+
         if (isRemovalConfirmed(confirmationAnswer)) {
             enrollmentService.removeStudentFromCourse(studentId, courseId);
-            log.info(
-                    "Student removal from course completed: studentId={}, courseId={}",
-                    studentId,
-                    courseId);
             consoleView.showSuccessMessageOnRemovalFromCourse();
         } else {
-            log.debug(
-                    "Student removal from course cancelled: studentId={}, courseId={}",
-                    studentId,
-                    courseId);
             consoleView.showCancellationMessageOnRemovalFromCourse();
         }
 
@@ -59,21 +55,21 @@ public class DeleteStudentFromCourseAction implements MenuActionRunner {
         return Prompt.DELETE_STUDENT_FROM_COURSE_CONFIRMATION
                 .getValue()
                 .formatted(
-                        ConfirmationOption.DELETE.getValue(),
-                        ConfirmationOption.CANCEL.getValue());
+                        DELETE.getValue(),
+                        CANCEL.getValue());
     }
 
     private boolean isRemovalConfirmed(String answer) {
-        if (ConfirmationOption.DELETE.getValue().equalsIgnoreCase(answer)) {
+        if (DELETE.getValue().equalsIgnoreCase(answer)) {
             return true;
         }
-        if (ConfirmationOption.CANCEL.getValue().equalsIgnoreCase(answer)) {
+        if (CANCEL.getValue().equalsIgnoreCase(answer)) {
             return false;
         }
 
         throw new InvalidConfirmationException(
                 answer,
-                ConfirmationOption.DELETE.getValue(),
-                ConfirmationOption.CANCEL.getValue());
+                DELETE.getValue(),
+                CANCEL.getValue());
     }
 }

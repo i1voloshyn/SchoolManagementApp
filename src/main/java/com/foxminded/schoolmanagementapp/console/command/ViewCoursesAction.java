@@ -28,7 +28,6 @@ public class ViewCoursesAction implements MenuActionRunner {
         List<CourseDto> courses = courseService.findAll();
 
         view.showCourses(courses);
-        log.info("Course list completed: resultCount={}", courses.size());
 
         return LoopStatus.CONTINUE;
     }

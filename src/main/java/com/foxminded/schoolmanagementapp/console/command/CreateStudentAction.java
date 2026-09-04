@@ -34,11 +34,10 @@ public class CreateStudentAction implements MenuActionRunner {
         consoleView.promptForWriteOperationFlow(Prompt.LAST_NAME.getValue());
         String lastName = inputReader.readRequiredText(Field.LAST_NAME.getValue());
 
-        StudentDto student = studentService.addStudent(new StudentDto(null, null, firstName, lastName));
-
-        log.info("Student creation completed: studentId={}", student.id());
+        studentService.addStudent(new StudentDto(null, null, firstName, lastName));
 
         consoleView.showSuccessMessageOnCreation(Entity.STUDENT.getValue());
+
         return LoopStatus.CONTINUE;
     }
 }

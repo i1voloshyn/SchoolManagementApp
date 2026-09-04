@@ -27,7 +27,6 @@ public class ViewGroupsAction implements MenuActionRunner {
         List<Group> groups = groupService.findAll();
 
         view.showGroups(groups);
-        log.info("Group list completed: resultCount={}", groups.size());
 
         return LoopStatus.CONTINUE;
     }

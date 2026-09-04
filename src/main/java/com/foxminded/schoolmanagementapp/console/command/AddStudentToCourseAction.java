@@ -36,8 +36,6 @@ public class AddStudentToCourseAction implements MenuActionRunner {
 
         enrollmentService.addStudentToCourse(studentId, courseId);
 
-        log.info(
-                "Student enrollment completed: studentId={}, courseId={}", studentId, courseId);
         consoleView.showSuccessMessageOnEnrollment();
         return LoopStatus.CONTINUE;
     }

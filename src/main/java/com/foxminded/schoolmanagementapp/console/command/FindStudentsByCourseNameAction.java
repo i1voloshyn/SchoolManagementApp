@@ -36,10 +36,6 @@ public class FindStudentsByCourseNameAction implements MenuActionRunner {
         List<StudentDto> students = findStudents(courseName);
 
         view.showStudents(courseName, students);
-        log.info(
-                "Student search completed: courseName={}, resultCount={}",
-                courseName,
-                students.size());
 
         return LoopStatus.CONTINUE;
     }
@@ -48,7 +44,7 @@ public class FindStudentsByCourseNameAction implements MenuActionRunner {
         try {
             return studentService.findStudentsByCourseName(courseName);
         } catch (CourseNotFoundException exception) {
-            log.debug("Student search course not found: courseName={}", courseName);
+            log.warn("Students not found for course : courseName={}", courseName);
             return List.of();
         }
     }

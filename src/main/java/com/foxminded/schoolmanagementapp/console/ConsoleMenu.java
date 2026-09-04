@@ -29,21 +29,20 @@ public class ConsoleMenu {
 
     private LoopStatus processNextCommand() {
         view.showMenu();
-
         try {
             int actionNumber = inputReader.readActionNumber();
             MenuAction action = MenuAction.fromNumber(actionNumber);
-            log.debug("Menu action selected: number={}, action={}", actionNumber, action);
+            log.info("Menu action selected: number={}, action={}", actionNumber, action);
             return actionRunnerDispatcher.dispatch(action);
         } catch (ConsoleInputException exception) {
-            log.debug(
+            log.warn(
                     "Console input rejected: type={}, message={}",
                     exception.getClass().getSimpleName(),
                     exception.getMessage());
             view.showInputError(exception.getMessage());
             return LoopStatus.CONTINUE;
         } catch (SchoolManagementException exception) {
-            log.debug(
+            log.warn(
                     "Console operation failed: type={}, message={}",
                     exception.getClass().getSimpleName(),
                     exception.getMessage());
@@ -51,4 +50,5 @@ public class ConsoleMenu {
             return LoopStatus.CONTINUE;
         }
     }
+
 }

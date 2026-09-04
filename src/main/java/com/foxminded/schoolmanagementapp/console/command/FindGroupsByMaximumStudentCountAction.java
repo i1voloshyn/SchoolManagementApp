@@ -35,10 +35,6 @@ public class FindGroupsByMaximumStudentCountAction implements MenuActionRunner {
         List<Group> groups = groupService.findByMaximumStudentCount(maximumStudentCount);
 
         view.showGroups(groups);
-        log.info(
-                "Group search completed: maximumStudentCount={}, resultCount={}",
-                maximumStudentCount,
-                groups.size());
 
         return LoopStatus.CONTINUE;
     }
