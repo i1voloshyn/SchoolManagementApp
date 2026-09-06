@@ -12,9 +12,11 @@ import com.foxminded.schoolmanagementapp.util.datagenerator.StudentGenerator;
 import com.foxminded.schoolmanagementapp.util.enrollment.EnrollmentsRule;
 import java.util.List;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @AllArgsConstructor
 @Service
 public class InitialDataGenerator implements DataGenerator {
@@ -35,15 +37,24 @@ public class InitialDataGenerator implements DataGenerator {
     @Transactional
     public boolean generateDataIfEmpty() {
         if (!schoolDataStateService.isDatabaseEmpty()) {
+
+            log.info("Initial data generation skipped: reason=database-not-empty");
             return false;
         }
+        log.info("Data generation started");
+
         List<Group> groups = createGroups();
         List<CourseDto> courses = createCourses();
         List<StudentDto> students = createStudentsWithGroups(groups);
-
         List<Enrollment> enrollments = enrollmentsRule.apply(students, courses);
+
+        log.info(" Initial data generation completed: " +
+                        "groupsCount={}, coursesCount={}, studentsCount={}, enrollmentsCount={}",
+                properties.groupsCount(), properties.coursesCount(), properties.studentsCount(), enrollments.size());
+
         enrollmentService.addStudentsToCourses(enrollments);
 
+        log.info("Data generation finished successfully");
         return true;
     }
 

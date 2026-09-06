@@ -1,30 +1,24 @@
 package com.foxminded.schoolmanagementapp.console.command;
 
+import static com.foxminded.schoolmanagementapp.console.constants.ConfirmationOption.CANCEL;
+import static com.foxminded.schoolmanagementapp.console.constants.ConfirmationOption.DELETE;
+
 import com.foxminded.schoolmanagementapp.console.ConsoleView;
-import com.foxminded.schoolmanagementapp.console.LoopStatus;
-import com.foxminded.schoolmanagementapp.console.MenuAction;
+import com.foxminded.schoolmanagementapp.console.constants.Field;
+import com.foxminded.schoolmanagementapp.console.constants.LoopStatus;
+import com.foxminded.schoolmanagementapp.console.constants.MenuAction;
+import com.foxminded.schoolmanagementapp.console.constants.Prompt;
 import com.foxminded.schoolmanagementapp.console.systemConsole.ConsoleInputReader;
 import com.foxminded.schoolmanagementapp.exception.consoleException.InvalidConfirmationException;
 import com.foxminded.schoolmanagementapp.service.EnrollmentService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @AllArgsConstructor
 @Component
 public class DeleteStudentFromCourseAction implements MenuActionRunner {
-    private static final String STUDENT_ID = "Student ID";
-    private static final String COURSE_ID = "Course ID";
-    private static final String COURSE_ID_PROMPT = "Enter course ID:";
-    private static final String STUDENT_ID_PROMPT = "Enter student ID:";
-
-    private static final String DELETE = "Y";
-    private static final String CANCEL = "N";
-
-    private static final String CONFIRMATION = "Confirmation";
-    private static final String CONFIRMATION_PROMPT =
-            "Permanently delete student from course? Type '%s' to delete, '%s' to cancel"
-                    .formatted(DELETE, CANCEL);
-
     private final ConsoleView consoleView;
     private final ConsoleInputReader inputReader;
     private final EnrollmentService enrollmentService;
@@ -36,14 +30,16 @@ public class DeleteStudentFromCourseAction implements MenuActionRunner {
 
     @Override
     public LoopStatus execute() {
-        consoleView.promptForWriteOperationFlow(STUDENT_ID_PROMPT);
-        long studentId = inputReader.readPositiveLong(STUDENT_ID);
+        consoleView.promptForWriteOperationFlow(Prompt.STUDENT_ID.getValue());
+        long studentId = inputReader.readPositiveLong(Field.STUDENT_ID.getValue());
 
-        consoleView.promptForWriteOperationFlow(COURSE_ID_PROMPT);
-        long courseId = inputReader.readPositiveLong(COURSE_ID);
+        consoleView.promptForWriteOperationFlow(Prompt.COURSE_ID.getValue());
+        long courseId = inputReader.readPositiveLong(Field.COURSE_ID.getValue());
 
-        consoleView.promptForWriteOperationFlow(CONFIRMATION_PROMPT);
-        String confirmationAnswer = inputReader.readRequiredText(CONFIRMATION);
+        consoleView.promptForWriteOperationFlow(confirmationPrompt());
+        String confirmationAnswer = inputReader.readRequiredText(Field.CONFIRMATION.getValue());
+
+        log.info("Requested student deletion from course. StudentId={}, CourseId={}", studentId, courseId);
 
         if (isRemovalConfirmed(confirmationAnswer)) {
             enrollmentService.removeStudentFromCourse(studentId, courseId);
@@ -55,14 +51,25 @@ public class DeleteStudentFromCourseAction implements MenuActionRunner {
         return LoopStatus.CONTINUE;
     }
 
+    private String confirmationPrompt() {
+        return Prompt.DELETE_STUDENT_FROM_COURSE_CONFIRMATION
+                .getValue()
+                .formatted(
+                        DELETE.getValue(),
+                        CANCEL.getValue());
+    }
+
     private boolean isRemovalConfirmed(String answer) {
-        if (DELETE.equalsIgnoreCase(answer)) {
+        if (DELETE.getValue().equalsIgnoreCase(answer)) {
             return true;
         }
-        if (CANCEL.equalsIgnoreCase(answer)) {
+        if (CANCEL.getValue().equalsIgnoreCase(answer)) {
             return false;
         }
 
-        throw new InvalidConfirmationException(answer, DELETE, CANCEL);
+        throw new InvalidConfirmationException(
+                answer,
+                DELETE.getValue(),
+                CANCEL.getValue());
     }
 }

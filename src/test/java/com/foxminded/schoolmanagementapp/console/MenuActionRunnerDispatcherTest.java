@@ -4,6 +4,9 @@ import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 import com.foxminded.schoolmanagementapp.console.command.MenuActionRunner;
 import java.util.List;
+
+import com.foxminded.schoolmanagementapp.console.constants.LoopStatus;
+import com.foxminded.schoolmanagementapp.console.constants.MenuAction;
 import org.junit.jupiter.api.Test;
 
 class MenuActionRunnerDispatcherTest {

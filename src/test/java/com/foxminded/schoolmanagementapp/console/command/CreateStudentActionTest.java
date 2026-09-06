@@ -10,7 +10,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.foxminded.schoolmanagementapp.console.ConsoleView;
-import com.foxminded.schoolmanagementapp.console.LoopStatus;
+import com.foxminded.schoolmanagementapp.console.constants.LoopStatus;
 import com.foxminded.schoolmanagementapp.console.systemConsole.ConsoleInputReader;
 import com.foxminded.schoolmanagementapp.dto.StudentDto;
 import com.foxminded.schoolmanagementapp.exception.consoleException.BlankConsoleInputException;
@@ -26,10 +26,14 @@ class CreateStudentActionTest {
     private static final String FIRST_NAME = "First name";
     private static final String LAST_NAME = "Last name";
 
-    @Mock StudentService service;
-    @Mock ConsoleInputReader reader;
-    @Mock ConsoleView view;
-    @InjectMocks CreateStudentAction action;
+    @Mock
+    StudentService service;
+    @Mock
+    ConsoleInputReader reader;
+    @Mock
+    ConsoleView view;
+    @InjectMocks
+    CreateStudentAction action;
 
     @Test
     void execute_shouldNotCreateStudent_whenFirstNameValidationFails() {
@@ -53,9 +57,11 @@ class CreateStudentActionTest {
         String firstName = "Joe";
         String lastName = "Nevada";
         StudentDto dtoToSave = new StudentDto(null, null, firstName, lastName);
+        StudentDto created = new StudentDto(1L, 2L, firstName, lastName);
 
         when(reader.readRequiredText(FIRST_NAME)).thenReturn(firstName);
         when(reader.readRequiredText(LAST_NAME)).thenReturn(lastName);
+        when(service.addStudent(dtoToSave)).thenReturn(created);
 
         LoopStatus actual = action.execute();
 

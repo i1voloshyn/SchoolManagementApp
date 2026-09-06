@@ -1,5 +1,6 @@
 package com.foxminded.schoolmanagementapp.console;
 
+import com.foxminded.schoolmanagementapp.console.constants.MenuAction;
 import com.foxminded.schoolmanagementapp.console.systemConsole.ConsoleOutput;
 import com.foxminded.schoolmanagementapp.dto.CourseDto;
 import com.foxminded.schoolmanagementapp.dto.StudentDto;

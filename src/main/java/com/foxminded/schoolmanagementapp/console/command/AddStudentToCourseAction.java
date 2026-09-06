@@ -1,21 +1,20 @@
 package com.foxminded.schoolmanagementapp.console.command;
 
 import com.foxminded.schoolmanagementapp.console.ConsoleView;
-import com.foxminded.schoolmanagementapp.console.LoopStatus;
-import com.foxminded.schoolmanagementapp.console.MenuAction;
+import com.foxminded.schoolmanagementapp.console.constants.Field;
+import com.foxminded.schoolmanagementapp.console.constants.LoopStatus;
+import com.foxminded.schoolmanagementapp.console.constants.MenuAction;
+import com.foxminded.schoolmanagementapp.console.constants.Prompt;
 import com.foxminded.schoolmanagementapp.console.systemConsole.ConsoleInputReader;
 import com.foxminded.schoolmanagementapp.service.EnrollmentService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @AllArgsConstructor
 @Component
 public class AddStudentToCourseAction implements MenuActionRunner {
-    private static final String STUDENT_ID = "Student ID";
-    private static final String COURSE_ID = "Course ID";
-    private static final String STUDENT_ID_PROMPT = "Enter student ID:";
-    private static final String COURSE_ID_PROMPT = "Enter course ID:";
-
     private final ConsoleView consoleView;
     private final ConsoleInputReader inputReader;
     private final EnrollmentService enrollmentService;
@@ -27,11 +26,13 @@ public class AddStudentToCourseAction implements MenuActionRunner {
 
     @Override
     public LoopStatus execute() {
-        consoleView.promptForWriteOperationFlow(STUDENT_ID_PROMPT);
-        long studentId = inputReader.readPositiveLong(STUDENT_ID);
+        consoleView.promptForWriteOperationFlow(Prompt.STUDENT_ID.getValue());
+        long studentId = inputReader.readPositiveLong(Field.STUDENT_ID.getValue());
 
-        consoleView.promptForWriteOperationFlow(COURSE_ID_PROMPT);
-        long courseId = inputReader.readPositiveLong(COURSE_ID);
+        consoleView.promptForWriteOperationFlow(Prompt.COURSE_ID.getValue());
+        long courseId = inputReader.readPositiveLong(Field.COURSE_ID.getValue());
+
+        log.info("Processing student enrollment : studentId={}, courseId={}", studentId, courseId);
 
         enrollmentService.addStudentToCourse(studentId, courseId);
 

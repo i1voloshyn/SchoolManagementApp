@@ -28,6 +28,12 @@ school:
     min-courses: 1
     max-courses: 3
 
+logging:
+  level:
+    root: info
+    com.foxminded.schoolmanagementapp: debug
+
+
 
   
 

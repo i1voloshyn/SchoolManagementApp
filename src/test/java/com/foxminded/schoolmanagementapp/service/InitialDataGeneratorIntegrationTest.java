@@ -19,13 +19,17 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 @Sql(scripts = "/fixtures/clean_up.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class InitialDataGeneratorIntegrationTest {
 
-    @Container @ServiceConnection
+    @Container
+    @ServiceConnection
     private static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:18.4");
 
-    @Autowired private InitialDataGenerator dataGenerator;
-    @Autowired DataGeneratorProperties properties;
+    @Autowired
+    private InitialDataGenerator dataGenerator;
+    @Autowired
+    DataGeneratorProperties properties;
 
-    @Autowired private JdbcTemplate jdbcTemplate;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Test
     void generateDataIfEmpty_shouldGenerateExpectedCounts() {
@@ -60,10 +64,10 @@ class InitialDataGeneratorIntegrationTest {
         List<Long> assignedGroupIds =
                 jdbcTemplate.queryForList(
                         """
-                        SELECT group_id
-                        FROM students
-                        WHERE group_id IS NOT NULL
-                        """,
+                                SELECT group_id
+                                FROM students
+                                WHERE group_id IS NOT NULL
+                                """,
                         Long.class);
 
         assertThat(assignedGroupIds).allMatch(existingGroupIds::contains);
@@ -76,10 +80,10 @@ class InitialDataGeneratorIntegrationTest {
         List<Integer> courseCounts =
                 jdbcTemplate.queryForList(
                         """
-                        SELECT COUNT(*)
-                        FROM students_courses
-                        GROUP BY student_id
-                        """,
+                                SELECT COUNT(*)
+                                FROM students_courses
+                                GROUP BY student_id
+                                """,
                         Integer.class);
 
         assertThat(courseCounts).hasSize(properties.studentsCount());
@@ -112,5 +116,6 @@ class InitialDataGeneratorIntegrationTest {
         return result == null ? 0 : result;
     }
 
-    private record DatabaseCounts(int groups, int courses, int students, int enrollments) {}
+    private record DatabaseCounts(int groups, int courses, int students, int enrollments) {
+    }
 }
