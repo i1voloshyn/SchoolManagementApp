@@ -33,7 +33,7 @@ public class GlobalMapper {
     public StudentDto toStudentDto(Student student) {
         return new StudentDto(
                 student.getId(),
-                student.getGroup().getId(),
+                student.getGroup() != null ? student.getGroup().getId() : null,
                 student.getFirstName(),
                 student.getLastName());
     }

@@ -13,7 +13,7 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class JpaStudentRepository implements StudentsRepository {
     @Value("${spring.jpa.batch.size:30}")
-    private int BATCH_SIZE;
+    private int batchSize;
 
     private static final String FIND_ALL_STUDENTS_QUERY = "SELECT s  FROM Student s";
 
@@ -54,7 +54,7 @@ public class JpaStudentRepository implements StudentsRepository {
             em.getTransaction().begin();
             for (int i = 0; i < students.size(); i++) {
                 em.persist(students.get(i));
-                if (i > 0 && i % BATCH_SIZE == 0) {
+                if (i > 0 && i % batchSize == 0) {
                     em.flush();
                     em.clear();
                 }

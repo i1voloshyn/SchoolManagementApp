@@ -7,6 +7,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.util.HashSet;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,6 +30,6 @@ public class Group {
     private String name;
 
     @OneToMany(mappedBy = "group")
-    private Set<Student> students;
+    private Set<Student> students = new HashSet<>();
 
 }

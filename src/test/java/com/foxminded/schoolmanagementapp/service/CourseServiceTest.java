@@ -2,6 +2,7 @@ package com.foxminded.schoolmanagementapp.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -10,42 +11,52 @@ import com.foxminded.schoolmanagementapp.GlobalMapper;
 import com.foxminded.schoolmanagementapp.dto.CourseDto;
 import com.foxminded.schoolmanagementapp.model.Course;
 import com.foxminded.schoolmanagementapp.repository.CourseRepository;
-import java.util.List;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 class CourseServiceTest {
 
-    @Mock private CourseRepository courseRepository;
-    @Spy private GlobalMapper mapper;
-    @InjectMocks private CourseService service;
+    @Mock
+    private CourseRepository courseRepository;
+    private CourseService service;
+
+    @BeforeEach
+    void setUp() {
+        service = new CourseService(courseRepository, new GlobalMapper());
+    }
 
     @Test
     void createCourse_shouldReturnSavedCourseDto() {
         CourseDto request = new CourseDto(null, "Java", "Java programming course");
-        Course courseToSave = Course.builder()
-                .id(null)
-                .name("Java")
-                .description("Java programming course")
-                .build();
-        Course savedCourse = Course.builder()
-                .id(1L)
-                .name("Java")
-                .description("Java programming course")
-                .build();
-        when(courseRepository.save(courseToSave)).thenReturn(savedCourse);
+        Course courseToSave =
+                Course.builder()
+                        .id(null)
+                        .name("Java")
+                        .description("Java programming course")
+                        .build();
+        Course savedCourse =
+                Course.builder().id(1L).name("Java").description("Java programming course").build();
+        when(courseRepository.save(any(Course.class))).thenReturn(savedCourse);
 
         CourseDto actual = service.createCourse(request);
 
         assertThat(actual).isEqualTo(new CourseDto(1L, "Java", "Java programming course"));
-        verify(courseRepository).save(courseToSave);
-        verify(mapper).toCourseDto(savedCourse);
-        verify(mapper).toCourse(request);
+        ArgumentCaptor<Course> courseCaptor = ArgumentCaptor.forClass(Course.class);
+        verify(courseRepository).save(courseCaptor.capture());
+        assertThat(courseCaptor.getValue())
+                .extracting(Course::getId, Course::getName, Course::getDescription)
+                .containsExactly(
+                        courseToSave.getId(),
+                        courseToSave.getName(),
+                        courseToSave.getDescription());
     }
 
     @Test

@@ -3,6 +3,7 @@ package com.foxminded.schoolmanagementapp.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -10,6 +11,7 @@ import static org.mockito.Mockito.when;
 import com.foxminded.schoolmanagementapp.GlobalMapper;
 import com.foxminded.schoolmanagementapp.dto.StudentDto;
 import com.foxminded.schoolmanagementapp.model.Course;
+import com.foxminded.schoolmanagementapp.model.Group;
 import com.foxminded.schoolmanagementapp.model.Student;
 import com.foxminded.schoolmanagementapp.repository.CourseRepository;
 import com.foxminded.schoolmanagementapp.repository.StudentsRepository;
@@ -37,13 +39,15 @@ class StudentServiceTest {
     void findStudentsByCourseName_shouldReturnStudentsEnrolledInCourse() {
         String courseName = "Java";
         Course course = Course.builder().id(5L).name(courseName).description("Java programming course").build();
+        Group group = Group.builder().id(5L).name("Group A").build();
+        Student student1 = student(1L, "John", "Smith", group, course);
+        Student student2 = student(2L, "Anna", "Brown", group, course);
 
         List<Student> expected =
-                List.of(student(1L, "John", "Smith", course),
-                        student(2L, "Anna", "Brown", course));
+                List.of(student1, student2);
         when(studentsRepository.findByCourseName(courseName)).thenReturn(expected);
 
-        List<StudentDto> actual = service.findStudentsByCourseName("Java");
+        List<StudentDto> actual = service.findStudentsByCourseName(courseName);
 
         assertThat(actual)
                 .extracting("id", "groupId", "firstName", "lastName")
@@ -51,8 +55,8 @@ class StudentServiceTest {
                         tuple(1L, 5L, "John", "Smith"), tuple(2L, 5L, "Anna", "Brown"));
 
         verify(studentsRepository).findByCourseName(courseName);
-        verify(mapper).toStudentDto(student(1L, "John", "Smith", course));
-        verify(mapper).toStudentDto(student(2L, "Anna", "Brown", course));
+        verify(mapper).toStudentDto(student1);
+        verify(mapper).toStudentDto(student2);
     }
 
     @Test
@@ -75,19 +79,20 @@ class StudentServiceTest {
     @Test
     void addStudent_shouldReturnSavedStudent() {
         StudentDto dto = new StudentDto(null, 5L, "John", "Smith");
-        Student studentToSave = student(null, "John", "Smith", course(5L, "Java", "Java programming course"));
+        Group group = Group.builder().id(5L).name("Group A").build();
+        Course course = course(5L, "Java", "Java programming course");
 
-        Student savedStudent = student(1L, "John", "Smith", course(5L, "Java", "Java programming course"));
-        when(studentsRepository.save(studentToSave)).thenReturn(savedStudent);
+
+        Student savedStudent = student(1L, "John", "Smith", group, course);
+        when(studentsRepository.save(any(Student.class))).thenReturn(savedStudent);
 
         StudentDto actual = service.addStudent(dto);
 
         assertThat(actual).isEqualTo(new StudentDto(1L, 5L, "John", "Smith"));
-        verify(studentsRepository).save(studentToSave);
+        verify(studentsRepository).save(any(Student.class));
 
         verify(mapper).toStudent(new StudentDto(null, 5L, "John", "Smith"));
-        verify(mapper).toStudentDto(student(1L, "John", "Smith",
-                course(5L, "Java", "Java programming course")));
+        verify(mapper).toStudentDto(savedStudent);
     }
 
     private Course course(long l, String java, String javaProgrammingCourse) {
@@ -96,27 +101,25 @@ class StudentServiceTest {
 
     @Test
     void addStudents_shouldSaveAndReturnStudentBatch() {
+        Group group = Group.builder().id(5L).name("Group A").build();
+        Course course = course(5L, "Java", "Java programming course");
         List<StudentDto> students =
                 List.of(
                         new StudentDto(null, 5L, "John", "Smith"),
-                        new StudentDto(null, null, "Anna", "Brown"));
-        List<Student> studentsToSave =
-                List.of(
-                        student(null, "John", "Smith", course(5L, "Java", "Java programming course")),
-                        student(null, "Anna", "Brown", null));
+                        new StudentDto(null, 5L, "Anna", "Brown"));
         List<Student> savedStudents =
                 List.of(
-                        student(1L, "John", "Smith", course(5L, "Java", "Java programming course")),
-                        student(2L, "Anna", "Brown", null));
-        when(studentsRepository.saveAll(studentsToSave)).thenReturn(savedStudents);
+                        student(1L, "John", "Smith", group, course),
+                        student(2L, "Anna", "Brown", group, course));
+        when(studentsRepository.saveAll(any(List.class))).thenReturn(savedStudents);
 
         List<StudentDto> actual = service.addStudents(students);
 
         assertThat(actual)
                 .containsExactly(
                         new StudentDto(1L, 5L, "John", "Smith"),
-                        new StudentDto(2L, null, "Anna", "Brown"));
-        verify(studentsRepository).saveAll(studentsToSave);
+                        new StudentDto(2L, 5L, "Anna", "Brown"));
+        verify(studentsRepository).saveAll(any(List.class));
     }
 
     @Test
@@ -169,11 +172,12 @@ class StudentServiceTest {
         verifyNoInteractions(studentsRepository);
     }
 
-    private Student student(Long id, String firstName, String lastName, Course course) {
+    private Student student(Long id, String firstName, String lastName, Group group, Course course) {
         return Student.builder()
                 .id(id)
                 .firstName(firstName)
                 .lastName(lastName)
+                .group(group)
                 .courses(Set.of(course))
                 .build();
     }

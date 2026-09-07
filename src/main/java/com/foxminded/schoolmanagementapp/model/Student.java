@@ -38,10 +38,8 @@ public class Student {
     private Group group;
 
     @ManyToMany
-    @JoinTable(name = "students_courses",//our join table from DB
-            // this column is from student_courses table referencing student table
+    @JoinTable(name = "students_courses",
             joinColumns = {@JoinColumn(name = "student_id", referencedColumnName = "id")},
-            // this column is from student_courses table referencing course table
             inverseJoinColumns = {@JoinColumn(name = "course_id", referencedColumnName = "id")})
     @Builder.Default
     private Set<Course> courses = new HashSet<>();

@@ -6,7 +6,7 @@ CREATE TABLE groups
 CREATE TABLE students
 (
     id         BIGSERIAL PRIMARY KEY,
-    group_id   INTEGER references groups (id) ON DELETE SET NULL,
+    group_id   BIGINT references groups (id) ON DELETE SET NULL,
     first_name TEXT    NOT NULL,
     last_name  TEXT    NOT NULL
 );

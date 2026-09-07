@@ -29,7 +29,7 @@ public class JpaPersistenceConfiguration {
                 .managedClass(Group.class)
                 .managedClass(Course.class)
                 .property(JdbcSettings.JAKARTA_NON_JTA_DATASOURCE, dataSource)
-                .property(PersistenceConfiguration.SCHEMAGEN_DATABASE_ACTION, Action.ACTION_VALIDATE)
+                .property(PersistenceConfiguration.SCHEMAGEN_DATABASE_ACTION, Action.VALIDATE)
                 .property(AvailableSettings.DIALECT, "org.hibernate.dialect.PostgreSQLDialect")
                 .property(AvailableSettings.PHYSICAL_NAMING_STRATEGY, PhysicalNamingStrategySnakeCaseImpl.class)
                 .property(BatchSettings.STATEMENT_BATCH_SIZE, BATCH_SIZE)
