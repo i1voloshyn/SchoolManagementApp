@@ -29,7 +29,7 @@ public class Course {
     String name;
     String description;
 
-    @ManyToMany(mappedBy = "courses")
+    @ManyToMany(mappedBy = "courses")//reference to courses field (Set) in Student class
     @Builder.Default
     private Set<Student> students = new HashSet<>();
 }

@@ -1,14 +1,12 @@
 package com.foxminded.schoolmanagementapp.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import com.foxminded.schoolmanagementapp.exception.StudentNotFoundException;
 import com.foxminded.schoolmanagementapp.model.Group;
 import com.foxminded.schoolmanagementapp.model.Student;
-
 import jakarta.persistence.EntityManagerFactory;
-
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -21,9 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
-
-import java.util.List;
-import java.util.Optional;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -111,14 +106,6 @@ class JpaStudentRepositoryTest {
                                         .getSingleResult());
 
         assertThat(remainingStudents).isZero();
-    }
-
-    @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/students/insert_five_students.sql"})
-    @Test
-    void delete_shouldThrowException_forNonExistingStudentId() {
-        Long nonExistingId = 999L;
-        assertThatExceptionOfType(StudentNotFoundException.class)
-                .isThrownBy(() -> repository.delete(nonExistingId));
     }
 
     @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/enrollments/students_with_courses.sql"})

@@ -1,7 +1,6 @@
 package com.foxminded.schoolmanagementapp.model;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -35,13 +34,15 @@ public class Student {
     private String lastName;
 
     @JoinColumn(name = "group_id")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     private Group group;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "students_courses",
-    joinColumns = {@JoinColumn(name = "student_id")},
-    inverseJoinColumns = {@JoinColumn(name = "course_id")})
+    @ManyToMany
+    @JoinTable(name = "students_courses",//our join table from DB
+            // this column is from student_courses table referencing student table
+            joinColumns = {@JoinColumn(name = "student_id", referencedColumnName = "id")},
+            // this column is from student_courses table referencing course table
+            inverseJoinColumns = {@JoinColumn(name = "course_id", referencedColumnName = "id")})
     @Builder.Default
     private Set<Course> courses = new HashSet<>();
 }

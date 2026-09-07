@@ -52,17 +52,24 @@ class JpaGroupRepositoryTest {
     @Test
     void delete_shouldDeleteExpectedGroup() {
         Long groupIdToDelete =
-                emf.callInTransaction(em -> em
-                        .createQuery("SELECT g.id FROM Group g WHERE g.name = :name", Long.class)
-                        .setParameter("name", "Group A")
-                        .getSingleResult());
+                emf.callInTransaction(
+                        em ->
+                                em.createQuery(
+                                                "SELECT g.id FROM Group g WHERE g.name = :name",
+                                                Long.class)
+                                        .setParameter("name", "Group A")
+                                        .getSingleResult());
 
         repository.delete(groupIdToDelete);
 
         Long remainingGroups =
-                emf.callInTransaction(em -> em.createQuery("SELECT COUNT(g) FROM Group g WHERE g.id = :id", Long.class)
-                        .setParameter("id", groupIdToDelete)
-                        .getSingleResult());
+                emf.callInTransaction(
+                        em ->
+                                em.createQuery(
+                                                "SELECT COUNT(g) FROM Group g WHERE g.id = :id",
+                                                Long.class)
+                                        .setParameter("id", groupIdToDelete)
+                                        .getSingleResult());
 
         assertThat(remainingGroups).isZero();
     }
