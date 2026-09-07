@@ -28,8 +28,16 @@ class CourseServiceTest {
     @Test
     void createCourse_shouldReturnSavedCourseDto() {
         CourseDto request = new CourseDto(null, "Java", "Java programming course");
-        Course courseToSave = new Course(null, "Java", "Java programming course");
-        Course savedCourse = new Course(1L, "Java", "Java programming course");
+        Course courseToSave = Course.builder()
+                .id(null)
+                .name("Java")
+                .description("Java programming course")
+                .build();
+        Course savedCourse = Course.builder()
+                .id(1L)
+                .name("Java")
+                .description("Java programming course")
+                .build();
         when(courseRepository.save(courseToSave)).thenReturn(savedCourse);
 
         CourseDto actual = service.createCourse(request);
@@ -89,8 +97,16 @@ class CourseServiceTest {
     void findAll_shouldReturnCourseDtos() {
         List<Course> courses =
                 List.of(
-                        new Course(1L, "Java", "Java programming course"),
-                        new Course(2L, "SQL", "Relational databases course"));
+                        Course.builder()
+                                .id(1L)
+                                .name("Java")
+                                .description("Java programming course")
+                                .build(),
+                        Course.builder()
+                                .id(2L)
+                                .name("SQL")
+                                .description("Relational databases course")
+                                .build());
         when(courseRepository.findAll()).thenReturn(courses);
 
         List<CourseDto> actual = service.findAll();

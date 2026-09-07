@@ -30,7 +30,7 @@ class ViewGroupsActionTest {
 
     @Test
     void execute_shouldFindAndDisplayGroups() {
-        List<Group> groups = List.of(new Group(1L, "AA-01"), new Group(2L, "AA-02"));
+        List<Group> groups = List.of(Group.builder().id(1L).name("AA-01").build(), Group.builder().id(2L).name("AA-02").build());
         when(groupService.findAll()).thenReturn(groups);
 
         LoopStatus actual = command.execute();

@@ -7,6 +7,7 @@ import com.foxminded.schoolmanagementapp.exception.CourseNotFoundException;
 import com.foxminded.schoolmanagementapp.model.Course;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
@@ -25,16 +26,24 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 @Testcontainers
 class JdbcCourseRepositoryTest {
 
-    @Container @ServiceConnection
+    @Container
+    @ServiceConnection
     private static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:18.4");
 
-    @Autowired CourseRepository repository;
-    @Autowired JdbcTemplate jdbcTemplate;
+    @Autowired
+    CourseRepository repository;
+    @Autowired
+    JdbcTemplate jdbcTemplate;
 
     @Sql("/fixtures/clean_up.sql")
     @Test
     void save_shouldSaveAndReturnCourse_withGeneratedId() {
-        Course courseToSave = new Course(null, "Test Course", "Test course description");
+        Course courseToSave = Course.builder()
+                .id(null)
+                .name("Test Course")
+                .description("Test course description")
+                .students(Set.of())
+                .build();
 
         Course saved = repository.save(courseToSave);
 
@@ -42,10 +51,12 @@ class JdbcCourseRepositoryTest {
                 jdbcTemplate.queryForObject(
                         "SELECT id, name, description FROM courses WHERE id = ?",
                         (resultSet, rowNumber) ->
-                                new Course(
-                                        resultSet.getLong("id"),
-                                        resultSet.getString("name"),
-                                        resultSet.getString("description")),
+                                Course.builder()
+                                        .id(resultSet.getLong("id"))
+                                        .name(resultSet.getString("name"))
+                                        .description(resultSet.getString("description"))
+                                        .students(Set.of())
+                                        .build(),
                         saved.getId());
 
         assertThat(saved.getId()).isNotNull();

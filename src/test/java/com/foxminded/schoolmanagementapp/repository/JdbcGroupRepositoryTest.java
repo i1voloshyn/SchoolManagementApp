@@ -33,7 +33,10 @@ class JdbcGroupRepositoryTest {
 
     @Test
     void save_shouldSaveAndReturnGroup_withGeneratedId() {
-        Group groupToSave = new Group(null, "Test Group");
+        Group groupToSave = Group.builder()
+                .id(null)
+                .name("Test Group")
+                .build();
 
         Group saved = repository.save(groupToSave);
 
@@ -43,7 +46,10 @@ class JdbcGroupRepositoryTest {
                         (rs, rn) -> {
                             Long id = rs.getLong(1);
                             String name = rs.getString(2);
-                            return new Group(id, name);
+                            return Group.builder()
+                                    .id(id)
+                                    .name(name)
+                                    .build();
                         },
                         saved.getId());
 

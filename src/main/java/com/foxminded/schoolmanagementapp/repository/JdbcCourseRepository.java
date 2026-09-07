@@ -53,10 +53,11 @@ public class JdbcCourseRepository implements CourseRepository {
                     """;
     private static final RowMapper<Course> COURSE_MAPPER =
             (resultSet, rowNumber) ->
-                    new Course(
-                            resultSet.getLong("id"),
-                            resultSet.getString("name"),
-                            resultSet.getString("description"));
+                   Course.builder()
+                           .name(resultSet.getString("name"))
+                           .description(resultSet.getString("description"))
+                           .id(resultSet.getLong("id"))
+                           .build();
 
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
     private final JdbcTemplate jdbcTemplate;

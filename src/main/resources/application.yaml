@@ -10,6 +10,10 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 
+  jpa:
+    batch:
+      size: 30
+
   flyway:
     enabled: true
     locations: "classpath:db/migration"

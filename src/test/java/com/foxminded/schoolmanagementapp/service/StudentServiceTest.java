@@ -9,10 +9,12 @@ import static org.mockito.Mockito.when;
 
 import com.foxminded.schoolmanagementapp.GlobalMapper;
 import com.foxminded.schoolmanagementapp.dto.StudentDto;
+import com.foxminded.schoolmanagementapp.model.Course;
 import com.foxminded.schoolmanagementapp.model.Student;
 import com.foxminded.schoolmanagementapp.repository.CourseRepository;
 import com.foxminded.schoolmanagementapp.repository.StudentsRepository;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,16 +24,23 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class StudentServiceTest {
-    @Mock private StudentsRepository studentsRepository;
-    @Mock private CourseRepository courseRepository;
-    @InjectMocks private StudentService service;
-    @Spy GlobalMapper mapper;
+    @Mock
+    private StudentsRepository studentsRepository;
+    @Mock
+    private CourseRepository courseRepository;
+    @InjectMocks
+    private StudentService service;
+    @Spy
+    GlobalMapper mapper;
 
     @Test
     void findStudentsByCourseName_shouldReturnStudentsEnrolledInCourse() {
         String courseName = "Java";
+        Course course = Course.builder().id(5L).name(courseName).description("Java programming course").build();
+
         List<Student> expected =
-                List.of(new Student(1L, 5L, "John", "Smith"), new Student(2L, 5L, "Anna", "Brown"));
+                List.of(student(1L, "John", "Smith", course),
+                        student(2L, "Anna", "Brown", course));
         when(studentsRepository.findByCourseName(courseName)).thenReturn(expected);
 
         List<StudentDto> actual = service.findStudentsByCourseName("Java");
@@ -42,8 +51,8 @@ class StudentServiceTest {
                         tuple(1L, 5L, "John", "Smith"), tuple(2L, 5L, "Anna", "Brown"));
 
         verify(studentsRepository).findByCourseName(courseName);
-        verify(mapper).toStudentDto(new Student(1L, 5L, "John", "Smith"));
-        verify(mapper).toStudentDto(new Student(2L, 5L, "Anna", "Brown"));
+        verify(mapper).toStudentDto(student(1L, "John", "Smith", course));
+        verify(mapper).toStudentDto(student(2L, "Anna", "Brown", course));
     }
 
     @Test
@@ -66,9 +75,9 @@ class StudentServiceTest {
     @Test
     void addStudent_shouldReturnSavedStudent() {
         StudentDto dto = new StudentDto(null, 5L, "John", "Smith");
-        Student studentToSave = new Student(null, 5L, "John", "Smith");
+        Student studentToSave = student(null, "John", "Smith", course(5L, "Java", "Java programming course"));
 
-        Student savedStudent = new Student(1L, 5L, "John", "Smith");
+        Student savedStudent = student(1L, "John", "Smith", course(5L, "Java", "Java programming course"));
         when(studentsRepository.save(studentToSave)).thenReturn(savedStudent);
 
         StudentDto actual = service.addStudent(dto);
@@ -77,7 +86,12 @@ class StudentServiceTest {
         verify(studentsRepository).save(studentToSave);
 
         verify(mapper).toStudent(new StudentDto(null, 5L, "John", "Smith"));
-        verify(mapper).toStudentDto(new Student(1L, 5L, "John", "Smith"));
+        verify(mapper).toStudentDto(student(1L, "John", "Smith",
+                course(5L, "Java", "Java programming course")));
+    }
+
+    private Course course(long l, String java, String javaProgrammingCourse) {
+        return Course.builder().id(l).name(java).description(javaProgrammingCourse).build();
     }
 
     @Test
@@ -88,12 +102,12 @@ class StudentServiceTest {
                         new StudentDto(null, null, "Anna", "Brown"));
         List<Student> studentsToSave =
                 List.of(
-                        new Student(null, 5L, "John", "Smith"),
-                        new Student(null, null, "Anna", "Brown"));
+                        student(null, "John", "Smith", course(5L, "Java", "Java programming course")),
+                        student(null, "Anna", "Brown", null));
         List<Student> savedStudents =
                 List.of(
-                        new Student(1L, 5L, "John", "Smith"),
-                        new Student(2L, null, "Anna", "Brown"));
+                        student(1L, "John", "Smith", course(5L, "Java", "Java programming course")),
+                        student(2L, "Anna", "Brown", null));
         when(studentsRepository.saveAll(studentsToSave)).thenReturn(savedStudents);
 
         List<StudentDto> actual = service.addStudents(students);
@@ -153,5 +167,14 @@ class StudentServiceTest {
     void deleteStudent_shouldRejectNonPositiveId() {
         assertThatIllegalArgumentException().isThrownBy(() -> service.deleteStudent(-1L));
         verifyNoInteractions(studentsRepository);
+    }
+
+    private Student student(Long id, String firstName, String lastName, Course course) {
+        return Student.builder()
+                .id(id)
+                .firstName(firstName)
+                .lastName(lastName)
+                .courses(Set.of(course))
+                .build();
     }
 }

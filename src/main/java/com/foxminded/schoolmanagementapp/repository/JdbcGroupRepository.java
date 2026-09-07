@@ -37,7 +37,9 @@ public class JdbcGroupRepository implements GroupRepository {
                     SELECT id, name FROM groups
                     """;
     private static final RowMapper<Group> GROUP_MAPPER =
-            (rs, rowNums) -> new Group(rs.getLong("id"), rs.getString("name"));
+            (rs, rowNums) -> Group.builder()
+                    .name(rs.getString("name"))
+                    .build();
 
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
     private final JdbcTemplate jdbcTemplate;
