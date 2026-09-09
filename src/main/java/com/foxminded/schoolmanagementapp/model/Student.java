@@ -43,4 +43,9 @@ public class Student {
             inverseJoinColumns = {@JoinColumn(name = "course_id", referencedColumnName = "id")})
     @Builder.Default
     private Set<Course> courses = new HashSet<>();
+
+    public void addCourse(Course course) {
+        courses.add(course);
+        course.getStudents().add(this);
+    }
 }

@@ -8,17 +8,17 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.foxminded.schoolmanagementapp.GlobalMapper;
 import com.foxminded.schoolmanagementapp.dto.StudentDto;
+import com.foxminded.schoolmanagementapp.mapper.StudentMapper;
 import com.foxminded.schoolmanagementapp.model.Course;
 import com.foxminded.schoolmanagementapp.model.Group;
 import com.foxminded.schoolmanagementapp.model.Student;
-import com.foxminded.schoolmanagementapp.repository.CourseRepository;
 import com.foxminded.schoolmanagementapp.repository.StudentsRepository;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -28,12 +28,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class StudentServiceTest {
     @Mock
     private StudentsRepository studentsRepository;
-    @Mock
-    private CourseRepository courseRepository;
     @InjectMocks
     private StudentService service;
     @Spy
-    GlobalMapper mapper;
+    StudentMapper studentMapper = Mappers.getMapper(StudentMapper.class);
 
     @Test
     void findStudentsByCourseName_shouldReturnStudentsEnrolledInCourse() {
@@ -55,8 +53,8 @@ class StudentServiceTest {
                         tuple(1L, 5L, "John", "Smith"), tuple(2L, 5L, "Anna", "Brown"));
 
         verify(studentsRepository).findByCourseName(courseName);
-        verify(mapper).toStudentDto(student1);
-        verify(mapper).toStudentDto(student2);
+        verify(studentMapper).toStudentDto(student1);
+        verify(studentMapper).toStudentDto(student2);
     }
 
     @Test
@@ -73,7 +71,7 @@ class StudentServiceTest {
     void findStudentsByCourseName_shouldRejectBlankCourseName() {
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> service.findStudentsByCourseName(" "));
-        verifyNoInteractions(courseRepository, studentsRepository, mapper);
+        verifyNoInteractions(studentsRepository, studentMapper);
     }
 
     @Test
@@ -91,8 +89,8 @@ class StudentServiceTest {
         assertThat(actual).isEqualTo(new StudentDto(1L, 5L, "John", "Smith"));
         verify(studentsRepository).save(any(Student.class));
 
-        verify(mapper).toStudent(new StudentDto(null, 5L, "John", "Smith"));
-        verify(mapper).toStudentDto(savedStudent);
+        verify(studentMapper).toStudent(new StudentDto(null, 5L, "John", "Smith"));
+        verify(studentMapper).toStudentDto(savedStudent);
     }
 
     private Course course(long l, String java, String javaProgrammingCourse) {
@@ -120,6 +118,8 @@ class StudentServiceTest {
                         new StudentDto(1L, 5L, "John", "Smith"),
                         new StudentDto(2L, 5L, "Anna", "Brown"));
         verify(studentsRepository).saveAll(any(List.class));
+        students.forEach(student -> verify(studentMapper).toStudent(student));
+        savedStudents.forEach(student -> verify(studentMapper).toStudentDto(student));
     }
 
     @Test
@@ -130,7 +130,7 @@ class StudentServiceTest {
                         new StudentDto(2L, null, "Anna", "Brown"));
 
         assertThatIllegalArgumentException().isThrownBy(() -> service.addStudents(students));
-        verifyNoInteractions(studentsRepository, mapper);
+        verifyNoInteractions(studentsRepository, studentMapper);
     }
 
     @Test
@@ -138,7 +138,7 @@ class StudentServiceTest {
         StudentDto existingStudent = new StudentDto(1L, 5L, "John", "Smith");
 
         assertThatIllegalArgumentException().isThrownBy(() -> service.addStudent(existingStudent));
-        verifyNoInteractions(studentsRepository, mapper);
+        verifyNoInteractions(studentsRepository, studentMapper);
     }
 
     @Test
@@ -146,7 +146,7 @@ class StudentServiceTest {
         StudentDto studentDto = new StudentDto(null, 5L, " ", "Smith");
 
         assertThatIllegalArgumentException().isThrownBy(() -> service.addStudent(studentDto));
-        verifyNoInteractions(studentsRepository, mapper);
+        verifyNoInteractions(studentsRepository, studentMapper);
     }
 
     @Test
@@ -154,7 +154,7 @@ class StudentServiceTest {
         StudentDto student = new StudentDto(null, 5L, "John", null);
 
         assertThatIllegalArgumentException().isThrownBy(() -> service.addStudent(student));
-        verifyNoInteractions(studentsRepository, mapper);
+        verifyNoInteractions(studentsRepository, studentMapper);
     }
 
     @Test
