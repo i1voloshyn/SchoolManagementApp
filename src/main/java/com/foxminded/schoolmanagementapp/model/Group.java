@@ -1,11 +1,11 @@
 package com.foxminded.schoolmanagementapp.model;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import java.util.HashSet;
 import java.util.Set;
@@ -23,10 +23,10 @@ import org.jspecify.annotations.Nullable;
 @Table(name = "groups")
 public class Group {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "group_id_seq")
+    @SequenceGenerator(name = "group_id_seq", sequenceName = "group_id_seq")
     @Nullable
     private Long id;
-    @Column(name = "name")
     private String name;
 
     @OneToMany(mappedBy = "group")

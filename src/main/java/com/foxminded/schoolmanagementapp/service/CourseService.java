@@ -1,7 +1,7 @@
 package com.foxminded.schoolmanagementapp.service;
 
-import com.foxminded.schoolmanagementapp.GlobalMapper;
 import com.foxminded.schoolmanagementapp.dto.CourseDto;
+import com.foxminded.schoolmanagementapp.mapper.CourseMapper;
 import com.foxminded.schoolmanagementapp.model.Course;
 import com.foxminded.schoolmanagementapp.repository.CourseRepository;
 import java.util.List;
@@ -12,14 +12,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class CourseService {
     private final CourseRepository courseRepository;
-    private final GlobalMapper mapper;
+    private final CourseMapper courseMapper;
 
     public CourseDto createCourse(CourseDto courseRequest) {
         validateRequest(courseRequest);
 
-        Course savedCourse = courseRepository.save(mapper.toCourse(courseRequest));
+        Course savedCourse = courseRepository.save(courseMapper.toCourse(courseRequest));
 
-        return mapper.toCourseDto(savedCourse);
+        return courseMapper.toCourseDto(savedCourse);
     }
 
     public void deleteCourse(Long courseId) {
@@ -31,7 +31,7 @@ public class CourseService {
     }
 
     public List<CourseDto> findAll() {
-        return courseRepository.findAll().stream().map(mapper::toCourseDto).toList();
+        return courseRepository.findAll().stream().map(courseMapper::toCourseDto).toList();
     }
 
     private void validateRequest(CourseDto request) {

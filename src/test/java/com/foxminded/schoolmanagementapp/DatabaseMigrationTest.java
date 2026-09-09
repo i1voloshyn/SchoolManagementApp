@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import org.flywaydb.core.Flyway;
+import org.hibernate.type.SqlTypes;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -162,14 +163,15 @@ class DatabaseMigrationTest {
     private long insertCourse(Connection connection) throws SQLException {
         String sql =
                 """
-                INSERT INTO courses (name, description)
-                VALUES (?, ?)
+                INSERT INTO courses (id, name, description)
+                VALUES (?, ?, ?)
                 RETURNING id
                 """;
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, "Java");
-            statement.setString(2, "Java course");
+            statement.setLong(1, 1L);
+            statement.setString(2, "Java");
+            statement.setString(3, "Java course");
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (!resultSet.next()) {
@@ -184,15 +186,17 @@ class DatabaseMigrationTest {
     private long insertStudent(Connection connection) throws SQLException {
         String sql =
                 """
-                INSERT INTO students (group_id, first_name, last_name)
-                VALUES (?, ?, ?)
+                INSERT INTO students (id,group_id, first_name, last_name)
+                VALUES (?,?, ?, ?)
                 RETURNING id
                 """;
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setNull(1, java.sql.Types.INTEGER);
-            statement.setString(2, "Joe");
-            statement.setString(3, "Toronto");
+
+            statement.setLong(1, 1L);
+            statement.setNull(2, SqlTypes.BIGINT);
+            statement.setString(3, "Joe");
+            statement.setString(4, "Toronto");
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (!resultSet.next()) {

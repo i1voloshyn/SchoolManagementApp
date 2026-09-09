@@ -8,6 +8,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import java.util.HashSet;
 import java.util.Set;
@@ -27,7 +28,8 @@ import org.jspecify.annotations.Nullable;
 @Table(name = "students")
 public class Student {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "student_id_seq")
+    @SequenceGenerator(name = "student_id_seq", sequenceName = "student_id_seq")
     private @Nullable Long id;
 
     private String firstName;

@@ -7,31 +7,29 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.foxminded.schoolmanagementapp.GlobalMapper;
 import com.foxminded.schoolmanagementapp.dto.CourseDto;
+import com.foxminded.schoolmanagementapp.mapper.CourseMapper;
 import com.foxminded.schoolmanagementapp.model.Course;
 import com.foxminded.schoolmanagementapp.repository.CourseRepository;
-
-import org.junit.jupiter.api.BeforeEach;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 class CourseServiceTest {
 
     @Mock
     private CourseRepository courseRepository;
+    @InjectMocks
     private CourseService service;
-
-    @BeforeEach
-    void setUp() {
-        service = new CourseService(courseRepository, new GlobalMapper());
-    }
+    @Spy
+    private CourseMapper courseMapper = Mappers.getMapper(CourseMapper.class);
 
     @Test
     void createCourse_shouldReturnSavedCourseDto() {
@@ -57,6 +55,8 @@ class CourseServiceTest {
                         courseToSave.getId(),
                         courseToSave.getName(),
                         courseToSave.getDescription());
+        verify(courseMapper).toCourse(request);
+        verify(courseMapper).toCourseDto(savedCourse);
     }
 
     @Test
@@ -66,7 +66,7 @@ class CourseServiceTest {
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> service.createCourse(request))
                 .withMessage("Name cannot be blank");
-        verifyNoInteractions(courseRepository);
+        verifyNoInteractions(courseRepository, courseMapper);
     }
 
     @Test
@@ -76,7 +76,7 @@ class CourseServiceTest {
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> service.createCourse(request))
                 .withMessage("Description must be at least 10 characters");
-        verifyNoInteractions(courseRepository);
+        verifyNoInteractions(courseRepository, courseMapper);
     }
 
     @Test
@@ -127,6 +127,7 @@ class CourseServiceTest {
                         new CourseDto(1L, "Java", "Java programming course"),
                         new CourseDto(2L, "SQL", "Relational databases course"));
         verify(courseRepository).findAll();
+        courses.forEach(course -> verify(courseMapper).toCourseDto(course));
     }
 
     @Test
@@ -137,5 +138,6 @@ class CourseServiceTest {
 
         assertThat(actual).isEmpty();
         verify(courseRepository).findAll();
+        verifyNoInteractions(courseMapper);
     }
 }
