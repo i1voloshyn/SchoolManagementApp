@@ -56,6 +56,37 @@ class JpaCourseRepositoryTest {
 
     @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/courses/insert_five_courses.sql"})
     @Test
+    void update_shouldUpdateAndReturnCourse() {
+        Long courseId =
+                emf.callInTransaction(
+                        em ->
+                                em.createQuery(
+                                                "SELECT c.id FROM Course c WHERE c.name = :name",
+                                                Long.class)
+                                        .setParameter("name", "Java")
+                                        .getSingleResult());
+        Course courseToUpdate =
+                Course.builder()
+                        .id(courseId)
+                        .name("Updated Java")
+                        .description("Updated Java course description")
+                        .build();
+
+        Course updated = repository.update(courseToUpdate);
+
+        Course persisted = emf.callInTransaction(em -> em.find(Course.class, courseId));
+        assertThat(updated)
+                .extracting(Course::getId, Course::getName, Course::getDescription)
+                .containsExactly(
+                        courseId, "Updated Java", "Updated Java course description");
+        assertThat(persisted)
+                .extracting(Course::getId, Course::getName, Course::getDescription)
+                .containsExactly(
+                        courseId, "Updated Java", "Updated Java course description");
+    }
+
+    @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/courses/insert_five_courses.sql"})
+    @Test
     void delete_shouldDeleteExpectedCourse() {
         Long courseIdToDelete =
                 emf.callInTransaction(

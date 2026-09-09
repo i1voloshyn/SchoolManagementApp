@@ -1,5 +1,6 @@
 package com.foxminded.schoolmanagementapp.repository;
 
+import com.foxminded.schoolmanagementapp.exception.CourseNotFoundException;
 import com.foxminded.schoolmanagementapp.model.Course;
 import jakarta.persistence.EntityManagerFactory;
 import java.util.List;
@@ -31,6 +32,20 @@ public class JpaCourseRepository implements CourseRepository {
         return emf.callInTransaction(em -> {
             em.persist(course);
             return course;
+        });
+    }
+
+    @Override
+    public Course update(Course course) {
+        return emf.callInTransaction(em -> {
+            Course managed = em.find(Course.class, course.getId());
+            if (managed == null) {
+                throw new CourseNotFoundException(course.getId());
+            }
+
+            managed.setName(course.getName());
+            managed.setDescription(course.getDescription());
+            return managed;
         });
     }
 

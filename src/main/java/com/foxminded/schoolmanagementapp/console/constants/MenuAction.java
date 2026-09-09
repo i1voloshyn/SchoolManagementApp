@@ -12,6 +12,7 @@ public enum MenuAction {
     DELETE_STUDENT(6, "Delete student"),
     ADD_STUDENT_TO_COURSE(7, "Add student to course"),
     DELETE_STUDENT_FROM_COURSE(8, "Remove student from course"),
+    UPDATE_COURSE(9, "Update course"),
     EXIT(0, "Exit");
 
     private final int number;

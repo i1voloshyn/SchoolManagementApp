@@ -80,6 +80,39 @@ class CourseServiceTest {
     }
 
     @Test
+    void updateCourse_shouldUpdateAndReturnCourseDto() {
+        CourseDto request = new CourseDto(1L, "Advanced Java", "Advanced Java programming");
+        Course updatedCourse =
+                Course.builder()
+                        .id(1L)
+                        .name("Advanced Java")
+                        .description("Advanced Java programming")
+                        .build();
+        when(courseRepository.update(any(Course.class))).thenReturn(updatedCourse);
+
+        CourseDto actual = service.updateCourse(request);
+
+        assertThat(actual).isEqualTo(request);
+        ArgumentCaptor<Course> courseCaptor = ArgumentCaptor.forClass(Course.class);
+        verify(courseRepository).update(courseCaptor.capture());
+        assertThat(courseCaptor.getValue())
+                .extracting(Course::getId, Course::getName, Course::getDescription)
+                .containsExactly(1L, "Advanced Java", "Advanced Java programming");
+        verify(courseMapper).toCourse(request);
+        verify(courseMapper).toCourseDto(updatedCourse);
+    }
+
+    @Test
+    void updateCourse_shouldRejectMissingId() {
+        CourseDto request = new CourseDto(null, "Java", "Java programming course");
+
+        assertThatIllegalArgumentException()
+                .isThrownBy(() -> service.updateCourse(request))
+                .withMessage("Course ID must be positive");
+        verifyNoInteractions(courseRepository, courseMapper);
+    }
+
+    @Test
     void deleteCourse_shouldDeleteExistingCourse() {
         Long courseId = 1L;
 

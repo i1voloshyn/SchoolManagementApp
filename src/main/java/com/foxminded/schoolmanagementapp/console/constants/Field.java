@@ -5,6 +5,7 @@ import lombok.Getter;
 @Getter
 public enum Field {
     CONFIRMATION("Confirmation"),
+    COURSE_DESCRIPTION("Course description"),
     COURSE_ID("Course ID"),
     COURSE_NAME("Course name"),
     FIRST_NAME("First name"),

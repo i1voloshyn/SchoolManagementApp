@@ -7,6 +7,8 @@ import java.util.Optional;
 public interface CourseRepository {
     Course save(Course course);
 
+    Course update(Course course);
+
     void delete(Long id);
 
     List<Course> findAll();

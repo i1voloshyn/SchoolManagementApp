@@ -105,6 +105,10 @@ public class ConsoleView {
         output.writeLine(entity + " was successfully created!");
     }
 
+    public void showSuccessMessageOnUpdate(String entity) {
+        output.writeLine(entity + " was successfully updated!");
+    }
+
     public void showSuccessMessageOnRemoval(String entity) {
         output.writeLine(entity + " was successfully deleted!");
     }

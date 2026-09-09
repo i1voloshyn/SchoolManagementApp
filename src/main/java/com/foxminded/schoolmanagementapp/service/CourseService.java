@@ -22,10 +22,17 @@ public class CourseService {
         return courseMapper.toCourseDto(savedCourse);
     }
 
+    public CourseDto updateCourse(CourseDto courseRequest) {
+        validateRequest(courseRequest);
+        validateCourseId(courseRequest.id());
+
+        Course updatedCourse = courseRepository.update(courseMapper.toCourse(courseRequest));
+
+        return courseMapper.toCourseDto(updatedCourse);
+    }
+
     public void deleteCourse(Long courseId) {
-        if (courseId == null || courseId <= 0) {
-            throw new IllegalArgumentException("Course ID must be positive");
-        }
+        validateCourseId(courseId);
 
         courseRepository.delete(courseId);
     }
@@ -35,11 +42,20 @@ public class CourseService {
     }
 
     private void validateRequest(CourseDto request) {
-        if (request.name().isBlank()) {
+        if (request == null) {
+            throw new IllegalArgumentException("Course must not be null");
+        }
+        if (request.name() == null || request.name().isBlank()) {
             throw new IllegalArgumentException("Name cannot be blank");
         }
-        if (request.description().length() <= 10) {
+        if (request.description() == null || request.description().length() < 10) {
             throw new IllegalArgumentException("Description must be at least 10 characters");
+        }
+    }
+
+    private void validateCourseId(Long courseId) {
+        if (courseId == null || courseId <= 0) {
+            throw new IllegalArgumentException("Course ID must be positive");
         }
     }
 }

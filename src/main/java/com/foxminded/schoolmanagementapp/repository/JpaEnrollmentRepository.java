@@ -44,6 +44,16 @@ public class JpaEnrollmentRepository implements EnrollmentRepository {
     @Override
     public void enroll(Long studentId, Long courseId) {
         try {
+
+            //There are to many DB queries executed with OO way of enrollment
+//            emf.runInTransaction(em -> {
+//                Student student = em.find(Student.class, studentId);
+//                if (student == null) {
+//                    throw new EnrollmentException("Student with id %d not found".formatted(studentId));
+//                }
+//                student.addCourse(em.getReference(Course.class, courseId));
+//            });
+
             emf.runInTransaction(em -> em.createNativeQuery(ENROLL_STUDENT_QUERY)
                     .setParameter("student_id", studentId)
                     .setParameter("course_id", courseId)
