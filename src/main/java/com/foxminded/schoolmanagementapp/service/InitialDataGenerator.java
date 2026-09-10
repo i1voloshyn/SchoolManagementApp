@@ -72,8 +72,10 @@ public class InitialDataGenerator implements DataGenerator {
     private List<StudentDto> createStudentsWithGroups(List<Group> groups) {
         List<Long> groupIds = groups.stream().map(Group::getId).toList();
 
-        return studentGenerator.generateStudentsWithGroups(groupIds).stream()
-                .map(studentService::addStudent)
+        var studentsWithCourses = studentGenerator.generateStudentsWithGroups(groupIds).stream()
                 .toList();
+
+
+        return studentService.addStudents(studentsWithCourses);
     }
 }

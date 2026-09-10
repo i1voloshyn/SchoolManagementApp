@@ -14,6 +14,7 @@ public interface StudentMapper {
     @Mapping(target = "groupId", source = "group.id")
     StudentDto toStudentDto(Student student);
 
+
     @Mapping(target = "group", source = "groupId")
     @Mapping(target = "courses", ignore = true)
     Student toStudent(StudentDto studentDto);

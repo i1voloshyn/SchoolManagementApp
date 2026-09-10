@@ -2,6 +2,7 @@ package com.foxminded.schoolmanagementapp.service;
 
 import com.foxminded.schoolmanagementapp.dto.StudentDto;
 import com.foxminded.schoolmanagementapp.mapper.StudentMapper;
+import com.foxminded.schoolmanagementapp.model.Student;
 import com.foxminded.schoolmanagementapp.repository.StudentsRepository;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -37,8 +38,10 @@ public class StudentService {
 
         students.forEach(this::validateNewStudent);
 
+        List<Student> toSave = students.stream().map(studentMapper::toStudent).toList();
+
         return studentsRepository
-                .saveAll(students.stream().map(studentMapper::toStudent).toList())
+                .saveAll(toSave)
                 .stream()
                 .map(studentMapper::toStudentDto)
                 .toList();

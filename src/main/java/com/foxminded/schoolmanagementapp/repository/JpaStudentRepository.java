@@ -1,10 +1,16 @@
 package com.foxminded.schoolmanagementapp.repository;
 
+import com.foxminded.schoolmanagementapp.exception.StudentNotFoundException;
+import com.foxminded.schoolmanagementapp.model.Course;
 import com.foxminded.schoolmanagementapp.model.Student;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import java.util.List;
 import java.util.Optional;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
@@ -54,16 +60,19 @@ public class JpaStudentRepository implements StudentsRepository {
             em.getTransaction().begin();
             for (int i = 0; i < students.size(); i++) {
                 em.persist(students.get(i));
-                if (i > 0 && i % batchSize == 0) {
+                if ((i + 1) % batchSize == 0) {
                     em.flush();
                     em.clear();
                 }
             }
+            em.flush();
+            em.getTransaction().commit();
         } catch (Exception e) {
-            em.getTransaction().rollback();
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
             throw e;
         } finally {
-            em.getTransaction().commit();
             em.close();
         }
         return students;
@@ -73,15 +82,18 @@ public class JpaStudentRepository implements StudentsRepository {
     @Override
     public void delete(Long id) {
         emf.runInTransaction(em -> {
-            em.createQuery("DELETE FROM Student s WHERE s.id = :id")
-                    .setParameter("id", id)
-                    .executeUpdate();
+            Student st = em.find(Student.class, id);
+            if (st == null) {
+                throw new StudentNotFoundException(id);
+            }
+            em.remove(st);
         });
     }
 
     @Override
     public List<Student> findAll() {
-        return emf.callInTransaction(em -> em.createQuery(FIND_ALL_STUDENTS_QUERY, Student.class).getResultList());
+        return emf.callInTransaction(em ->
+                em.createQuery(FIND_ALL_STUDENTS_QUERY, Student.class).getResultList());
     }
 
     @Override
@@ -91,16 +103,33 @@ public class JpaStudentRepository implements StudentsRepository {
 
     @Override
     public List<Student> findByLastName(String lastName) {
-        return emf.callInTransaction(em -> em.createQuery(FIND_STUDENTS_BY_LAST_NAME_QUERY, Student.class)
-                .setParameter("last_name", lastName)
-                .getResultList());
+        return emf.callInTransaction(em ->
+                {
+                    CriteriaBuilder cb = em.getCriteriaBuilder();
+                    CriteriaQuery<Student> cq = cb.createQuery(Student.class);
+                    var root = cq.from(Student.class);
+
+                    cq.select(root).where(root.get("lastName").equalTo(lastName));
+                    return em.createQuery(cq).getResultList();
+                }
+        );
     }
 
     @Override
     public List<Student> findByCourseName(String courseName) {
-        return emf.callInTransaction(em -> em.createQuery(FIND_STUDENTS_BY_COURSE_NAME, Student.class)
-                .setParameter("course_name", courseName)
-                .getResultList());
+        return emf.callInTransaction(em ->
+                {
+                    CriteriaBuilder cb = em.getCriteriaBuilder();
+                    CriteriaQuery<Student> cq = cb.createQuery(Student.class);
+                    var root = cq.from(Student.class);
+
+                    Join<Student, Course> courseJoin = root.join("courses");
+                    Predicate coursePredicate = cb.equal(courseJoin.get("name"), courseName);
+
+                    cq.select(root).where(coursePredicate);
+                    return em.createQuery(cq).getResultList();
+                }
+        );
     }
 
 }
