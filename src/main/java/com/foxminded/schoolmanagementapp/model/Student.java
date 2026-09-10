@@ -5,7 +5,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
@@ -39,15 +38,8 @@ public class Student {
     @ManyToOne
     private Group group;
 
-    @ManyToMany
-    @JoinTable(name = "students_courses",
-            joinColumns = {@JoinColumn(name = "student_id", referencedColumnName = "id")},
-            inverseJoinColumns = {@JoinColumn(name = "course_id", referencedColumnName = "id")})
+    @ManyToMany(mappedBy = "students")
     @Builder.Default
     private Set<Course> courses = new HashSet<>();
 
-    public void addCourse(Course course) {
-        courses.add(course);
-        course.getStudents().add(this);
-    }
 }
