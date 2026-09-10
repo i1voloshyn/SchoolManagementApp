@@ -11,13 +11,15 @@ import java.util.HashSet;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.jspecify.annotations.Nullable;
 
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
+@Setter
 @Builder
 @Entity
 @Table(name = "groups")
@@ -30,6 +32,7 @@ public class Group {
     private String name;
 
     @OneToMany(mappedBy = "group")
+    @Builder.Default
     private Set<Student> students = new HashSet<>();
 
 }

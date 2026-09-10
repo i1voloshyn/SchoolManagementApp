@@ -4,23 +4,20 @@ import com.foxminded.schoolmanagementapp.model.Group;
 import jakarta.persistence.EntityManagerFactory;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
-@Slf4j
 @Repository
 @RequiredArgsConstructor
 public class JpaGroupRepository implements GroupRepository {
-    private static final String DELETE_GROUP_QUERY = "DELETE from Group g WHERE g.id = :id";
     private static final String FIND_BY_MAX_STUDENT_COUNT_QUERY =
             """
                     SELECT g
                     FROM Group g
-                    LEFT JOIN Student s ON s.group.id = g.id
+                    LEFT JOIN g.students s
                     GROUP BY g.id, g.name
                     HAVING COUNT(s.id) <= :maximumStudentCount
                     """;
-    private static final String FIND_ALL_GROUPS_QUERY = "SELECT g FROM Group g LEFT JOIN FETCH g.students";
+    private static final String FIND_ALL_GROUPS_QUERY = "SELECT g FROM Group g";
 
     private final EntityManagerFactory emf;
 
@@ -34,9 +31,13 @@ public class JpaGroupRepository implements GroupRepository {
 
     @Override
     public void delete(Long id) {
-        emf.runInTransaction(em -> em.createQuery(DELETE_GROUP_QUERY)
-                .setParameter("id", id)
-                .executeUpdate()
+        emf.runInTransaction(em -> {
+                    Group group = em.find(Group.class, id);
+                    if (group == null) {
+                        throw new IllegalArgumentException("Group not found with ID: " + id);
+                    }
+                    em.remove(group);
+                }
         );
     }
 
