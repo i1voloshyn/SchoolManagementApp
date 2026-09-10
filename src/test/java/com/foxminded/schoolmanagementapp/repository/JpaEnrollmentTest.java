@@ -23,16 +23,19 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import(JpaEnrollmentRepository.class)
+@Import(JpaCourseRepository.class)
 @Testcontainers
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
-class JpaEnrollmentRepositoryTest {
+class JpaEnrollmentTest {
 
-    @Container @ServiceConnection
+    @Container
+    @ServiceConnection
     private static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:18.4");
 
-    @Autowired EnrollmentRepository repository;
-    @Autowired EntityManagerFactory emf;
+    @Autowired
+    EntityManagerFactory emf;
+    @Autowired
+    CourseRepository repository;
 
     @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/enrollments/students_with_courses.sql"})
     @Test
@@ -48,8 +51,8 @@ class JpaEnrollmentRepositoryTest {
 
     @Sql(
             value = {
-                "/fixtures/clean_up.sql",
-                "/fixtures/enrollments/insert_students_and_courses.sql"
+                    "/fixtures/clean_up.sql",
+                    "/fixtures/enrollments/insert_students_and_courses.sql"
             })
     @Test
     void enrollAll_shouldCreateAllEnrollmentsInBatch() {
@@ -71,8 +74,8 @@ class JpaEnrollmentRepositoryTest {
 
     @Sql(
             value = {
-                "/fixtures/clean_up.sql",
-                "/fixtures/enrollments/insert_students_and_courses.sql"
+                    "/fixtures/clean_up.sql",
+                    "/fixtures/enrollments/insert_students_and_courses.sql"
             })
     @Test
     void enroll_shouldVerifyStudentAndCourse_andCreateExpectedEnrollment() {
@@ -87,8 +90,8 @@ class JpaEnrollmentRepositoryTest {
 
     @Sql(
             value = {
-                "/fixtures/clean_up.sql",
-                "/fixtures/enrollments/insert_students_and_courses.sql"
+                    "/fixtures/clean_up.sql",
+                    "/fixtures/enrollments/insert_students_and_courses.sql"
             })
     @Test
     void enroll_shouldVerifyStudentAndCourse_andDoNotCreateEnrollment_whenStudentIsMissing() {
@@ -126,7 +129,7 @@ class JpaEnrollmentRepositoryTest {
         Long studentId = findStudentId("John");
         Long courseId = findCourseId("SQL");
 
-        repository.remove(studentId, courseId);
+        repository.removeEnrollment(studentId, courseId);
 
         Long enrollmentCount = countEnrollment(studentId, courseId);
         assertThat(enrollmentCount).isZero();
@@ -138,7 +141,7 @@ class JpaEnrollmentRepositoryTest {
         Long studentId = findStudentId("John");
         Long courseId = findCourseId("Java");
 
-        boolean actual = repository.exists(studentId, courseId);
+        boolean actual = repository.enrollmentExist(studentId, courseId);
 
         assertThat(actual).isTrue();
     }
@@ -149,7 +152,7 @@ class JpaEnrollmentRepositoryTest {
         Long studentId = findStudentId("Emily");
         Long courseId = findCourseId("Java");
 
-        boolean actual = repository.exists(studentId, courseId);
+        boolean actual = repository.enrollmentExist(studentId, courseId);
 
         assertThat(actual).isFalse();
     }
@@ -178,16 +181,16 @@ class JpaEnrollmentRepositoryTest {
         return emf.callInTransaction(
                 em ->
                         ((Number)
-                                        em.createNativeQuery(
-                                                        """
+                                em.createNativeQuery(
+                                                """
                                                         SELECT COUNT(*)
                                                         FROM students_courses
                                                         WHERE student_id = :studentId
                                                           AND course_id = :courseId
                                                         """)
-                                                .setParameter("studentId", studentId)
-                                                .setParameter("courseId", courseId)
-                                                .getSingleResult())
+                                        .setParameter("studentId", studentId)
+                                        .setParameter("courseId", courseId)
+                                        .getSingleResult())
                                 .longValue());
     }
 
@@ -195,12 +198,12 @@ class JpaEnrollmentRepositoryTest {
         return emf.callInTransaction(
                 em ->
                         ((Number)
-                                        em.createNativeQuery(
-                                                        """
+                                em.createNativeQuery(
+                                                """
                                                         SELECT COUNT(*)
                                                         FROM students_courses
                                                         """)
-                                                .getSingleResult())
+                                        .getSingleResult())
                                 .longValue());
     }
 }

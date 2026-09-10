@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 import com.foxminded.schoolmanagementapp.dto.CourseDto;
 import com.foxminded.schoolmanagementapp.mapper.CourseMapper;
 import com.foxminded.schoolmanagementapp.model.Course;
+import com.foxminded.schoolmanagementapp.model.Enrollment;
 import com.foxminded.schoolmanagementapp.repository.CourseRepository;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -24,12 +25,39 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class CourseServiceTest {
 
+    private static final long STUDENT_ID = 1L;
+    private static final long COURSE_ID = 10L;
+
     @Mock
     private CourseRepository courseRepository;
     @InjectMocks
     private CourseService service;
     @Spy
     private CourseMapper courseMapper = Mappers.getMapper(CourseMapper.class);
+
+    @Test
+    void addStudentToCourse_shouldCreateNewEnrollment() {
+        service.addStudentToCourse(STUDENT_ID, COURSE_ID);
+
+        verify(courseRepository).enroll(STUDENT_ID, COURSE_ID);
+    }
+
+    @Test
+    void addStudentsToCourses_shouldCreateEnrollmentBatch() {
+        List<Enrollment> enrollments =
+                List.of(new Enrollment(STUDENT_ID, COURSE_ID), new Enrollment(2L, COURSE_ID));
+
+        service.addStudentsToCourses(enrollments);
+
+        verify(courseRepository).enrollAll(enrollments);
+    }
+
+    @Test
+    void removeStudentFromCourse_shouldRemoveEnrollment() {
+        service.removeStudentFromCourse(STUDENT_ID, COURSE_ID);
+
+        verify(courseRepository).removeEnrollment(STUDENT_ID, COURSE_ID);
+    }
 
     @Test
     void createCourse_shouldReturnSavedCourseDto() {

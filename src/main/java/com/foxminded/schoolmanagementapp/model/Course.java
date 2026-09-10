@@ -34,13 +34,14 @@ public class Course {
     String description;
 
     @ManyToMany
-    @JoinTable(name = "students_courses",
-            joinColumns = {@JoinColumn(name = "course_id", referencedColumnName = "id")},
-            inverseJoinColumns = {@JoinColumn(name = "student_id", referencedColumnName = "id")})
+    @JoinTable(
+            name = "students_courses",
+            joinColumns = @JoinColumn(name = "course_id"),
+            inverseJoinColumns = @JoinColumn(name = "student_id"))
     @Builder.Default
     private Set<Student> students = new HashSet<>();
 
-    public void addStudent(Student student) {
-        students.add(student);
+    public boolean addStudent(Student student) {
+        return students.add(student);
     }
 }

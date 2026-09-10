@@ -1,6 +1,7 @@
 package com.foxminded.schoolmanagementapp.model;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -35,7 +36,7 @@ public class Student {
     private String lastName;
 
     @JoinColumn(name = "group_id")
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private Group group;
 
     @ManyToMany(mappedBy = "students")

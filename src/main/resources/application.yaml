@@ -12,7 +12,7 @@ spring:
 
   jpa:
     batch:
-      size: 30
+      size: 50
 
   flyway:
     enabled: true

@@ -6,7 +6,7 @@ import com.foxminded.schoolmanagementapp.console.constants.LoopStatus;
 import com.foxminded.schoolmanagementapp.console.constants.MenuAction;
 import com.foxminded.schoolmanagementapp.console.constants.Prompt;
 import com.foxminded.schoolmanagementapp.console.systemConsole.ConsoleInputReader;
-import com.foxminded.schoolmanagementapp.service.EnrollmentService;
+import com.foxminded.schoolmanagementapp.service.CourseService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 public class AddStudentToCourseAction implements MenuActionRunner {
     private final ConsoleView consoleView;
     private final ConsoleInputReader inputReader;
-    private final EnrollmentService enrollmentService;
+    private final CourseService courseService;
 
     @Override
     public MenuAction getAction() {
@@ -34,7 +34,7 @@ public class AddStudentToCourseAction implements MenuActionRunner {
 
         log.info("Processing student enrollment : studentId={}, courseId={}", studentId, courseId);
 
-        enrollmentService.addStudentToCourse(studentId, courseId);
+        courseService.addStudentToCourse(studentId, courseId);
 
         consoleView.showSuccessMessageOnEnrollment();
         return LoopStatus.CONTINUE;
