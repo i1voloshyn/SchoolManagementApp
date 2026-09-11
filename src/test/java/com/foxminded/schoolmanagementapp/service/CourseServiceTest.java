@@ -2,17 +2,21 @@ package com.foxminded.schoolmanagementapp.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.foxminded.schoolmanagementapp.GlobalMapper;
 import com.foxminded.schoolmanagementapp.dto.CourseDto;
+import com.foxminded.schoolmanagementapp.mapper.CourseMapper;
 import com.foxminded.schoolmanagementapp.model.Course;
+import com.foxminded.schoolmanagementapp.model.Enrollment;
 import com.foxminded.schoolmanagementapp.repository.CourseRepository;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -21,23 +25,66 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class CourseServiceTest {
 
-    @Mock private CourseRepository courseRepository;
-    @Spy private GlobalMapper mapper;
-    @InjectMocks private CourseService service;
+    private static final long STUDENT_ID = 1L;
+    private static final long COURSE_ID = 10L;
+
+    @Mock
+    private CourseRepository courseRepository;
+    @InjectMocks
+    private CourseService service;
+    @Spy
+    private CourseMapper courseMapper = Mappers.getMapper(CourseMapper.class);
+
+    @Test
+    void addStudentToCourse_shouldCreateNewEnrollment() {
+        service.addStudentToCourse(STUDENT_ID, COURSE_ID);
+
+        verify(courseRepository).enroll(STUDENT_ID, COURSE_ID);
+    }
+
+    @Test
+    void addStudentsToCourses_shouldCreateEnrollmentBatch() {
+        List<Enrollment> enrollments =
+                List.of(new Enrollment(STUDENT_ID, COURSE_ID), new Enrollment(2L, COURSE_ID));
+
+        service.addStudentsToCourses(enrollments);
+
+        verify(courseRepository).enrollAll(enrollments);
+    }
+
+    @Test
+    void removeStudentFromCourse_shouldRemoveEnrollment() {
+        service.removeStudentFromCourse(STUDENT_ID, COURSE_ID);
+
+        verify(courseRepository).removeEnrollment(STUDENT_ID, COURSE_ID);
+    }
 
     @Test
     void createCourse_shouldReturnSavedCourseDto() {
         CourseDto request = new CourseDto(null, "Java", "Java programming course");
-        Course courseToSave = new Course(null, "Java", "Java programming course");
-        Course savedCourse = new Course(1L, "Java", "Java programming course");
-        when(courseRepository.save(courseToSave)).thenReturn(savedCourse);
+        Course courseToSave =
+                Course.builder()
+                        .id(null)
+                        .name("Java")
+                        .description("Java programming course")
+                        .build();
+        Course savedCourse =
+                Course.builder().id(1L).name("Java").description("Java programming course").build();
+        when(courseRepository.save(any(Course.class))).thenReturn(savedCourse);
 
         CourseDto actual = service.createCourse(request);
 
         assertThat(actual).isEqualTo(new CourseDto(1L, "Java", "Java programming course"));
-        verify(courseRepository).save(courseToSave);
-        verify(mapper).toCourseDto(savedCourse);
-        verify(mapper).toCourse(request);
+        ArgumentCaptor<Course> courseCaptor = ArgumentCaptor.forClass(Course.class);
+        verify(courseRepository).save(courseCaptor.capture());
+        assertThat(courseCaptor.getValue())
+                .extracting(Course::getId, Course::getName, Course::getDescription)
+                .containsExactly(
+                        courseToSave.getId(),
+                        courseToSave.getName(),
+                        courseToSave.getDescription());
+        verify(courseMapper).toCourse(request);
+        verify(courseMapper).toCourseDto(savedCourse);
     }
 
     @Test
@@ -47,7 +94,7 @@ class CourseServiceTest {
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> service.createCourse(request))
                 .withMessage("Name cannot be blank");
-        verifyNoInteractions(courseRepository);
+        verifyNoInteractions(courseRepository, courseMapper);
     }
 
     @Test
@@ -57,7 +104,40 @@ class CourseServiceTest {
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> service.createCourse(request))
                 .withMessage("Description must be at least 10 characters");
-        verifyNoInteractions(courseRepository);
+        verifyNoInteractions(courseRepository, courseMapper);
+    }
+
+    @Test
+    void updateCourse_shouldUpdateAndReturnCourseDto() {
+        CourseDto request = new CourseDto(1L, "Advanced Java", "Advanced Java programming");
+        Course updatedCourse =
+                Course.builder()
+                        .id(1L)
+                        .name("Advanced Java")
+                        .description("Advanced Java programming")
+                        .build();
+        when(courseRepository.update(any(Course.class))).thenReturn(updatedCourse);
+
+        CourseDto actual = service.updateCourse(request);
+
+        assertThat(actual).isEqualTo(request);
+        ArgumentCaptor<Course> courseCaptor = ArgumentCaptor.forClass(Course.class);
+        verify(courseRepository).update(courseCaptor.capture());
+        assertThat(courseCaptor.getValue())
+                .extracting(Course::getId, Course::getName, Course::getDescription)
+                .containsExactly(1L, "Advanced Java", "Advanced Java programming");
+        verify(courseMapper).toCourse(request);
+        verify(courseMapper).toCourseDto(updatedCourse);
+    }
+
+    @Test
+    void updateCourse_shouldRejectMissingId() {
+        CourseDto request = new CourseDto(null, "Java", "Java programming course");
+
+        assertThatIllegalArgumentException()
+                .isThrownBy(() -> service.updateCourse(request))
+                .withMessage("Course ID must be positive");
+        verifyNoInteractions(courseRepository, courseMapper);
     }
 
     @Test
@@ -89,8 +169,16 @@ class CourseServiceTest {
     void findAll_shouldReturnCourseDtos() {
         List<Course> courses =
                 List.of(
-                        new Course(1L, "Java", "Java programming course"),
-                        new Course(2L, "SQL", "Relational databases course"));
+                        Course.builder()
+                                .id(1L)
+                                .name("Java")
+                                .description("Java programming course")
+                                .build(),
+                        Course.builder()
+                                .id(2L)
+                                .name("SQL")
+                                .description("Relational databases course")
+                                .build());
         when(courseRepository.findAll()).thenReturn(courses);
 
         List<CourseDto> actual = service.findAll();
@@ -100,6 +188,7 @@ class CourseServiceTest {
                         new CourseDto(1L, "Java", "Java programming course"),
                         new CourseDto(2L, "SQL", "Relational databases course"));
         verify(courseRepository).findAll();
+        courses.forEach(course -> verify(courseMapper).toCourseDto(course));
     }
 
     @Test
@@ -110,5 +199,6 @@ class CourseServiceTest {
 
         assertThat(actual).isEmpty();
         verify(courseRepository).findAll();
+        verifyNoInteractions(courseMapper);
     }
 }

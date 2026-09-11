@@ -26,10 +26,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class FindGroupsByMaximumStudentCountActionTest {
     private static final String FIELD_NAME = "Maximum student count";
 
-    @Mock private ConsoleInputReader inputReader;
-    @Mock private ConsoleView view;
-    @Mock private GroupService groupService;
-    @InjectMocks private FindGroupsByMaximumStudentCountAction command;
+    @Mock
+    private ConsoleInputReader inputReader;
+    @Mock
+    private ConsoleView view;
+    @Mock
+    private GroupService groupService;
+    @InjectMocks
+    private FindGroupsByMaximumStudentCountAction command;
 
     @Test
     void getAction() {
@@ -39,7 +43,9 @@ class FindGroupsByMaximumStudentCountActionTest {
     @Test
     void execute_shouldReadMaximumCountAndDisplayMatchingGroups() {
         int maximumStudentCount = 10;
-        List<Group> groups = List.of(new Group(1L, "AA-01"), new Group(2L, "AA-02"));
+        List<Group> groups = List.of(Group.builder().id(1L).name("AA-01").build(),
+                Group.builder().id(2L).name("AA-02").build());
+
         when(inputReader.readNonNegativeInteger(FIELD_NAME)).thenReturn(maximumStudentCount);
         when(groupService.findByMaximumStudentCount(maximumStudentCount)).thenReturn(groups);
 

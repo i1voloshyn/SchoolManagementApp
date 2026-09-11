@@ -4,6 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum Entity {
+    COURSE("Course"),
     STUDENT("Student");
 
     private final String value;

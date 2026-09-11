@@ -4,7 +4,9 @@ import lombok.Getter;
 
 @Getter
 public enum Prompt {
+    COURSE_DESCRIPTION("Enter course description:"),
     COURSE_ID("Enter course ID:"),
+    COURSE_NAME("Enter course name:"),
     DELETE_STUDENT_CONFIRMATION(
             "Permanently delete student? Type '%s' to delete, '%s' to cancel"),
     DELETE_STUDENT_FROM_COURSE_CONFIRMATION(

@@ -23,8 +23,9 @@ class GroupServiceTest {
 
     @Test
     void createGroup_shouldSaveAndReturnGroup() {
-        Group groupToCreate = new Group(null, "AA-01");
-        Group savedGroup = new Group(1L, "AA-01");
+        Group groupToCreate = Group.builder().name("AA-01").build();
+        Group savedGroup = Group.builder().id(1L).name("AA-01").build();
+
         when(groupRepository.save(groupToCreate)).thenReturn(savedGroup);
 
         Group actual = service.createGroup(groupToCreate);
@@ -41,7 +42,7 @@ class GroupServiceTest {
 
     @Test
     void createGroup_shouldRejectGroupWithId() {
-        Group existingGroup = new Group(1L, "AA-01");
+        Group existingGroup = Group.builder().id(1L).name("AA-01").build();
 
         assertThatIllegalArgumentException().isThrownBy(() -> service.createGroup(existingGroup));
         verifyNoInteractions(groupRepository);
@@ -49,7 +50,7 @@ class GroupServiceTest {
 
     @Test
     void createGroup_shouldRejectInvalidName() {
-        Group invalidGroup = new Group(null, "Group A");
+        Group invalidGroup = Group.builder().id(null).name("Group A").build();
 
         assertThatIllegalArgumentException().isThrownBy(() -> service.createGroup(invalidGroup));
         verifyNoInteractions(groupRepository);
@@ -57,7 +58,7 @@ class GroupServiceTest {
 
     @Test
     void findGroupsByMaximumStudentCount_shouldReturnRepositoryResult() {
-        List<Group> expected = List.of(new Group(1L, "AA-01"), new Group(2L, "AA-02"));
+        List<Group> expected = List.of(Group.builder().id(1L).name("AA-01").build(), Group.builder().id(2L).name("AA-02").build());
         when(groupRepository.findByMaximumStudentCount(10)).thenReturn(expected);
 
         List<Group> actual = service.findByMaximumStudentCount(10);

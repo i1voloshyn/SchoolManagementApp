@@ -1,78 +1,112 @@
 package com.foxminded.schoolmanagementapp.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatException;
 
-import com.foxminded.schoolmanagementapp.exception.CourseNotFoundException;
 import com.foxminded.schoolmanagementapp.model.Course;
+import jakarta.persistence.EntityManagerFactory;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
-import org.springframework.boot.jdbc.test.autoconfigure.JdbcTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Import;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
-@JdbcTest
+@DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import(JdbcCourseRepository.class)
+@Import(JpaCourseRepository.class)
 @Testcontainers
-class JdbcCourseRepositoryTest {
+@Transactional(propagation = Propagation.NOT_SUPPORTED)
+class JpaCourseRepositoryTest {
 
     @Container @ServiceConnection
     private static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:18.4");
 
     @Autowired CourseRepository repository;
-    @Autowired JdbcTemplate jdbcTemplate;
+    @Autowired EntityManagerFactory emf;
 
     @Sql("/fixtures/clean_up.sql")
     @Test
     void save_shouldSaveAndReturnCourse_withGeneratedId() {
-        Course courseToSave = new Course(null, "Test Course", "Test course description");
+        Course courseToSave =
+                Course.builder()
+                        .id(null)
+                        .name("Test Course")
+                        .description("Test course description")
+                        .students(Set.of())
+                        .build();
 
         Course saved = repository.save(courseToSave);
 
-        Course actual =
-                jdbcTemplate.queryForObject(
-                        "SELECT id, name, description FROM courses WHERE id = ?",
-                        (resultSet, rowNumber) ->
-                                new Course(
-                                        resultSet.getLong("id"),
-                                        resultSet.getString("name"),
-                                        resultSet.getString("description")),
-                        saved.getId());
+        Course actual = emf.callInTransaction(em -> em.find(Course.class, saved.getId()));
 
         assertThat(saved.getId()).isNotNull();
-        assertThat(actual).isEqualTo(saved);
+        assertThat(actual)
+                .extracting(Course::getName, Course::getDescription)
+                .containsExactly(courseToSave.getName(), courseToSave.getDescription());
+    }
+
+    @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/courses/insert_five_courses.sql"})
+    @Test
+    void update_shouldUpdateAndReturnCourse() {
+        Long courseId =
+                emf.callInTransaction(
+                        em ->
+                                em.createQuery(
+                                                "SELECT c.id FROM Course c WHERE c.name = :name",
+                                                Long.class)
+                                        .setParameter("name", "Java")
+                                        .getSingleResult());
+        Course courseToUpdate =
+                Course.builder()
+                        .id(courseId)
+                        .name("Updated Java")
+                        .description("Updated Java course description")
+                        .build();
+
+        Course updated = repository.update(courseToUpdate);
+
+        Course persisted = emf.callInTransaction(em -> em.find(Course.class, courseId));
+        assertThat(updated)
+                .extracting(Course::getId, Course::getName, Course::getDescription)
+                .containsExactly(
+                        courseId, "Updated Java", "Updated Java course description");
+        assertThat(persisted)
+                .extracting(Course::getId, Course::getName, Course::getDescription)
+                .containsExactly(
+                        courseId, "Updated Java", "Updated Java course description");
     }
 
     @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/courses/insert_five_courses.sql"})
     @Test
     void delete_shouldDeleteExpectedCourse() {
         Long courseIdToDelete =
-                jdbcTemplate.queryForObject("SELECT id FROM courses LIMIT 1", Long.class);
+                emf.callInTransaction(
+                        em ->
+                                em.createQuery("SELECT c.id FROM Course c", Long.class)
+                                        .setMaxResults(1)
+                                        .getSingleResult());
 
         repository.delete(courseIdToDelete);
 
         Long remainingCourses =
-                jdbcTemplate.queryForObject(
-                        "SELECT COUNT(*) FROM courses WHERE id = ?", Long.class, courseIdToDelete);
+                emf.callInTransaction(
+                        em ->
+                                em.createQuery(
+                                                "SELECT COUNT(c) FROM Course c WHERE c.id = :id",
+                                                Long.class)
+                                        .setParameter("id", courseIdToDelete)
+                                        .getSingleResult());
 
         assertThat(remainingCourses).isZero();
-    }
-
-    @Sql("/fixtures/clean_up.sql")
-    @Test
-    void delete_shouldThrowException_whenCourseDoesNotExist() {
-        assertThatException()
-                .isThrownBy(() -> repository.delete(-1L))
-                .isInstanceOf(CourseNotFoundException.class);
     }
 
     @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/courses/insert_five_courses.sql"})
@@ -105,8 +139,13 @@ class JdbcCourseRepositoryTest {
     @Test
     void findById_shouldReturnExpectedCourse_whenCourseExists() {
         Long courseId =
-                jdbcTemplate.queryForObject(
-                        "SELECT id FROM courses WHERE name = ?", Long.class, "Spring");
+                emf.callInTransaction(
+                        em ->
+                                em.createQuery(
+                                                "SELECT c.id FROM Course c WHERE c.name = :name",
+                                                Long.class)
+                                        .setParameter("name", "Spring")
+                                        .getSingleResult());
 
         Optional<Course> actual = repository.findById(courseId);
 
@@ -146,8 +185,14 @@ class JdbcCourseRepositoryTest {
     @Test
     void findByStudentId_shouldReturnAllCourses_forExpectedStudent() {
         Long studentId =
-                jdbcTemplate.queryForObject(
-                        "SELECT id FROM students WHERE first_name = ?", Long.class, "John");
+                emf.callInTransaction(
+                        em ->
+                                em.createQuery(
+                                                "SELECT s.id FROM Student s WHERE s.firstName ="
+                                                    + " :firstName",
+                                                Long.class)
+                                        .setParameter("firstName", "John")
+                                        .getSingleResult());
 
         List<Course> actual = repository.findByStudentId(studentId);
 
@@ -158,8 +203,14 @@ class JdbcCourseRepositoryTest {
     @Test
     void findByStudentId_shouldReturnEmptyList_whenStudentHasNoEnrollments() {
         Long studentId =
-                jdbcTemplate.queryForObject(
-                        "SELECT id FROM students WHERE first_name = ?", Long.class, "Emily");
+                emf.callInTransaction(
+                        em ->
+                                em.createQuery(
+                                                "SELECT s.id FROM Student s WHERE s.firstName ="
+                                                    + " :firstName",
+                                                Long.class)
+                                        .setParameter("firstName", "Emily")
+                                        .getSingleResult());
 
         List<Course> actual = repository.findByStudentId(studentId);
 

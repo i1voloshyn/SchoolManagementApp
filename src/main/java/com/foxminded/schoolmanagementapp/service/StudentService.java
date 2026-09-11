@@ -1,18 +1,20 @@
 package com.foxminded.schoolmanagementapp.service;
 
-import com.foxminded.schoolmanagementapp.GlobalMapper;
 import com.foxminded.schoolmanagementapp.dto.StudentDto;
+import com.foxminded.schoolmanagementapp.mapper.StudentMapper;
+import com.foxminded.schoolmanagementapp.model.Student;
 import com.foxminded.schoolmanagementapp.repository.StudentsRepository;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
 @Slf4j
 @AllArgsConstructor
 @Service
 public class StudentService {
     private final StudentsRepository studentsRepository;
-    private final GlobalMapper mapper;
+    private final StudentMapper studentMapper;
 
     public List<StudentDto> findStudentsByCourseName(String courseName) {
         if (courseName == null || courseName.isBlank()) {
@@ -20,13 +22,13 @@ public class StudentService {
         }
 
         return studentsRepository.findByCourseName(courseName).stream()
-                .map(mapper::toStudentDto)
+                .map(studentMapper::toStudentDto)
                 .toList();
     }
 
     public StudentDto addStudent(StudentDto dto) {
         validateNewStudent(dto);
-        return mapper.toStudentDto(studentsRepository.save(mapper.toStudent(dto)));
+        return studentMapper.toStudentDto(studentsRepository.save(studentMapper.toStudent(dto)));
     }
 
     public List<StudentDto> addStudents(List<StudentDto> students) {
@@ -36,10 +38,12 @@ public class StudentService {
 
         students.forEach(this::validateNewStudent);
 
+        List<Student> toSave = students.stream().map(studentMapper::toStudent).toList();
+
         return studentsRepository
-                .saveAll(students.stream().map(mapper::toStudent).toList())
+                .saveAll(toSave)
                 .stream()
-                .map(mapper::toStudentDto)
+                .map(studentMapper::toStudentDto)
                 .toList();
     }
 

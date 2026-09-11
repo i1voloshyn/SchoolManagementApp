@@ -13,7 +13,7 @@ public class DefaultGroupsDataGenerator implements GroupsGenerator {
     @Override
     public List<Group> generateGroups(int groupsCount) {
         return IntStream.range(0, groupsCount)
-                .mapToObj(index -> new Group(null, GROUP_NAME_TEMPLATE.formatted(index)))
+                .mapToObj(index -> Group.builder().name(String.format(GROUP_NAME_TEMPLATE, index + 1)).build())
                 .toList();
     }
 }

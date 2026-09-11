@@ -10,7 +10,7 @@ import com.foxminded.schoolmanagementapp.console.constants.MenuAction;
 import com.foxminded.schoolmanagementapp.console.constants.Prompt;
 import com.foxminded.schoolmanagementapp.console.systemConsole.ConsoleInputReader;
 import com.foxminded.schoolmanagementapp.exception.consoleException.InvalidConfirmationException;
-import com.foxminded.schoolmanagementapp.service.EnrollmentService;
+import com.foxminded.schoolmanagementapp.service.CourseService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 public class DeleteStudentFromCourseAction implements MenuActionRunner {
     private final ConsoleView consoleView;
     private final ConsoleInputReader inputReader;
-    private final EnrollmentService enrollmentService;
+    private final CourseService courseService;
 
     @Override
     public MenuAction getAction() {
@@ -42,7 +42,7 @@ public class DeleteStudentFromCourseAction implements MenuActionRunner {
         log.info("Requested student deletion from course. StudentId={}, CourseId={}", studentId, courseId);
 
         if (isRemovalConfirmed(confirmationAnswer)) {
-            enrollmentService.removeStudentFromCourse(studentId, courseId);
+            courseService.removeStudentFromCourse(studentId, courseId);
             consoleView.showSuccessMessageOnRemovalFromCourse();
         } else {
             consoleView.showCancellationMessageOnRemovalFromCourse();

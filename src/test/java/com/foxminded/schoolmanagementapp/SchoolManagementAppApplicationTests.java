@@ -4,11 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import com.foxminded.schoolmanagementapp.console.ConsoleMenu;
-import com.foxminded.schoolmanagementapp.console.constants.MenuAction;
 import com.foxminded.schoolmanagementapp.console.MenuActionRunnerDispatcher;
 import com.foxminded.schoolmanagementapp.console.command.MenuActionRunner;
+import com.foxminded.schoolmanagementapp.console.constants.MenuAction;
 import com.foxminded.schoolmanagementapp.service.CourseService;
-import com.foxminded.schoolmanagementapp.service.EnrollmentService;
 import com.foxminded.schoolmanagementapp.service.GroupService;
 import com.foxminded.schoolmanagementapp.service.StudentService;
 import java.io.ByteArrayInputStream;
@@ -68,9 +67,5 @@ class SchoolManagementAppApplicationTests {
             return mock(CourseService.class);
         }
 
-        @Bean
-        EnrollmentService enrollmentService() {
-            return mock(EnrollmentService.class);
-        }
     }
 }

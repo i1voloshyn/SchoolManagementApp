@@ -26,7 +26,7 @@ class InitialDataGeneratorIntegrationTest {
     @Autowired
     private InitialDataGenerator dataGenerator;
     @Autowired
-    DataGeneratorProperties properties;
+    private DataGeneratorProperties properties;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;

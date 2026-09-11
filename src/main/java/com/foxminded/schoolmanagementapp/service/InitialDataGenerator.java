@@ -25,7 +25,6 @@ public class InitialDataGenerator implements DataGenerator {
     private final CourseService courseService;
     private final StudentService studentService;
     private final SchoolDataStateService schoolDataStateService;
-    private final EnrollmentService enrollmentService;
 
     private final DataGeneratorProperties properties;
     private final GroupsGenerator groupsGenerator;
@@ -52,7 +51,7 @@ public class InitialDataGenerator implements DataGenerator {
                         "groupsCount={}, coursesCount={}, studentsCount={}, enrollmentsCount={}",
                 properties.groupsCount(), properties.coursesCount(), properties.studentsCount(), enrollments.size());
 
-        enrollmentService.addStudentsToCourses(enrollments);
+        courseService.addStudentsToCourses(enrollments);
 
         log.info("Data generation finished successfully");
         return true;
@@ -73,8 +72,10 @@ public class InitialDataGenerator implements DataGenerator {
     private List<StudentDto> createStudentsWithGroups(List<Group> groups) {
         List<Long> groupIds = groups.stream().map(Group::getId).toList();
 
-        return studentGenerator.generateStudentsWithGroups(groupIds).stream()
-                .map(studentService::addStudent)
+        var studentsWithCourses = studentGenerator.generateStudentsWithGroups(groupIds).stream()
                 .toList();
+
+
+        return studentService.addStudents(studentsWithCourses);
     }
 }

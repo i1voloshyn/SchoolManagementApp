@@ -12,7 +12,7 @@ import com.foxminded.schoolmanagementapp.console.ConsoleView;
 import com.foxminded.schoolmanagementapp.console.constants.LoopStatus;
 import com.foxminded.schoolmanagementapp.console.systemConsole.ConsoleInputReader;
 import com.foxminded.schoolmanagementapp.exception.consoleException.NonPositiveNumberException;
-import com.foxminded.schoolmanagementapp.service.EnrollmentService;
+import com.foxminded.schoolmanagementapp.service.CourseService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -25,7 +25,8 @@ class AddStudentToCourseActionTest {
     private static final String COURSE_ID = "Course ID";
 
     @Mock ConsoleInputReader reader;
-    @Mock EnrollmentService service;
+    @Mock
+    CourseService service;
     @Mock ConsoleView view;
     @InjectMocks AddStudentToCourseAction action;
 

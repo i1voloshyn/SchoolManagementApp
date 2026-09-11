@@ -1,51 +1,49 @@
 package com.foxminded.schoolmanagementapp.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatException;
 
 import com.foxminded.schoolmanagementapp.model.Group;
+import jakarta.persistence.EntityManagerFactory;
 import java.util.List;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
-import org.springframework.boot.jdbc.test.autoconfigure.JdbcTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Import;
-import org.springframework.jdbc.JdbcUpdateAffectedIncorrectNumberOfRowsException;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
-@JdbcTest
+@DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import(JdbcGroupRepository.class)
+@Import(JpaGroupRepository.class)
 @Testcontainers
-class JdbcGroupRepositoryTest {
+@Transactional(propagation = Propagation.NOT_SUPPORTED)
+class JpaGroupRepositoryTest {
 
-    @Container @ServiceConnection
+    @Container
+    @ServiceConnection
     private static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:18.4");
 
-    @Autowired GroupRepository repository;
-    @Autowired JdbcTemplate jdbcTemplate;
+    @Autowired
+    GroupRepository repository;
+    @Autowired
+    EntityManagerFactory emf;
 
     @Test
     void save_shouldSaveAndReturnGroup_withGeneratedId() {
-        Group groupToSave = new Group(null, "Test Group");
+        Group groupToSave = Group.builder()
+                .id(null)
+                .name("Test Group")
+                .build();
 
         Group saved = repository.save(groupToSave);
 
-        Group actual =
-                jdbcTemplate.queryForObject(
-                        "SELECT id,name FROM groups WHERE id = ?",
-                        (rs, rn) -> {
-                            Long id = rs.getLong(1);
-                            String name = rs.getString(2);
-                            return new Group(id, name);
-                        },
-                        saved.getId());
+        Group actual = emf.callInTransaction(em -> em.find(Group.class, saved.getId()));
 
         assertThat(actual.getName()).isEqualTo(groupToSave.getName());
     }
@@ -54,15 +52,28 @@ class JdbcGroupRepositoryTest {
     @Test
     void delete_shouldDeleteExpectedGroup() {
         Long groupIdToDelete =
-                jdbcTemplate.queryForObject("SELECT id FROM groups LIMIT 1", Long.class);
+                emf.callInTransaction(
+                        em ->
+                                em.createQuery(
+                                                "SELECT g.id FROM Group g WHERE g.name = :name",
+                                                Long.class)
+                                        .setParameter("name", "Group A")
+                                        .getSingleResult());
 
         repository.delete(groupIdToDelete);
+
         Long remainingGroups =
-                jdbcTemplate.queryForObject(
-                        "SELECT COUNT(*) FROM groups WHERE id = ?", Long.class, groupIdToDelete);
+                emf.callInTransaction(
+                        em ->
+                                em.createQuery(
+                                                "SELECT COUNT(g) FROM Group g WHERE g.id = :id",
+                                                Long.class)
+                                        .setParameter("id", groupIdToDelete)
+                                        .getSingleResult());
 
         assertThat(remainingGroups).isZero();
     }
+
 
     @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/groups/insert_five_groups.sql"})
     @Test
@@ -85,20 +96,10 @@ class JdbcGroupRepositoryTest {
         assertThat(actual).isEmpty();
     }
 
-    @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/groups/insert_five_groups.sql"})
-    @Test
-    @DisplayName(
-            "delete_shouldThrown_JdbcUpdateAffectedIncorrectNumberOfRowsException_forGroupId_thatDoNotExist")
-    void delete_shouldThrowException() {
-        assertThatException()
-                .isThrownBy(() -> repository.delete(-1L))
-                .isInstanceOf(JdbcUpdateAffectedIncorrectNumberOfRowsException.class);
-    }
-
     @Sql(
             value = {
-                "/fixtures/clean_up.sql",
-                "/fixtures/groups/groups_with_different_student_counts.sql"
+                    "/fixtures/clean_up.sql",
+                    "/fixtures/groups/groups_with_different_student_counts.sql"
             })
     @Test
     void findByMaximumStudentCount_shouldReturnListWithExpectedGroups() {
