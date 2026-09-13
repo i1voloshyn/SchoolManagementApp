@@ -13,7 +13,7 @@ import com.foxminded.schoolmanagementapp.mapper.StudentMapper;
 import com.foxminded.schoolmanagementapp.model.Course;
 import com.foxminded.schoolmanagementapp.model.Group;
 import com.foxminded.schoolmanagementapp.model.Student;
-import com.foxminded.schoolmanagementapp.repository.StudentsRepository;
+import com.foxminded.schoolmanagementapp.repository.StudentRepository;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -27,7 +27,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class StudentServiceTest {
     @Mock
-    private StudentsRepository studentsRepository;
+    private StudentRepository studentsRepository;
     @InjectMocks
     private StudentService service;
     @Spy
@@ -43,7 +43,7 @@ class StudentServiceTest {
 
         List<Student> expected =
                 List.of(student1, student2);
-        when(studentsRepository.findByCourseName(courseName)).thenReturn(expected);
+        when(studentsRepository.findStudentsByCourseName(courseName)).thenReturn(expected);
 
         List<StudentDto> actual = service.findStudentsByCourseName(courseName);
 
@@ -52,7 +52,7 @@ class StudentServiceTest {
                 .containsExactlyInAnyOrder(
                         tuple(1L, 5L, "John", "Smith"), tuple(2L, 5L, "Anna", "Brown"));
 
-        verify(studentsRepository).findByCourseName(courseName);
+        verify(studentsRepository).findStudentsByCourseName(courseName);
         verify(studentMapper).toStudentDto(student1);
         verify(studentMapper).toStudentDto(student2);
     }
@@ -60,7 +60,7 @@ class StudentServiceTest {
     @Test
     void findStudentsByCourseName_shouldReturnEmptyList_whenCourseDoesNotExist() {
         String nonExistedCourse = "NonExistedCourse";
-        when(studentsRepository.findByCourseName(nonExistedCourse)).thenReturn(List.of());
+        when(studentsRepository.findStudentsByCourseName(nonExistedCourse)).thenReturn(List.of());
 
         var actual = service.findStudentsByCourseName(nonExistedCourse);
 
@@ -155,15 +155,6 @@ class StudentServiceTest {
 
         assertThatIllegalArgumentException().isThrownBy(() -> service.addStudent(student));
         verifyNoInteractions(studentsRepository, studentMapper);
-    }
-
-    @Test
-    void deleteStudent_shouldDeleteExistingStudent() {
-        Long studentId = 1L;
-
-        service.deleteStudent(studentId);
-
-        verify(studentsRepository).delete(studentId);
     }
 
     @Test

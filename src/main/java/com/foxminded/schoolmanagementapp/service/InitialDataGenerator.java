@@ -14,7 +14,6 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @AllArgsConstructor
@@ -33,7 +32,6 @@ public class InitialDataGenerator implements DataGenerator {
     private final EnrollmentsRule enrollmentsRule;
 
     @Override
-    @Transactional
     public boolean generateDataIfEmpty() {
         if (!schoolDataStateService.isDatabaseEmpty()) {
 
@@ -72,10 +70,9 @@ public class InitialDataGenerator implements DataGenerator {
     private List<StudentDto> createStudentsWithGroups(List<Group> groups) {
         List<Long> groupIds = groups.stream().map(Group::getId).toList();
 
-        var studentsWithCourses = studentGenerator.generateStudentsWithGroups(groupIds).stream()
+        var studentsWithGroups = studentGenerator.generateStudentsWithGroups(groupIds).stream()
                 .toList();
 
-
-        return studentService.addStudents(studentsWithCourses);
+        return studentService.addStudents(studentsWithGroups);
     }
 }

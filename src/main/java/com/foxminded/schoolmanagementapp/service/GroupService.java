@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @AllArgsConstructor
 @Service
@@ -14,11 +15,13 @@ public class GroupService {
 
     private final GroupRepository groupRepository;
 
+    @Transactional
     public Group createGroup(Group group) {
         validateNewGroup(group);
         return groupRepository.save(group);
     }
 
+    @Transactional(readOnly = true)
     public List<Group> findAll() {
         return groupRepository.findAll();
     }
