@@ -2,10 +2,10 @@ package com.foxminded.schoolmanagementapp.repository;
 
 import jakarta.persistence.EntityManagerFactory;
 import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Repository;
 
 @AllArgsConstructor
-@Service
+@Repository
 public class JpaSchoolDataStateRepository implements SchoolDataStateRepository {
     private static final String HAS_ANY_DATA_QUERY =
             """

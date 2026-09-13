@@ -1,6 +1,7 @@
 package com.foxminded.schoolmanagementapp.service;
 
 import com.foxminded.schoolmanagementapp.dto.CourseDto;
+import com.foxminded.schoolmanagementapp.exception.CourseNotFoundException;
 import com.foxminded.schoolmanagementapp.mapper.CourseMapper;
 import com.foxminded.schoolmanagementapp.model.Course;
 import com.foxminded.schoolmanagementapp.model.Enrollment;
@@ -8,9 +9,11 @@ import com.foxminded.schoolmanagementapp.repository.CourseRepository;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @AllArgsConstructor
 @Service
+@Transactional
 public class CourseService {
     private final CourseRepository courseRepository;
     private final CourseMapper courseMapper;
@@ -26,16 +29,19 @@ public class CourseService {
     public CourseDto updateCourse(CourseDto courseRequest) {
         validateRequest(courseRequest);
         validateCourseId(courseRequest.id());
+        Course course = findById(courseRequest.id());
 
-        Course updatedCourse = courseRepository.update(courseMapper.toCourse(courseRequest));
+        course.setName(courseRequest.name());
+        course.setDescription(courseRequest.description());
 
-        return courseMapper.toCourseDto(updatedCourse);
+        return courseMapper.toCourseDto(course);
     }
 
     public void deleteCourse(Long courseId) {
         validateCourseId(courseId);
+        Course course = findById(courseId);
 
-        courseRepository.delete(courseId);
+        courseRepository.delete(course);
     }
 
     public void addStudentToCourse(Long studentId, Long courseId) {
@@ -64,8 +70,13 @@ public class CourseService {
         courseRepository.removeEnrollment(studentId, courseId);
     }
 
+    @Transactional(readOnly = true)
     public List<CourseDto> findAll() {
         return courseRepository.findAll().stream().map(courseMapper::toCourseDto).toList();
+    }
+
+    private Course findById(Long id) {
+        return courseRepository.findById(id).orElseThrow(() -> new CourseNotFoundException(id));
     }
 
     private void validateRequest(CourseDto request) {

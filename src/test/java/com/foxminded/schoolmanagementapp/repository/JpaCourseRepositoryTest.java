@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +21,6 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import(JpaCourseRepository.class)
 @Testcontainers
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 class JpaCourseRepositoryTest {
@@ -56,51 +54,50 @@ class JpaCourseRepositoryTest {
 
     @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/courses/insert_five_courses.sql"})
     @Test
-    void update_shouldUpdateAndReturnCourse() {
+    void save_shouldUpdateAndReturnCourse() {
         Long courseId =
                 emf.callInTransaction(
-                        em ->
-                                em.createQuery(
+                        entityManager ->
+                                entityManager
+                                        .createQuery(
                                                 "SELECT c.id FROM Course c WHERE c.name = :name",
                                                 Long.class)
                                         .setParameter("name", "Java")
                                         .getSingleResult());
-        Course courseToUpdate =
-                Course.builder()
-                        .id(courseId)
-                        .name("Updated Java")
-                        .description("Updated Java course description")
-                        .build();
+        Course courseToUpdate = repository.findById(courseId).orElseThrow();
+        courseToUpdate.setName("Updated Java");
+        courseToUpdate.setDescription("Updated Java course description");
 
-        Course updated = repository.update(courseToUpdate);
+        Course updated = repository.save(courseToUpdate);
 
-        Course persisted = emf.callInTransaction(em -> em.find(Course.class, courseId));
+        Course persisted =
+                emf.callInTransaction(entityManager -> entityManager.find(Course.class, courseId));
         assertThat(updated)
                 .extracting(Course::getId, Course::getName, Course::getDescription)
-                .containsExactly(
-                        courseId, "Updated Java", "Updated Java course description");
+                .containsExactly(courseId, "Updated Java", "Updated Java course description");
         assertThat(persisted)
                 .extracting(Course::getId, Course::getName, Course::getDescription)
-                .containsExactly(
-                        courseId, "Updated Java", "Updated Java course description");
+                .containsExactly(courseId, "Updated Java", "Updated Java course description");
     }
 
     @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/courses/insert_five_courses.sql"})
     @Test
-    void delete_shouldDeleteExpectedCourse() {
+    void deleteById_shouldDeleteExpectedCourse() {
         Long courseIdToDelete =
                 emf.callInTransaction(
-                        em ->
-                                em.createQuery("SELECT c.id FROM Course c", Long.class)
+                        entityManager ->
+                                entityManager
+                                        .createQuery("SELECT c.id FROM Course c", Long.class)
                                         .setMaxResults(1)
                                         .getSingleResult());
 
-        repository.delete(courseIdToDelete);
+        repository.deleteById(courseIdToDelete);
 
         Long remainingCourses =
                 emf.callInTransaction(
-                        em ->
-                                em.createQuery(
+                        entityManager ->
+                                entityManager
+                                        .createQuery(
                                                 "SELECT COUNT(c) FROM Course c WHERE c.id = :id",
                                                 Long.class)
                                         .setParameter("id", courseIdToDelete)
@@ -166,8 +163,8 @@ class JpaCourseRepositoryTest {
 
     @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/courses/insert_five_courses.sql"})
     @Test
-    void findByName_shouldReturnOneCourse_withExpectedName() {
-        Optional<Course> actual = repository.findByName("Java");
+    void findCourseByName_shouldReturnOneCourse_withExpectedName() {
+        Optional<Course> actual = repository.findCourseByName("Java");
 
         assertThat(actual.isPresent()).isTrue();
         assertThat(actual.get()).extracting(Course::getName).isEqualTo("Java");
@@ -175,8 +172,8 @@ class JpaCourseRepositoryTest {
 
     @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/courses/insert_five_courses.sql"})
     @Test
-    void findByName_shouldReturnEmptyOptional_whenNameDoesNotExist() {
-        Optional<Course> actual = repository.findByName("Unknown");
+    void findCourseByName_shouldReturnEmptyOptional_whenNameDoesNotExist() {
+        Optional<Course> actual = repository.findCourseByName("Unknown");
 
         assertThat(actual).isEmpty();
     }
@@ -189,7 +186,7 @@ class JpaCourseRepositoryTest {
                         em ->
                                 em.createQuery(
                                                 "SELECT s.id FROM Student s WHERE s.firstName ="
-                                                    + " :firstName",
+                                                        + " :firstName",
                                                 Long.class)
                                         .setParameter("firstName", "John")
                                         .getSingleResult());
@@ -207,7 +204,7 @@ class JpaCourseRepositoryTest {
                         em ->
                                 em.createQuery(
                                                 "SELECT s.id FROM Student s WHERE s.firstName ="
-                                                    + " :firstName",
+                                                        + " :firstName",
                                                 Long.class)
                                         .setParameter("firstName", "Emily")
                                         .getSingleResult());

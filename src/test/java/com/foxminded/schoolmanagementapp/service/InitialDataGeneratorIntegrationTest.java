@@ -10,7 +10,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
@@ -18,7 +17,6 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 @SpringBootTest(properties = "school.console.enabled=false")
 @Testcontainers
 @Sql(scripts = "/fixtures/clean_up.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-@Transactional
 class InitialDataGeneratorIntegrationTest {
 
     @Container
