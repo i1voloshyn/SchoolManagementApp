@@ -19,4 +19,7 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
             WHERE c.name=:name
             """)
     List<Student> findStudentsByCourseName(String name);
+
+    @NativeQuery("SELECT EXISTS(SELECT 1 FROM students)")
+    boolean hasData();
 }

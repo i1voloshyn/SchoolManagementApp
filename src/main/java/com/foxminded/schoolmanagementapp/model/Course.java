@@ -1,5 +1,6 @@
 package com.foxminded.schoolmanagementapp.model;
 
+import com.foxminded.schoolmanagementapp.exception.EnrollmentNotFoundException;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -42,6 +43,18 @@ public class Course {
     private Set<Student> students = new HashSet<>();
 
     public boolean addStudent(Student student) {
-        return students.add(student);
+        if (!students.add(student)) {
+            student.getCourses().add(this);
+            return false;
+        }
+        return true;
+    }
+
+    public void removeStudent(Student student) {
+        if (students.remove(student)) {
+            student.getCourses().remove(this);
+        } else {
+            throw new EnrollmentNotFoundException(student.getId(), this.id);
+        }
     }
 }

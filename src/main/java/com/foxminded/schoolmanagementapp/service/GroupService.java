@@ -4,12 +4,13 @@ import com.foxminded.schoolmanagementapp.model.Group;
 import com.foxminded.schoolmanagementapp.repository.GroupRepository;
 import java.util.List;
 import java.util.regex.Pattern;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Service
+@Transactional(readOnly = true)
 public class GroupService {
     private static final Pattern GROUP_NAME_PATTERN = Pattern.compile("A{2}-\\d{2}");
 
@@ -21,9 +22,12 @@ public class GroupService {
         return groupRepository.save(group);
     }
 
-    @Transactional(readOnly = true)
     public List<Group> findAll() {
         return groupRepository.findAll();
+    }
+
+    public boolean hasData(){
+        return groupRepository.hasData();
     }
 
     public List<Group> findByMaximumStudentCount(int studentCount) {

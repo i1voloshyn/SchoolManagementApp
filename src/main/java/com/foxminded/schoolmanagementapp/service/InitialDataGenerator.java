@@ -23,7 +23,6 @@ public class InitialDataGenerator implements DataGenerator {
     private final GroupService groupService;
     private final CourseService courseService;
     private final StudentService studentService;
-    private final SchoolDataStateService schoolDataStateService;
 
     private final DataGeneratorProperties properties;
     private final GroupsGenerator groupsGenerator;
@@ -33,7 +32,7 @@ public class InitialDataGenerator implements DataGenerator {
 
     @Override
     public boolean generateDataIfEmpty() {
-        if (!schoolDataStateService.isDatabaseEmpty()) {
+        if (groupService.hasData() && courseService.hasData() && studentService.hasData()) {
 
             log.info("Initial data generation skipped: reason=database-not-empty");
             return false;

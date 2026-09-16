@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @AllArgsConstructor
 @Service
-@Transactional
+@Transactional(readOnly = true)
 public class StudentService {
     private final StudentRepository studentRepository;
     private final StudentMapper studentMapper;
@@ -29,11 +29,13 @@ public class StudentService {
                 .toList();
     }
 
+    @Transactional
     public StudentDto addStudent(StudentDto dto) {
         validateNewStudent(dto);
         return studentMapper.toStudentDto(studentRepository.save(studentMapper.toStudent(dto)));
     }
 
+    @Transactional
     public List<StudentDto> addStudents(List<StudentDto> students) {
         if (students == null) {
             throw new IllegalArgumentException("Students must not be null");
@@ -50,12 +52,17 @@ public class StudentService {
                 .toList();
     }
 
+    @Transactional
     public void deleteStudent(Long studentId) {
         validateStudentId(studentId);
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new StudentNotFoundException(studentId));
 
         studentRepository.delete(student);
+    }
+
+    public boolean hasData(){
+        return studentRepository.hasData();
     }
 
     private void validateNewStudent(StudentDto dto) {
