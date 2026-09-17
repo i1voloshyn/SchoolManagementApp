@@ -14,7 +14,6 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @AllArgsConstructor
@@ -24,7 +23,6 @@ public class InitialDataGenerator implements DataGenerator {
     private final GroupService groupService;
     private final CourseService courseService;
     private final StudentService studentService;
-    private final SchoolDataStateService schoolDataStateService;
 
     private final DataGeneratorProperties properties;
     private final GroupsGenerator groupsGenerator;
@@ -33,9 +31,8 @@ public class InitialDataGenerator implements DataGenerator {
     private final EnrollmentsRule enrollmentsRule;
 
     @Override
-    @Transactional
     public boolean generateDataIfEmpty() {
-        if (!schoolDataStateService.isDatabaseEmpty()) {
+        if (groupService.hasData() && courseService.hasData() && studentService.hasData()) {
 
             log.info("Initial data generation skipped: reason=database-not-empty");
             return false;
@@ -72,10 +69,9 @@ public class InitialDataGenerator implements DataGenerator {
     private List<StudentDto> createStudentsWithGroups(List<Group> groups) {
         List<Long> groupIds = groups.stream().map(Group::getId).toList();
 
-        var studentsWithCourses = studentGenerator.generateStudentsWithGroups(groupIds).stream()
+        var studentsWithGroups = studentGenerator.generateStudentsWithGroups(groupIds).stream()
                 .toList();
 
-
-        return studentService.addStudents(studentsWithCourses);
+        return studentService.addStudents(studentsWithGroups);
     }
 }

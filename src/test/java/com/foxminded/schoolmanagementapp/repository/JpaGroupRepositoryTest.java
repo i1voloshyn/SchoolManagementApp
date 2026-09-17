@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,7 +19,6 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import(JpaGroupRepository.class)
 @Testcontainers
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 class JpaGroupRepositoryTest {
@@ -51,16 +49,16 @@ class JpaGroupRepositoryTest {
     @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/groups/insert_five_groups.sql"})
     @Test
     void delete_shouldDeleteExpectedGroup() {
-        Long groupIdToDelete =
+        Group groupToDelete =
                 emf.callInTransaction(
                         em ->
                                 em.createQuery(
-                                                "SELECT g.id FROM Group g WHERE g.name = :name",
-                                                Long.class)
+                                                "SELECT g FROM Group g WHERE g.name = :name",
+                                                Group.class)
                                         .setParameter("name", "Group A")
                                         .getSingleResult());
 
-        repository.delete(groupIdToDelete);
+        repository.delete(groupToDelete);
 
         Long remainingGroups =
                 emf.callInTransaction(
@@ -68,7 +66,7 @@ class JpaGroupRepositoryTest {
                                 em.createQuery(
                                                 "SELECT COUNT(g) FROM Group g WHERE g.id = :id",
                                                 Long.class)
-                                        .setParameter("id", groupIdToDelete)
+                                        .setParameter("id", groupToDelete.getId())
                                         .getSingleResult());
 
         assertThat(remainingGroups).isZero();

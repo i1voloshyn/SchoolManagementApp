@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +21,6 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import(JpaStudentRepository.class)
 @Testcontainers
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 class JpaStudentRepositoryTest {
@@ -30,7 +28,7 @@ class JpaStudentRepositoryTest {
     @Container @ServiceConnection
     private static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:18.4");
 
-    @Autowired StudentsRepository repository;
+    @Autowired StudentRepository repository;
     @Autowired EntityManagerFactory emf;
 
     @Sql("/fixtures/clean_up.sql")
@@ -84,17 +82,17 @@ class JpaStudentRepositoryTest {
     @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/students/insert_five_students.sql"})
     @Test
     void delete_shouldDeleteExpectedStudent() {
-        Long studentIdToDelete =
+        Student studentToDelete =
                 emf.callInTransaction(
                         em ->
                                 em.createQuery(
-                                                "SELECT s.id FROM Student s WHERE s.firstName ="
+                                                "SELECT s FROM Student s WHERE s.firstName ="
                                                     + " :firstName",
-                                                Long.class)
+                                                Student.class)
                                         .setParameter("firstName", "John")
                                         .getSingleResult());
 
-        repository.delete(studentIdToDelete);
+        repository.delete(studentToDelete);
 
         Long remainingStudents =
                 emf.callInTransaction(
@@ -102,7 +100,7 @@ class JpaStudentRepositoryTest {
                                 em.createQuery(
                                                 "SELECT COUNT(s) FROM Student s WHERE s.id = :id",
                                                 Long.class)
-                                        .setParameter("id", studentIdToDelete)
+                                        .setParameter("id", studentToDelete.getId())
                                         .getSingleResult());
 
         assertThat(remainingStudents).isZero();
@@ -112,18 +110,18 @@ class JpaStudentRepositoryTest {
     @Test
     void delete_shouldDeleteStudentEnrollments_butPreserveCourses() {
         Long coursesBeforeDelete = 3L;
-        Long studentIdToDelete =
+        Student studentToDelete =
                 emf.callInTransaction(
                         em ->
                                 em.createQuery(
-                                                "SELECT s.id FROM Student s WHERE s.firstName ="
+                                                "SELECT s FROM Student s WHERE s.firstName ="
                                                     + " :firstName",
-                                                Long.class)
+                                                Student.class)
                                         .setParameter("firstName", "John")
                                         .getSingleResult());
-        Long enrollmentsBeforeDelete = countStudentEnrollments(studentIdToDelete);
+        Long enrollmentsBeforeDelete = countStudentEnrollments(studentToDelete.getId());
 
-        repository.delete(studentIdToDelete);
+        repository.delete(studentToDelete);
 
         Long remainingStudents =
                 emf.callInTransaction(
@@ -131,9 +129,9 @@ class JpaStudentRepositoryTest {
                                 em.createQuery(
                                                 "SELECT COUNT(s) FROM Student s WHERE s.id = :id",
                                                 Long.class)
-                                        .setParameter("id", studentIdToDelete)
+                                        .setParameter("id", studentToDelete.getId())
                                         .getSingleResult());
-        Long remainingEnrollments = countStudentEnrollments(studentIdToDelete);
+        Long remainingEnrollments = countStudentEnrollments(studentToDelete.getId());
         Long remainingCourses =
                 emf.callInTransaction(
                         em ->
@@ -199,7 +197,7 @@ class JpaStudentRepositoryTest {
     @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/students/insert_five_students.sql"})
     @Test
     void findByLastName_shouldReturnAllStudents_withExpectedLastName() {
-        List<Student> actual = repository.findByLastName("Smith");
+        List<Student> actual = repository.findStudentByLastName("Smith");
 
         assertThat(actual)
                 .extracting(Student::getFirstName)
@@ -210,7 +208,7 @@ class JpaStudentRepositoryTest {
     @Sql(value = {"/fixtures/clean_up.sql", "/fixtures/students/insert_five_students.sql"})
     @Test
     void findByLastName_shouldReturnEmptyList_whenLastNameDoesNotExist() {
-        List<Student> actual = repository.findByLastName("Unknown");
+        List<Student> actual = repository.findStudentByLastName("Unknown");
 
         assertThat(actual).isEmpty();
     }
@@ -219,7 +217,7 @@ class JpaStudentRepositoryTest {
     @Test
     void findByCourseName_shouldReturnAllStudents_enrolledInExpectedCourse() {
         String name = "Java";
-        List<Student> actual = repository.findByCourseName(name);
+        List<Student> actual = repository.findStudentsByCourseName(name);
 
         assertThat(actual)
                 .extracting(Student::getFirstName)
@@ -230,7 +228,7 @@ class JpaStudentRepositoryTest {
     @Test
     void findByCourseName_shouldReturnEmptyList_forNonExistedCourse() {
         String name = "Wrong-Java";
-        List<Student> actual = repository.findByCourseName(name);
+        List<Student> actual = repository.findStudentsByCourseName(name);
 
         assertThat(actual).isEmpty();
     }

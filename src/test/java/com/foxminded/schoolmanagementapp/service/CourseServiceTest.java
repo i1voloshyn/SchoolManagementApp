@@ -10,9 +10,9 @@ import static org.mockito.Mockito.when;
 import com.foxminded.schoolmanagementapp.dto.CourseDto;
 import com.foxminded.schoolmanagementapp.mapper.CourseMapper;
 import com.foxminded.schoolmanagementapp.model.Course;
-import com.foxminded.schoolmanagementapp.model.Enrollment;
 import com.foxminded.schoolmanagementapp.repository.CourseRepository;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
@@ -25,39 +25,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class CourseServiceTest {
 
-    private static final long STUDENT_ID = 1L;
-    private static final long COURSE_ID = 10L;
-
     @Mock
     private CourseRepository courseRepository;
     @InjectMocks
     private CourseService service;
     @Spy
     private CourseMapper courseMapper = Mappers.getMapper(CourseMapper.class);
-
-    @Test
-    void addStudentToCourse_shouldCreateNewEnrollment() {
-        service.addStudentToCourse(STUDENT_ID, COURSE_ID);
-
-        verify(courseRepository).enroll(STUDENT_ID, COURSE_ID);
-    }
-
-    @Test
-    void addStudentsToCourses_shouldCreateEnrollmentBatch() {
-        List<Enrollment> enrollments =
-                List.of(new Enrollment(STUDENT_ID, COURSE_ID), new Enrollment(2L, COURSE_ID));
-
-        service.addStudentsToCourses(enrollments);
-
-        verify(courseRepository).enrollAll(enrollments);
-    }
-
-    @Test
-    void removeStudentFromCourse_shouldRemoveEnrollment() {
-        service.removeStudentFromCourse(STUDENT_ID, COURSE_ID);
-
-        verify(courseRepository).removeEnrollment(STUDENT_ID, COURSE_ID);
-    }
 
     @Test
     void createCourse_shouldReturnSavedCourseDto() {
@@ -110,24 +83,18 @@ class CourseServiceTest {
     @Test
     void updateCourse_shouldUpdateAndReturnCourseDto() {
         CourseDto request = new CourseDto(1L, "Advanced Java", "Advanced Java programming");
-        Course updatedCourse =
-                Course.builder()
-                        .id(1L)
-                        .name("Advanced Java")
-                        .description("Advanced Java programming")
-                        .build();
-        when(courseRepository.update(any(Course.class))).thenReturn(updatedCourse);
+        Course existingCourse =
+                Course.builder().id(1L).name("Java").description("Java programming course").build();
+        when(courseRepository.findById(1L)).thenReturn(Optional.of(existingCourse));
 
         CourseDto actual = service.updateCourse(request);
 
         assertThat(actual).isEqualTo(request);
-        ArgumentCaptor<Course> courseCaptor = ArgumentCaptor.forClass(Course.class);
-        verify(courseRepository).update(courseCaptor.capture());
-        assertThat(courseCaptor.getValue())
+        assertThat(existingCourse)
                 .extracting(Course::getId, Course::getName, Course::getDescription)
                 .containsExactly(1L, "Advanced Java", "Advanced Java programming");
-        verify(courseMapper).toCourse(request);
-        verify(courseMapper).toCourseDto(updatedCourse);
+        verify(courseRepository).findById(1L);
+        verify(courseMapper).toCourseDto(existingCourse);
     }
 
     @Test
@@ -143,10 +110,13 @@ class CourseServiceTest {
     @Test
     void deleteCourse_shouldDeleteExistingCourse() {
         Long courseId = 1L;
+        Course existingCourse = Course.builder().id(courseId).build();
+        when(courseRepository.findById(courseId)).thenReturn(Optional.of(existingCourse));
 
         service.deleteCourse(courseId);
 
-        verify(courseRepository).delete(courseId);
+        verify(courseRepository).findById(courseId);
+        verify(courseRepository).delete(existingCourse);
     }
 
     @Test

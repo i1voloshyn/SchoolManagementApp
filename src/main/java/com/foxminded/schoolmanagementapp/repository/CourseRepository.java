@@ -1,30 +1,28 @@
 package com.foxminded.schoolmanagementapp.repository;
 
 import com.foxminded.schoolmanagementapp.model.Course;
-import com.foxminded.schoolmanagementapp.model.Enrollment;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.NativeQuery;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
-public interface CourseRepository {
-    Course save(Course course);
+public interface CourseRepository extends JpaRepository<Course, Long> {
+    Optional<Course> findCourseByName(String name);
 
-    Course update(Course course);
+    @Query("SELECT DISTINCT c FROM Course c JOIN c.students s WHERE s.id = :studentId")
+    List<Course> findByStudentId(@Param("studentId") Long studentId);
 
-    void enroll(Long studentId, Long courseId);
+    @Modifying
+    @NativeQuery("""
+            
+            INSERT INTO students_courses (student_id, course_id)
+                       SELECT * FROM unnest(CAST(:studentIds AS bigint[]), CAST(:courseIds AS bigint[]))
+            """)
+    void enrollAll(@Param("courseIds") Long[] courseIds, @Param("studentIds") Long[] studentIds);
 
-    void enrollAll(List<Enrollment> enrollments);
-
-    void removeEnrollment(Long studentId, Long courseId);
-
-    boolean enrollmentExist(Long studentId, Long courseId);
-
-    void delete(Long id);
-
-    List<Course> findAll();
-
-    Optional<Course> findById(Long id);
-
-    Optional<Course> findByName(String name);
-
-    List<Course> findByStudentId(Long studentId);
+    @NativeQuery("SELECT EXISTS(SELECT 1 FROM courses UNION ALL SELECT 1 from students_courses)")
+    boolean hasData();
 }

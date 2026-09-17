@@ -1,19 +1,22 @@
 package com.foxminded.schoolmanagementapp.service;
 
 import com.foxminded.schoolmanagementapp.dto.StudentDto;
+import com.foxminded.schoolmanagementapp.exception.StudentNotFoundException;
 import com.foxminded.schoolmanagementapp.mapper.StudentMapper;
 import com.foxminded.schoolmanagementapp.model.Student;
-import com.foxminded.schoolmanagementapp.repository.StudentsRepository;
+import com.foxminded.schoolmanagementapp.repository.StudentRepository;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @AllArgsConstructor
 @Service
+@Transactional(readOnly = true)
 public class StudentService {
-    private final StudentsRepository studentsRepository;
+    private final StudentRepository studentRepository;
     private final StudentMapper studentMapper;
 
     public List<StudentDto> findStudentsByCourseName(String courseName) {
@@ -21,16 +24,18 @@ public class StudentService {
             throw new IllegalArgumentException("Course name must not be blank");
         }
 
-        return studentsRepository.findByCourseName(courseName).stream()
+        return studentRepository.findStudentsByCourseName(courseName).stream()
                 .map(studentMapper::toStudentDto)
                 .toList();
     }
 
+    @Transactional
     public StudentDto addStudent(StudentDto dto) {
         validateNewStudent(dto);
-        return studentMapper.toStudentDto(studentsRepository.save(studentMapper.toStudent(dto)));
+        return studentMapper.toStudentDto(studentRepository.save(studentMapper.toStudent(dto)));
     }
 
+    @Transactional
     public List<StudentDto> addStudents(List<StudentDto> students) {
         if (students == null) {
             throw new IllegalArgumentException("Students must not be null");
@@ -40,17 +45,24 @@ public class StudentService {
 
         List<Student> toSave = students.stream().map(studentMapper::toStudent).toList();
 
-        return studentsRepository
+        return studentRepository
                 .saveAll(toSave)
                 .stream()
                 .map(studentMapper::toStudentDto)
                 .toList();
     }
 
+    @Transactional
     public void deleteStudent(Long studentId) {
         validateStudentId(studentId);
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new StudentNotFoundException(studentId));
 
-        studentsRepository.delete(studentId);
+        studentRepository.delete(student);
+    }
+
+    public boolean hasData(){
+        return studentRepository.hasData();
     }
 
     private void validateNewStudent(StudentDto dto) {
